@@ -56,3 +56,6 @@ INCLUDEPATH += $$PWD/../build-SMTPEmail-Desktop_Qt_5_11_2_MinGW_32bit-Debug/debu
 DEPENDPATH += $$PWD/../build-SMTPEmail-Desktop_Qt_5_11_2_MinGW_32bit-Debug/debug
 
 RC_FILE = splitExcel.rc
+
+RESOURCES += \
+    images.qrc
