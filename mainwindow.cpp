@@ -26,27 +26,36 @@ void MainWindow::on_selectFilePushButton_clicked()
         //QMessageBox::information(this, "Title", path, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
         xlsx = new QXlsx::Document (path);
 
-        //获得表头数据
-        QXlsx::CellRange range;
-        range = xlsx->dimension();
-        int colCount = range.columnCount();
-
-        for (int colum=1; colum<=colCount; ++colum) {
-            QXlsx::Cell *cell =xlsx->cellAt(1, colum);
-            if (cell) {
-                qDebug(cell->value().toByteArray());
-                header->append(cell->value().toString());
-            }
-        }
-        ui->groupByComboBox->addItems(*header);
-
         //获得所有的sheets
         QStringList sheetNames = xlsx->sheetNames();
         ui->dataComboBox->addItems(sheetNames);
         ui->dataComboBox->setCurrentIndex(0);
         ui->emailComboBox->addItems(sheetNames);
         ui->emailComboBox->setCurrentIndex(1);
+
+        //获得表头数据
+        changeGroupby(sheetNames.at(0));
     }
+}
+
+void MainWindow::changeGroupby(QString selectedSheetName)
+{
+    header->clear();
+    ui->groupByComboBox->clear();
+
+    QXlsx::CellRange range;
+    xlsx->selectSheet(selectedSheetName);
+    range = xlsx->dimension();
+    int colCount = range.columnCount();
+
+    for (int colum=1; colum<=colCount; ++colum) {
+        QXlsx::Cell *cell =xlsx->cellAt(1, colum);
+        if (cell) {
+            qDebug(cell->value().toByteArray());
+            header->append(cell->value().toString());
+        }
+    }
+    ui->groupByComboBox->addItems(*header);
 }
 
 //打开文件对话框
@@ -88,30 +97,122 @@ void MainWindow::on_submitPushButton_clicked()
     {
         QMessageBox::information(this, "Save Path Error", "请选择保存路径");
     }
-    QString groupby;
-    int groupbyindex =ui->groupByComboBox->currentIndex() + 1;
-    groupby.append(QString::number(groupbyindex));
-    groupby.append(":").append(ui->groupByComboBox->currentText());
-    //QMessageBox::information(this, "分组", groupby);
 
-    //拆分
-    doSplitXls(groupbyindex,savePath);
+    int groupbyindex =ui->groupByComboBox->currentIndex() + 1;
+
+    savePath = savePath.replace("/","\\");
+
+    //拆分 && 后续操作(发送email)
+    doSplitXls(groupbyindex,ui->dataComboBox->currentText(),ui->emailComboBox->currentText(),savePath);
 }
 
-//拆分
-void MainWindow::doSplitXls(int groupby, QString savePath)
+//拆分 && 后续操作(发送email)
+void MainWindow::doSplitXls(int groupby, QString dataSheetName, QString emailSheetName, QString savePath)
 {
     //读取excel数据
-    QHash<QString, QList<QStringList>> qhash = readXls(groupby);
+    QHash<QString, QList<QStringList>> dataQhash = readXls(groupby,dataSheetName);
+    QHash<QString, QList<QStringList>> emailQhash = readXls(groupby,emailSheetName);
 
     //写excel
-    writeXls(qhash,savePath);
+    writeXls(dataQhash,savePath);
+
+    //发送email
+    sendemail(emailQhash,savePath);
+}
+
+void MainWindow::sendemail(QHash<QString, QList<QStringList>> emailQhash, QString savePath)
+{
+    qDebug("sendemail");
+    QHashIterator<QString,QList<QStringList>> it(emailQhash);
+
+    QString user("liuwenyuan@100.me");
+    QString password("");
+
+    while (it.hasNext()) {
+        it.next();
+        SmtpClient smtp("smtp.exmail.qq.com");
+        smtp.setUser(user);
+        smtp.setPassword(password);
+
+        MimeMessage message;
+
+        //防止中文乱码
+        message.setHeaderEncoding(MimePart::Encoding::Base64);
+
+        message.setSender(new EmailAddress("liuwenyuan@100.me", "liuwenyuan"));
+
+        //        qDebug("key:");
+        QString key = it.key();
+        //        qDebug(key.toUtf8());
+        QList<QStringList> content = it.value();
+        QString attementsName;
+        attementsName.append(savePath).append("\\").append(key).append(".xlsx");
+
+        // Add an another attachment
+        QFileInfo file(attementsName);
+        if (file.exists())
+        {
+            message.addPart(new MimeAttachment(new QFile(attementsName)));
+        }
+        else
+        {
+            qDebug("file not exists:") ;
+            qDebug(attementsName.toUtf8());
+        }
+
+        //只取一行数据
+         QStringList emailData = content.at(0);
+         //email的数据顺序为  （站，email,title,content）
+         EmailAddress * email = new EmailAddress(emailData.at(1), emailData.at(1));
+         message.addRecipient(email);
+         message.setSubject(emailData.at(2));
+
+         MimeText text;
+         text.setText(emailData.at(3));
+         message.addPart(&text);
+
+//        int rows =  content.size();
+//        for(int row = 0; row < rows;row++)
+//        {
+//            QStringList qsl = content.at(row);
+//            int columns = qsl.size();
+//            for (int column =0;column < columns;column++)
+//            {
+//            }
+//        }
+
+        if(!smtp.connectToHost())
+        {
+            errorMessage("connect to email host Failed");
+            return;
+        }
+
+        if (!smtp.login(user, password))
+        {
+            errorMessage("Authentification Failed");
+            return;
+        }
+
+        if (!smtp.sendMail(message))
+        {
+            errorMessage("Mail sending failed");
+            return;
+        }
+        else
+        {
+            QMessageBox okMessage (this);
+            okMessage.setText("The email was succesfully sent.");
+            okMessage.exec();
+        }
+        smtp.quit();
+    }
 }
 
 //读取xls
-QHash<QString, QList<QStringList>> MainWindow::readXls(int groupby)
+QHash<QString, QList<QStringList>> MainWindow::readXls(int groupby, QString selectedSheetName)
 {
     QXlsx::CellRange range;
+    xlsx->selectSheet(selectedSheetName);
     range = xlsx->dimension();
     int rowCount = range.rowCount();
     int colCount = range.columnCount();
@@ -167,15 +268,16 @@ void MainWindow::writeXls(QHash<QString, QList<QStringList>> qhash, QString save
 
         QString xlsName;
         int rows =  content.size();
-        xlsName.append(savePath).append("\\").append(key).append("-").append(QString::number(rows)).append(".xlsx");
+        //xlsName.append(savePath).append("\\").append(key).append("-").append(QString::number(rows)).append(".xlsx");
+        xlsName.append(savePath).append("\\").append(key).append(".xlsx");
         //        qDebug("key:");
         //        qDebug(xlsName.toUtf8());
         //        qDebug("contentsize:");
         //        qDebug(QString::number(rows).toUtf8());
         for(int row = 0; row < rows;row++)
         {
-//            qDebug("current row:");
-//            qDebug(QString::number(row).toUtf8());
+            //            qDebug("current row:");
+            //            qDebug(QString::number(row).toUtf8());
             QStringList qsl = content.at(row);
             int columns = qsl.size();
             for (int column =0;column < columns;column++)
@@ -239,4 +341,18 @@ QString MainWindow::to26AlphabetString(int data)
 {
     QChar ch = data + 0x40;//A对应0x41
     return QString(ch);
+}
+
+void MainWindow::errorMessage(const QString &message)
+{
+    QErrorMessage err (this);
+
+    err.showMessage(message);
+
+    err.exec();
+}
+
+void MainWindow::on_dataComboBox_currentTextChanged(const QString &arg1)
+{
+    changeGroupby(arg1);
 }

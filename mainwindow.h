@@ -6,8 +6,9 @@
 #include <QMessageBox>
 #include<QHashIterator>
 #include <QDateTime>
-
+#include<QErrorMessage>
 #include "xlsxdocument.h"
+#include "smtpclient/src/SmtpMime"
 
 namespace Ui {
 class MainWindow;
@@ -23,11 +24,11 @@ public:
 
     QString openFile();
 
-    void doSplitXls(int groupby, QString savePath);
+    void doSplitXls(int groupby, QString dataSheetName, QString emailSheetName, QString savePath);
 
-    QHash<QString, QList<QStringList>> readXls(int groupby);
+    QHash<QString, QList<QStringList>> readXls(int groupby, QString selectedSheetName);
     void writeXls(QHash<QString, QList<QStringList>> qhash, QString savePath);
-
+    void sendemail(QHash<QString, QList<QStringList>> qhash, QString savePath);
     void writeXlsHeader(QXlsx::Document *currXls);
 
     void convertToColName(int data, QString &res);
@@ -41,10 +42,16 @@ private slots:
 
     void on_submitPushButton_clicked();
 
+    void changeGroupby(QString selectedSheetName);
+
+    void on_dataComboBox_currentTextChanged(const QString &arg1);
+
 private:
     Ui::MainWindow *ui;
     QXlsx::Document *xlsx;
     QStringList *header = new QStringList();
+
+    void errorMessage(const QString &message);
 };
 
 #endif // MAINWINDOW_H
