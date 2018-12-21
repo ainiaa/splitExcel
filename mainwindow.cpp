@@ -39,6 +39,13 @@ void MainWindow::on_selectFilePushButton_clicked()
             }
         }
         ui->groupByComboBox->addItems(*header);
+
+        //获得所有的sheets
+        QStringList sheetNames = xlsx->sheetNames();
+        ui->dataComboBox->addItems(sheetNames);
+        ui->dataComboBox->setCurrentIndex(0);
+        ui->emailComboBox->addItems(sheetNames);
+        ui->emailComboBox->setCurrentIndex(1);
     }
 }
 

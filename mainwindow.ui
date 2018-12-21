@@ -44,7 +44,7 @@
     <property name="geometry">
      <rect>
       <x>69</x>
-      <y>91</y>
+      <y>190</y>
       <width>91</width>
       <height>31</height>
      </rect>
@@ -60,7 +60,7 @@
     <property name="geometry">
      <rect>
       <x>69</x>
-      <y>140</y>
+      <y>240</y>
       <width>91</width>
       <height>31</height>
      </rect>
@@ -76,7 +76,7 @@
     <property name="geometry">
      <rect>
       <x>170</x>
-      <y>140</y>
+      <y>240</y>
       <width>311</width>
       <height>31</height>
      </rect>
@@ -86,7 +86,7 @@
     <property name="geometry">
      <rect>
       <x>210</x>
-      <y>202</y>
+      <y>290</y>
       <width>75</width>
       <height>31</height>
      </rect>
@@ -98,8 +98,8 @@
    <widget class="QPushButton" name="cancelPushButton">
     <property name="geometry">
      <rect>
-      <x>330</x>
-      <y>202</y>
+      <x>310</x>
+      <y>290</y>
       <width>75</width>
       <height>31</height>
      </rect>
@@ -112,7 +112,7 @@
     <property name="geometry">
      <rect>
       <x>170</x>
-      <y>91</y>
+      <y>190</y>
       <width>311</width>
       <height>31</height>
      </rect>
@@ -135,13 +135,65 @@
     <property name="geometry">
      <rect>
       <x>490</x>
-      <y>140</y>
+      <y>240</y>
       <width>91</width>
       <height>31</height>
      </rect>
     </property>
     <property name="text">
      <string>选择保存目录</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="dataComboBox">
+    <property name="geometry">
+     <rect>
+      <x>169</x>
+      <y>90</y>
+      <width>311</width>
+      <height>31</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="selectFileLabel_4">
+    <property name="geometry">
+     <rect>
+      <x>68</x>
+      <y>90</y>
+      <width>91</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>数据</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="selectFileLabel_5">
+    <property name="geometry">
+     <rect>
+      <x>69</x>
+      <y>140</y>
+      <width>91</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>email</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="emailComboBox">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>140</y>
+      <width>311</width>
+      <height>31</height>
+     </rect>
     </property>
    </widget>
   </widget>
@@ -154,6 +206,12 @@
      <height>23</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+   </widget>
+   <addaction name="menuFile"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
