@@ -1,0 +1,64 @@
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
+
+#include <QMainWindow>
+#include <QFileDialog>
+#include <QMessageBox>
+#include<QHashIterator>
+#include <QDateTime>
+#include<QErrorMessage>
+#include "xlsxdocument.h"
+#include "smtpclient/src/SmtpMime"
+#include "configsetting.h"
+
+namespace Ui {
+class MainWindow;
+}
+
+class MainWindow : public QMainWindow
+{
+    Q_OBJECT
+
+public:
+    explicit MainWindow(QWidget *parent = nullptr);
+    ~MainWindow();
+
+    QString openFile();
+
+    void doSplitXls(int groupby, QString dataSheetName, QString emailSheetName, QString savePath);
+
+    QHash<QString, QList<QStringList>> readXls(int groupby, QString selectedSheetName);
+    void writeXls(QHash<QString, QList<QStringList>> qhash, QString savePath);
+    void sendemail(QHash<QString, QList<QStringList>> qhash, QString savePath);
+    void writeXlsHeader(QXlsx::Document *currXls);
+
+    void convertToColName(int data, QString &res);
+    QString to26AlphabetString(int data);
+
+
+private slots:
+    void on_selectFilePushButton_clicked();
+
+    void on_savePathPushButton_clicked();
+
+    void on_submitPushButton_clicked();
+
+    void changeGroupby(QString selectedSheetName);
+
+    void on_dataComboBox_currentTextChanged(const QString &arg1);
+
+private:
+    Ui::MainWindow *ui;
+    QXlsx::Document *xlsx;
+    QStringList *header = new QStringList();
+    ConfigSetting *configSetting;
+
+
+//    QAction *actionConfig_Setting;
+//    QAction *actionLoad_Config;
+
+
+    void errorMessage(const QString &message);
+};
+
+#endif // MAINWINDOW_H
