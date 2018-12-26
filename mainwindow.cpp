@@ -10,8 +10,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
 
-    connect(myAc1, SIGNAL(triggered()), this, SLOT(pop1()));
-
+    connect(ui->actionConfig_Setting, SIGNAL(triggered()), this, SLOT(showConfigSetting()));
 }
 
 MainWindow::~MainWindow()
@@ -91,6 +90,11 @@ void MainWindow::on_savePathPushButton_clicked()
 //确定拆分
 void MainWindow::on_submitPushButton_clicked()
 {
+    QString server = cfg->Get("email","server").toString();
+    if (server.isEmpty())
+    {
+        QMessageBox::information(this, "Setting Error", "请先配置邮件相关配置");
+    }
     QString savePath = ui->savePathLineEdit->text();
     if (xlsx == nullptr)
     {
@@ -113,41 +117,66 @@ void MainWindow::on_submitPushButton_clicked()
 void MainWindow::doSplitXls(int groupby, QString dataSheetName, QString emailSheetName, QString savePath)
 {
     //读取excel数据
+    ui->statusBar->showMessage("开始读取excel文件信息");
     QHash<QString, QList<QStringList>> dataQhash = readXls(groupby,dataSheetName);
     QHash<QString, QList<QStringList>> emailQhash = readXls(groupby,emailSheetName);
 
     //写excel
+    ui->statusBar->showMessage("开始拆分excel并生成新的excel文件");
     writeXls(dataQhash,savePath);
 
     //发送email
-    sendemail(emailQhash,savePath);
+    sendemail(emailQhash,savePath, dataQhash.size());
 }
 
-void MainWindow::sendemail(QHash<QString, QList<QStringList>> emailQhash, QString savePath)
+void MainWindow::sendemail(QHash<QString, QList<QStringList>> emailQhash, QString savePath, int total)
 {
     qDebug("sendemail");
     QHashIterator<QString,QList<QStringList>> it(emailQhash);
 
-    QString user("liuwenyuan@100.me");
-    QString password("");
+    QString user(cfg->Get("email","userName").toString());
+    QString password(cfg->Get("email","password").toString());
+    QString server(cfg->Get("email","server").toString());
+    QString defaultSender(cfg->Get("email","defaultSender").toString());
+    if (user.isEmpty() || password.isEmpty() || server.isEmpty() || defaultSender.isEmpty())
+    {
+        QMessageBox::information(this, "Setting Error", "请先正确设置配置信息");
+    }
+    ui->statusBar->showMessage("准备发送邮件...");
+    SmtpClient smtp(server);
+    smtp.setUser(user);
+    smtp.setPassword(password);
 
+    if(!smtp.connectToHost())
+    {
+        errorMessage("connect to email host Failed");
+        return;
+    }
+
+    if (!smtp.login(user, password))
+    {
+        errorMessage("Authentification Failed");
+        return;
+    }
+    ui->statusBar->showMessage("开始发送邮件...");
+    QString msg("发送邮件成功：%1 失败：%2  已处理%3/共：");
+    msg.append(QString::number(total));
+    int failureCount =0;
+    int successCount = 0;
+    int totalCount = 0;
     while (it.hasNext()) {
         it.next();
-        SmtpClient smtp("smtp.exmail.qq.com");
-        smtp.setUser(user);
-        smtp.setPassword(password);
-
         MimeMessage message;
 
         //防止中文乱码
         message.setHeaderEncoding(MimePart::Encoding::Base64);
-
-        message.setSender(new EmailAddress("liuwenyuan@100.me", "liuwenyuan"));
+        message.setSender(new EmailAddress(defaultSender, defaultSender));
 
         //        qDebug("key:");
         QString key = it.key();
         //        qDebug(key.toUtf8());
         QList<QStringList> content = it.value();
+
         QString attementsName;
         attementsName.append(savePath).append("\\").append(key).append(".xlsx");
 
@@ -164,51 +193,35 @@ void MainWindow::sendemail(QHash<QString, QList<QStringList>> emailQhash, QStrin
         }
 
         //只取一行数据
-         QStringList emailData = content.at(0);
-         //email的数据顺序为  （站，email,title,content）
-         EmailAddress * email = new EmailAddress(emailData.at(1), emailData.at(1));
-         message.addRecipient(email);
-         message.setSubject(emailData.at(2));
+        QStringList emailData = content.at(0);
 
-         MimeText text;
-         text.setText(emailData.at(3));
-         message.addPart(&text);
-
-//        int rows =  content.size();
-//        for(int row = 0; row < rows;row++)
-//        {
-//            QStringList qsl = content.at(row);
-//            int columns = qsl.size();
-//            for (int column =0;column < columns;column++)
-//            {
-//            }
-//        }
-
-        if(!smtp.connectToHost())
+        if (emailData.size() != 4)
         {
-            errorMessage("connect to email host Failed");
+            errorMessage("Email sheet 数据错误。数据列必须为4行 分别为 站，email地址，email标题，email内容");
             return;
         }
+        //email的数据顺序为  （站，email,title,content）
+        EmailAddress * email = new EmailAddress(emailData.at(1), emailData.at(1));
+        message.addRecipient(email);
+        message.setSubject(emailData.at(2));
 
-        if (!smtp.login(user, password))
-        {
-            errorMessage("Authentification Failed");
-            return;
-        }
+        MimeText text;
+        text.setText(emailData.at(3));
+        message.addPart(&text);
 
         if (!smtp.sendMail(message))
         {
-            errorMessage("Mail sending failed");
-            return;
+            failureCount++;
         }
         else
         {
-            QMessageBox okMessage (this);
-            okMessage.setText("The email was succesfully sent.");
-            okMessage.exec();
+            successCount++;
         }
-        smtp.quit();
+        totalCount++;
+        ui->statusBar->showMessage(msg.arg(successCount).arg(failureCount).arg(totalCount));
     }
+    smtp.quit();
+    ui->statusBar->showMessage("处理完毕");
 }
 
 //读取xls
@@ -258,11 +271,13 @@ void MainWindow::writeXls(QHash<QString, QList<QStringList>> qhash, QString save
 {
     qDebug("writeXls");
     QHashIterator<QString,QList<QStringList>> it(qhash);
+    QString msg("开始拆分excel并生成新的excel文件: %1/");
+    msg.append(QString::number(qhash.size()));
+
+    int count = 1;
     while (it.hasNext()) {
         it.next();
-        //        qDebug("key:");
         QString key = it.key();
-        //        qDebug(key.toUtf8());
         QList<QStringList> content = it.value();
         QXlsx::Document currXls;
 
@@ -271,16 +286,10 @@ void MainWindow::writeXls(QHash<QString, QList<QStringList>> qhash, QString save
 
         QString xlsName;
         int rows =  content.size();
-        //xlsName.append(savePath).append("\\").append(key).append("-").append(QString::number(rows)).append(".xlsx");
         xlsName.append(savePath).append("\\").append(key).append(".xlsx");
-        //        qDebug("key:");
-        //        qDebug(xlsName.toUtf8());
-        //        qDebug("contentsize:");
-        //        qDebug(QString::number(rows).toUtf8());
+
         for(int row = 0; row < rows;row++)
         {
-            //            qDebug("current row:");
-            //            qDebug(QString::number(row).toUtf8());
             QStringList qsl = content.at(row);
             int columns = qsl.size();
             for (int column =0;column < columns;column++)
@@ -289,15 +298,13 @@ void MainWindow::writeXls(QHash<QString, QList<QStringList>> qhash, QString save
                 convertToColName(column+1,columnName) ;
                 QString cell;
                 cell.append(columnName).append(QString::number(row+2));
-                qDebug("cell:");
-                qDebug(cell.toUtf8());
-                qDebug("cell-content:");
-                qDebug(qsl.at(column).toUtf8());
                 currXls.write(cell,qsl.at(column));
             }
         }
         currXls.saveAs(xlsName);
+        ui->statusBar->showMessage(msg.arg(QString::number(count++)));
     }
+    ui->statusBar->showMessage("拆分excel结束");
 }
 
 void  MainWindow::writeXlsHeader(QXlsx::Document *xls)
@@ -358,4 +365,10 @@ void MainWindow::errorMessage(const QString &message)
 void MainWindow::on_dataComboBox_currentTextChanged(const QString &arg1)
 {
     changeGroupby(arg1);
+}
+
+void MainWindow::showConfigSetting()
+{
+    this->hide();
+    configSetting->show();
 }

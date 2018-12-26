@@ -10,7 +10,7 @@
 #include "xlsxdocument.h"
 #include "smtpclient/src/SmtpMime"
 #include "configsetting.h"
-
+#include "config.h"
 namespace Ui {
 class MainWindow;
 }
@@ -29,11 +29,13 @@ public:
 
     QHash<QString, QList<QStringList>> readXls(int groupby, QString selectedSheetName);
     void writeXls(QHash<QString, QList<QStringList>> qhash, QString savePath);
-    void sendemail(QHash<QString, QList<QStringList>> qhash, QString savePath);
+    void sendemail(QHash<QString, QList<QStringList>> qhash, QString savePath, int total);
     void writeXlsHeader(QXlsx::Document *currXls);
 
     void convertToColName(int data, QString &res);
     QString to26AlphabetString(int data);
+
+    void loadConfig();
 
 
 private slots:
@@ -47,16 +49,14 @@ private slots:
 
     void on_dataComboBox_currentTextChanged(const QString &arg1);
 
+    void showConfigSetting();
+
 private:
     Ui::MainWindow *ui;
     QXlsx::Document *xlsx;
     QStringList *header = new QStringList();
-    ConfigSetting *configSetting;
-
-
-//    QAction *actionConfig_Setting;
-//    QAction *actionLoad_Config;
-
+    ConfigSetting *configSetting = new ConfigSetting(nullptr,this);
+    Config *cfg = new Config();
 
     void errorMessage(const QString &message);
 };
