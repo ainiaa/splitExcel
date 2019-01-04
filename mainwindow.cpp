@@ -327,7 +327,6 @@ void  MainWindow::writeXlsHeader(QXlsx::Document *xls)
 ///
 void MainWindow::convertToColName(int data, QString &res)
 {
-    Q_ASSERT(data>0 && data<65535);
     int tempData = data / 26;
     if(tempData > 0)
     {
