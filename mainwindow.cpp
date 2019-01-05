@@ -69,11 +69,12 @@ void MainWindow::receiveMessage(const int msgType, const QString &result)
 {
     switch (msgType)
     {
-    case EmailSender::MsgTypeError:
+    case Common::MsgTypeError:
         errorMessage(result);
         break;
-    case EmailSender::MsgTypeInfo:
-    case EmailSender::MsgTypeWarn:
+    case Common::MsgTypeSucc:
+    case Common::MsgTypeInfo:
+    case Common::MsgTypeWarn:
     default:
         ui->statusBar->showMessage(result);
         break;

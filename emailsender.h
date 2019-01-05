@@ -10,6 +10,7 @@
 
 #include "smtpclient/src/SmtpMime"
 #include "config.h"
+#include "common.h"
 
 class EmailSender: public QObject
 {
@@ -17,9 +18,6 @@ class EmailSender: public QObject
 public:
     EmailSender(QObject* parent = nullptr);
     ~EmailSender();
-    static const int MsgTypeError  = 1;
-    static const int MsgTypeWarn = 2;
-    static const int MsgTypeInfo   = 3;
 
 public slots:
     void doSend();

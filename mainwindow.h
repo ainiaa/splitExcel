@@ -13,6 +13,8 @@
 #include "configsetting.h"
 #include "config.h"
 #include "emailsender.h"
+#include "common.h"
+
 namespace Ui {
 class MainWindow;
 }

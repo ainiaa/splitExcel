@@ -29,14 +29,16 @@ SOURCES += \
         mainwindow.cpp \
         configsetting.cpp \
         config.cpp \
-    emailsender.cpp
+    emailsender.cpp \
+    common.cpp
 
 
 HEADERS += \
         mainwindow.h \
         configsetting.h \
         config.h \
-    emailsender.h
+    emailsender.h \
+    common.h
 
 FORMS += \
         mainwindow.ui \

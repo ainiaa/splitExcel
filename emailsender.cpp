@@ -22,10 +22,10 @@ void EmailSender::doSend()
     QString defaultSender(cfg->Get("email","defaultSender").toString());
     if (user.isEmpty() || password.isEmpty() || server.isEmpty() || defaultSender.isEmpty())
     {
-        emit message(EmailSender::MsgTypeError, "请先正确设置配置信息");
+        emit message(Common::MsgTypeError, "请先正确设置配置信息");
         return;
     }
-    emit message(EmailSender::MsgTypeInfo, "准备发送邮件...");
+    emit message(Common::MsgTypeInfo, "准备发送邮件...");
 
     SmtpClient smtp(server);
     smtp.setUser(user);
@@ -33,16 +33,16 @@ void EmailSender::doSend()
 
     if(!smtp.connectToHost())
     {
-        emit message(EmailSender::MsgTypeError, "邮件服务器连接失败！！");
+        emit message(Common::MsgTypeError, "邮件服务器连接失败！！");
         return;
     }
 
     if (!smtp.login(user, password))
     {
-        emit message(EmailSender::MsgTypeError, "邮件服务器认证失败（邮件用户名或者密码错误）");
+        emit message(Common::MsgTypeError, "邮件服务器认证失败（邮件用户名或者密码错误）");
         return;
     }
-    emit message(EmailSender::MsgTypeInfo, "开始发送邮件...");
+    emit message(Common::MsgTypeInfo, "开始发送邮件...");
     QString msg("发送邮件。。 已处理：%3封 成功：%1封  失败：%2封 /共：");
     msg.append(QString::number(total)).append("封");
     int failureCount =0;
@@ -85,7 +85,7 @@ void EmailSender::doSend()
 
         if (emailData.size() < 4)
         {
-            emit message(EmailSender::MsgTypeError, "Email sheet 数据错误。数据列必须为4行 分别为 站，email地址，email标题，email内容");
+            emit message(Common::MsgTypeError, "Email sheet 数据错误。数据列必须为4行 分别为 站，email地址，email标题，email内容");
             return;
         }
         //email的数据顺序为  （站，email,title,content）
@@ -107,10 +107,10 @@ void EmailSender::doSend()
         }
         totalCount++;
         qDebug(noticeEnd.arg(totalCount).arg(key).toUtf8());
-        emit message(EmailSender::MsgTypeInfo, msg.arg(successCount).arg(failureCount).arg(totalCount));
+        emit message(Common::MsgTypeInfo, msg.arg(successCount).arg(failureCount).arg(totalCount));
     }
     smtp.quit();
-    emit message(EmailSender::MsgTypeInfo, "处理完毕！");
+    emit message(Common::MsgTypeSucc, "处理完毕！");
     qDebug("处理完毕！:") ;
 }
 
