@@ -30,7 +30,6 @@ void MainWindow::on_selectFilePushButton_clicked()
     if (path.length() > 0)
     {//选择了excel文件
         ui->xlsObjLineEdit->setText(path);
-        //QMessageBox::information(this, "Title", path, QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes);
         xlsx = new QXlsx::Document (path);
 
         //获得所有的sheets
@@ -55,10 +54,11 @@ void MainWindow::changeGroupby(QString selectedSheetName)
     range = xlsx->dimension();
     int colCount = range.columnCount();
 
-    for (int colum=1; colum<=colCount; ++colum) {
+    for (int colum=1; colum<=colCount; ++colum)
+    {
         QXlsx::Cell *cell =xlsx->cellAt(1, colum);
-        if (cell) {
-            qDebug(cell->value().toByteArray());
+        if (cell)
+        {
             header->append(cell->value().toString());
         }
     }
@@ -67,7 +67,8 @@ void MainWindow::changeGroupby(QString selectedSheetName)
 
 void MainWindow::receiveMessage(const int msgType, const QString &result)
 {
-    switch (msgType) {
+    switch (msgType)
+    {
     case EmailSender::MsgTypeError:
         errorMessage(result);
         break;
@@ -82,17 +83,13 @@ void MainWindow::receiveMessage(const int msgType, const QString &result)
 //打开文件对话框
 QString MainWindow::openFile()
 {
-    //    QFileDialog* dlg = new QFileDialog(this);
-    //    dlg->setWindowTitle("选择xls文件...");
-    //    dlg->setDirectory(".");
-    //    dlg->setFileMode(QFileDialog::ExistingFile);
-    //    dlg->setNameFilter( tr("Excel Files(*.xls)"));
-    //    dlg->setViewMode(QFileDialog::Detail);
-
     QString path = QFileDialog::getOpenFileName(this, tr("Open Excel"), ".", tr("excel(*.xlsx)"));
-    if(path.length() == 0) {
+    if(path.length() == 0)
+    {
         return "";
-    } else {
+    }
+    else
+    {
         return path;
     }
 }
@@ -101,7 +98,8 @@ QString MainWindow::openFile()
 void MainWindow::on_savePathPushButton_clicked()
 {
     QString path = QFileDialog::getExistingDirectory(this, tr("Save New Excels"), ".");
-    if(path.length() > 0) {
+    if(path.length() > 0)
+    {
         ui->savePathLineEdit->setText(path);
     }
 }
@@ -145,13 +143,14 @@ void MainWindow::doSplitXls(int groupby, QString dataSheetName, QString emailShe
     writeXls(dataQhash,savePath);
 
     //发送email
-    sendemail(emailQhash,savePath, dataQhash.size());
+    sendemail(emailQhash,savePath);
 }
 
 //发送邮件
 //@see https://blog.csdn.net/czyt1988/article/details/71194457
-void MainWindow::sendemail(QHash<QString, QList<QStringList>> emailQhash, QString savePath, int total)
+void MainWindow::sendemail(QHash<QString, QList<QStringList>> emailQhash, QString savePath)
 {
+    int total = emailQhash.size();
     if(mailsenderThread != nullptr)
     {
         return;

@@ -31,7 +31,7 @@ public:
 
     QHash<QString, QList<QStringList>> readXls(int groupby, QString selectedSheetName);
     void writeXls(QHash<QString, QList<QStringList>> qhash, QString savePath);
-    void sendemail(QHash<QString, QList<QStringList>> qhash, QString savePath, int total);
+    void sendemail(QHash<QString, QList<QStringList>> qhash, QString savePath);
     void writeXlsHeader(QXlsx::Document *currXls);
 
     void convertToColName(int data, QString &res);
