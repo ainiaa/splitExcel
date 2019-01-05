@@ -53,15 +53,6 @@ include(xlsx/qtxlsx.pri)
 # stmp client
 include(smtpclient/smtpclient.pri)
 
-
-#win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../build-SMTPEmail-Desktop_Qt_5_11_2_MinGW_32bit-Debug/release/ -lSMTPEmail
-#else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../build-SMTPEmail-Desktop_Qt_5_11_2_MinGW_32bit-Debug/debug/ -lSMTPEmail
-#else:mac: LIBS += -F$$PWD/../build-SMTPEmail-Desktop_Qt_5_11_2_MinGW_32bit-Debug/ -framework SMTPEmail
-#else:unix: LIBS += -L$$PWD/../build-SMTPEmail-Desktop_Qt_5_11_2_MinGW_32bit-Debug/ -lSMTPEmail
-
-#INCLUDEPATH += $$PWD/../build-SMTPEmail-Desktop_Qt_5_11_2_MinGW_32bit-Debug/debug
-#DEPENDPATH += $$PWD/../build-SMTPEmail-Desktop_Qt_5_11_2_MinGW_32bit-Debug/debug
-
 RC_FILE = splitExcel.rc
 
 RESOURCES += \
