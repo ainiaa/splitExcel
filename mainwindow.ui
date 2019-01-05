@@ -249,10 +249,9 @@
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
-     <string>File</string>
+     <string>文件</string>
     </property>
     <addaction name="actionConfig_Setting"/>
-    <addaction name="actionLoad_Config"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
@@ -267,7 +266,7 @@
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionConfig_Setting">
    <property name="text">
-    <string>Config Setting</string>
+    <string>配置项设置</string>
    </property>
   </action>
   <action name="actionLoad_Config">

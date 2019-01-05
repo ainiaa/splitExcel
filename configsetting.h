@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QMessageBox>
 #include "config.h"
+#include "smtpclient/src/SmtpMime"
 namespace Ui {
 class ConfigSetting;
 }
@@ -23,6 +24,8 @@ private slots:
     void on_submitPushButton_clicked();
 
     void on_gobackPushButton_clicked();
+
+    void on_testPushButton_clicked();
 
 private:
     Ui::ConfigSetting *ui;

@@ -1,6 +1,12 @@
 #include "emailsender.h"
 
-EmailSender::EmailSender(QObject *parent):QObject (parent){}
+EmailSender::EmailSender(QObject *parent):QObject (parent)
+{
+    m_success_cnt = 0;
+    m_failure_cnt = 0;
+    m_process_cnt = 0;
+    m_receive_msg_cnt = 0;
+}
 EmailSender::~EmailSender(){}
 
 void EmailSender::setSendData(Config *cfg, QHash<QString, QList<QStringList>> emailQhash, QString savePath, int total)
@@ -8,7 +14,11 @@ void EmailSender::setSendData(Config *cfg, QHash<QString, QList<QStringList>> em
     this->cfg = cfg;
     this->emailQhash = emailQhash;
     this->savePath = savePath;
-    this->total = total;
+    this->m_total_cnt = total;
+    QString msg("发送邮件。。。 已处理：%3封 成功：%1封  失败：%2封 /共：");
+    msg.append(QString::number(m_total_cnt)).append("封");
+    msg.append("    补充信息: %4 ");
+    this->msg = msg;
 }
 //发送email
 void EmailSender::doSend()
@@ -22,34 +32,14 @@ void EmailSender::doSend()
     QString defaultSender(cfg->Get("email","defaultSender").toString());
     if (user.isEmpty() || password.isEmpty() || server.isEmpty() || defaultSender.isEmpty())
     {
-        emit message(Common::MsgTypeError, "请先正确设置配置信息");
+        emit requestMsg(Common::MsgTypeError, "请先正确设置配置信息");
         return;
     }
-    emit message(Common::MsgTypeInfo, "准备发送邮件...");
+    emit requestMsg(Common::MsgTypeInfo, "准备发送邮件...");
 
-    SmtpClient smtp(server);
-    smtp.setUser(user);
-    smtp.setPassword(password);
-
-    if(!smtp.connectToHost())
-    {
-        emit message(Common::MsgTypeError, "邮件服务器连接失败！！");
-        return;
-    }
-
-    if (!smtp.login(user, password))
-    {
-        emit message(Common::MsgTypeError, "邮件服务器认证失败（邮件用户名或者密码错误）");
-        return;
-    }
-    emit message(Common::MsgTypeInfo, "开始发送邮件...");
-    QString msg("发送邮件。。 已处理：%3封 成功：%1封  失败：%2封 /共：");
-    msg.append(QString::number(total)).append("封");
-    int failureCount =0;
-    int successCount = 0;
-    int totalCount = 0;
-    QString noticeStart("开始发送邮件 %1");
-    QString noticeEnd("完成发送邮件 %1 %2");
+    QThreadPool pool;
+    int maxPool = 2;
+    pool.setMaxThreadCount(maxPool);
     while (it.hasNext()) {
         it.next();
         MimeMessage mineMsg;
@@ -60,58 +50,52 @@ void EmailSender::doSend()
 
         QString key = it.key();
         QList<QStringList> content = it.value();
-        qDebug(noticeStart.arg(totalCount).arg(key).toUtf8());
 
-        QString attementsName;
-        attementsName.append(savePath).append("\\").append(key).append(".xlsx");
+        EmailSenderRunnable *runnable = new EmailSenderRunnable(this);
+        runnable->setID(++m_process_cnt);
+        runnable->setSendData(user,password,server,defaultSender,savePath,key,content);
+        runnable->setAutoDelete(true);
 
-        // Add an another attachment
-        QFileInfo file(attementsName);
-        if (file.exists())
+        pool.start(runnable);
+        if (m_process_cnt % maxPool)
         {
-            MimeAttachment *attachment = new MimeAttachment(new QFile(attementsName));
-            attachment->setEncoding(MimePart::Encoding::Base64);
-            attachment->setContentName("attachment.xlsx");
-            mineMsg.addPart(attachment);
+            pool.waitForDone();
         }
-        else
-        {
-            qDebug("file not exists:") ;
-            qDebug(attementsName.toUtf8());
-        }
-
-        //只取一行数据
-        QStringList emailData = content.at(0);
-
-        if (emailData.size() < 4)
-        {
-            emit message(Common::MsgTypeError, "Email sheet 数据错误。数据列必须为4行 分别为 站，email地址，email标题，email内容");
-            return;
-        }
-        //email的数据顺序为  （站，email,title,content）
-        EmailAddress * email = new EmailAddress(emailData.at(1), emailData.at(1));
-        mineMsg.addRecipient(email);
-        mineMsg.setSubject(emailData.at(2));
-
-        MimeText text;
-        text.setText(emailData.at(3));
-        mineMsg.addPart(&text);
-
-        if (!smtp.sendMail(mineMsg))
-        {
-            failureCount++;
-        }
-        else
-        {
-            successCount++;
-        }
-        totalCount++;
-        qDebug(noticeEnd.arg(totalCount).arg(key).toUtf8());
-        emit message(Common::MsgTypeInfo, msg.arg(successCount).arg(failureCount).arg(totalCount));
     }
-    smtp.quit();
-    emit message(Common::MsgTypeSucc, "处理完毕！");
-    qDebug("处理完毕！:") ;
+    if (pool.activeThreadCount() > 0)
+    {
+        pool.waitForDone();
+    }
+
+    qDebug("处理完毕！") ;
+}
+
+void EmailSender::receiveMessage(const int msgType, const QString &result)
+{
+    qDebug() << "EmailSender::receiveMessage msgType:" << QString::number(msgType).toUtf8() <<" msg:"<<result;
+    switch (msgType)
+    {
+    case Common::MsgTypeError:
+        m_failure_cnt++;
+        m_receive_msg_cnt++;
+        emit requestMsg(msgType, msg.arg(m_success_cnt).arg(m_failure_cnt).arg(m_process_cnt).arg(result));
+        break;
+    case Common::MsgTypeSucc:
+        m_success_cnt++;
+        m_receive_msg_cnt++;
+        emit requestMsg(msgType, msg.arg(m_success_cnt).arg(m_failure_cnt).arg(m_process_cnt).arg(result));
+        break;
+    case Common::MsgTypeInfo:
+    case Common::MsgTypeWarn:
+    case Common::MsgTypeFinish:
+    default:
+        emit requestMsg(msgType, result);
+        break;
+    }
+    if (m_total_cnt > 0 && m_receive_msg_cnt == m_total_cnt)
+    { //全部处理完毕
+        emit requestMsg(Common::MsgTypeEmailSendFinish, "处理完毕！");
+    }
 }
 
 //停止发送email

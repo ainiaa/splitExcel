@@ -30,7 +30,9 @@ SOURCES += \
         configsetting.cpp \
         config.cpp \
     emailsender.cpp \
-    common.cpp
+    common.cpp \
+    emailsenderrunnable.cpp \
+    processwindow.cpp
 
 
 HEADERS += \
@@ -38,11 +40,14 @@ HEADERS += \
         configsetting.h \
         config.h \
     emailsender.h \
-    common.h
+    common.h \
+    emailsenderrunnable.h \
+    processwindow.h
 
 FORMS += \
         mainwindow.ui \
-        configsetting.ui
+        configsetting.ui \
+    processwindow.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

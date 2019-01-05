@@ -17,7 +17,7 @@
    <widget class="QPushButton" name="submitPushButton">
     <property name="geometry">
      <rect>
-      <x>200</x>
+      <x>169</x>
       <y>268</y>
       <width>75</width>
       <height>31</height>
@@ -89,7 +89,7 @@
      <rect>
       <x>170</x>
       <y>77</y>
-      <width>311</width>
+      <width>341</width>
       <height>31</height>
      </rect>
     </property>
@@ -97,7 +97,7 @@
    <widget class="QPushButton" name="cancelPushButton">
     <property name="geometry">
      <rect>
-      <x>300</x>
+      <x>348</x>
       <y>268</y>
       <width>75</width>
       <height>31</height>
@@ -112,7 +112,7 @@
      <rect>
       <x>170</x>
       <y>126</y>
-      <width>311</width>
+      <width>341</width>
       <height>31</height>
      </rect>
     </property>
@@ -138,7 +138,7 @@
      <rect>
       <x>170</x>
       <y>173</y>
-      <width>311</width>
+      <width>341</width>
       <height>31</height>
      </rect>
     </property>
@@ -167,7 +167,7 @@
      <rect>
       <x>170</x>
       <y>220</y>
-      <width>311</width>
+      <width>341</width>
       <height>31</height>
      </rect>
     </property>
@@ -191,7 +191,7 @@
    <widget class="QPushButton" name="gobackPushButton">
     <property name="geometry">
      <rect>
-      <x>399</x>
+      <x>438</x>
       <y>269</y>
       <width>75</width>
       <height>31</height>
@@ -199,6 +199,19 @@
     </property>
     <property name="text">
      <string>返回</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="testPushButton">
+    <property name="geometry">
+     <rect>
+      <x>258</x>
+      <y>268</y>
+      <width>75</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>测试</string>
     </property>
    </widget>
   </widget>

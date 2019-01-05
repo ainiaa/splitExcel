@@ -8,6 +8,8 @@ public:
     static const int MsgTypeInfo   = 3;
     static const int MsgTypeFail = 4;
     static const int MsgTypeSucc = 5;
+    static const int MsgTypeFinish = 6;
+    static const int MsgTypeEmailSendFinish = 7;
 };
 
 #endif // COMMON_H

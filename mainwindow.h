@@ -14,6 +14,7 @@
 #include "config.h"
 #include "emailsender.h"
 #include "common.h"
+#include "processwindow.h"
 
 namespace Ui {
 class MainWindow;
@@ -67,6 +68,8 @@ private:
     Config *cfg = new Config();
     QThread* mailsenderThread = nullptr;
     EmailSender *mailsender;
+
+    ProcessWindow *processWindow = nullptr;
 
     void errorMessage(const QString &message);
 };

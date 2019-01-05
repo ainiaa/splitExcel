@@ -130,13 +130,13 @@ const QList<EmailAddress*> & MimeMessage::getRecipients(RecipientType type) cons
 {
     switch (type)
     {
-    default:
-    case To:
-        return recipientsTo;
     case Cc:
         return recipientsCc;
     case Bcc:
         return recipientsBcc;
+    case To:
+    default:
+        return recipientsTo;
     }
 }
 
