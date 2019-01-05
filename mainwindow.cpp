@@ -9,13 +9,18 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-
     connect(ui->actionConfig_Setting, SIGNAL(triggered()), this, SLOT(showConfigSetting()));
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+    if (mailsenderThread)
+    {
+        mailsenderThread->wait();
+        mailsenderThread = nullptr;
+    }
+    qDebug() << "end destroy widget";
 }
 
 //选择文件
@@ -58,6 +63,20 @@ void MainWindow::changeGroupby(QString selectedSheetName)
         }
     }
     ui->groupByComboBox->addItems(*header);
+}
+
+void MainWindow::receiveMessage(const int msgType, const QString &result)
+{
+    switch (msgType) {
+    case EmailSender::MsgTypeError:
+        errorMessage(result);
+        break;
+    case EmailSender::MsgTypeInfo:
+    case EmailSender::MsgTypeWarn:
+    default:
+        ui->statusBar->showMessage(result);
+        break;
+    }
 }
 
 //打开文件对话框
@@ -129,99 +148,26 @@ void MainWindow::doSplitXls(int groupby, QString dataSheetName, QString emailShe
     sendemail(emailQhash,savePath, dataQhash.size());
 }
 
+//发送邮件
+//@see https://blog.csdn.net/czyt1988/article/details/71194457
 void MainWindow::sendemail(QHash<QString, QList<QStringList>> emailQhash, QString savePath, int total)
 {
-    qDebug("sendemail");
-    QHashIterator<QString,QList<QStringList>> it(emailQhash);
-
-    QString user(cfg->Get("email","userName").toString());
-    QString password(cfg->Get("email","password").toString());
-    QString server(cfg->Get("email","server").toString());
-    QString defaultSender(cfg->Get("email","defaultSender").toString());
-    if (user.isEmpty() || password.isEmpty() || server.isEmpty() || defaultSender.isEmpty())
+    if(mailsenderThread != nullptr)
     {
-        QMessageBox::information(this, "Setting Error", "请先正确设置配置信息");
-    }
-    ui->statusBar->showMessage("准备发送邮件...");
-    SmtpClient smtp(server);
-    smtp.setUser(user);
-    smtp.setPassword(password);
-
-    if(!smtp.connectToHost())
-    {
-        errorMessage("connect to email host Failed");
         return;
     }
+    mailsenderThread= new QThread();
+    mailsender = new EmailSender();
+    mailsender->setSendData(cfg,emailQhash,savePath,total);
+    mailsender->moveToThread(mailsenderThread);
+    connect(mailsenderThread,&QThread::finished,mailsenderThread,&QObject::deleteLater);
+    connect(mailsenderThread,&QThread::finished,mailsender,&QObject::deleteLater);
+    connect(this,&MainWindow::doSend,mailsender,&EmailSender::doSend);
+    connect(mailsender,&EmailSender::message,this,&MainWindow::receiveMessage);
 
-    if (!smtp.login(user, password))
-    {
-        errorMessage("Authentification Failed");
-        return;
-    }
-    ui->statusBar->showMessage("开始发送邮件...");
-    QString msg("发送邮件成功：%1 失败：%2  已处理%3/共：");
-    msg.append(QString::number(total));
-    int failureCount =0;
-    int successCount = 0;
-    int totalCount = 0;
-    while (it.hasNext()) {
-        it.next();
-        MimeMessage message;
+    mailsenderThread->start();
 
-        //防止中文乱码
-        message.setHeaderEncoding(MimePart::Encoding::Base64);
-        message.setSender(new EmailAddress(defaultSender, defaultSender));
-
-        //        qDebug("key:");
-        QString key = it.key();
-        //        qDebug(key.toUtf8());
-        QList<QStringList> content = it.value();
-
-        QString attementsName;
-        attementsName.append(savePath).append("\\").append(key).append(".xlsx");
-
-        // Add an another attachment
-        QFileInfo file(attementsName);
-        if (file.exists())
-        {
-            message.addPart(new MimeAttachment(new QFile(attementsName)));
-        }
-        else
-        {
-            qDebug("file not exists:") ;
-            qDebug(attementsName.toUtf8());
-        }
-
-        //只取一行数据
-        QStringList emailData = content.at(0);
-
-        if (emailData.size() != 4)
-        {
-            errorMessage("Email sheet 数据错误。数据列必须为4行 分别为 站，email地址，email标题，email内容");
-            return;
-        }
-        //email的数据顺序为  （站，email,title,content）
-        EmailAddress * email = new EmailAddress(emailData.at(1), emailData.at(1));
-        message.addRecipient(email);
-        message.setSubject(emailData.at(2));
-
-        MimeText text;
-        text.setText(emailData.at(3));
-        message.addPart(&text);
-
-        if (!smtp.sendMail(message))
-        {
-            failureCount++;
-        }
-        else
-        {
-            successCount++;
-        }
-        totalCount++;
-        ui->statusBar->showMessage(msg.arg(successCount).arg(failureCount).arg(totalCount));
-    }
-    smtp.quit();
-    ui->statusBar->showMessage("处理完毕");
+    emit doSend(); //主线程通过信号换起子线程的槽函数
 }
 
 //读取xls
@@ -248,7 +194,6 @@ QHash<QString, QList<QStringList>> MainWindow::readXls(int groupby, QString sele
             QXlsx::Cell *cell =xlsx->cellAt(row, colum);
             if (cell)
             {
-                // qDebug(cell->value().toByteArray());
                 if (cell->isDateTime())
                 {
                     items.append(cell->dateTime().toString("yyyy/MM/dd"));

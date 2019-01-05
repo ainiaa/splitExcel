@@ -7,10 +7,12 @@
 #include<QHashIterator>
 #include <QDateTime>
 #include<QErrorMessage>
+#include<QThread>
+
 #include "xlsxdocument.h"
-#include "smtpclient/src/SmtpMime"
 #include "configsetting.h"
 #include "config.h"
+#include "emailsender.h"
 namespace Ui {
 class MainWindow;
 }
@@ -37,6 +39,8 @@ public:
 
     void loadConfig();
 
+signals:
+    void doSend();
 
 private slots:
     void on_selectFilePushButton_clicked();
@@ -51,12 +55,16 @@ private slots:
 
     void showConfigSetting();
 
+    void receiveMessage(const int msgType, const QString &result);
+
 private:
     Ui::MainWindow *ui;
     QXlsx::Document *xlsx;
     QStringList *header = new QStringList();
     ConfigSetting *configSetting = new ConfigSetting(nullptr,this);
     Config *cfg = new Config();
+    QThread* mailsenderThread = nullptr;
+    EmailSender *mailsender;
 
     void errorMessage(const QString &message);
 };
