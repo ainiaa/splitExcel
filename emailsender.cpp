@@ -38,8 +38,12 @@ void EmailSender::doSend()
     emit requestMsg(Common::MsgTypeInfo, "准备发送邮件...");
 
     QThreadPool pool;
-    int maxPool = 2;
-    pool.setMaxThreadCount(maxPool);
+    int maxThreadCnt = cfg->Get("email","maxThreadCnt").toInt();
+    if (maxThreadCnt < 1)
+    {
+        maxThreadCnt = 2;
+    }
+    pool.setMaxThreadCount(maxThreadCnt);
     while (it.hasNext()) {
         it.next();
         MimeMessage mineMsg;
@@ -57,7 +61,7 @@ void EmailSender::doSend()
         runnable->setAutoDelete(true);
 
         pool.start(runnable);
-        if (m_process_cnt % maxPool)
+        if (m_process_cnt % maxThreadCnt == 0)
         {
             pool.waitForDone();
         }

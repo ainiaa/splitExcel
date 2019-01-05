@@ -22,7 +22,7 @@ void ConfigSetting::loadConfig()
     ui->serverLineEdit->setText(cfg->Get("email","server").toString());
     ui->userNameLineEdit->setText(cfg->Get("email","userName").toString());
     ui->passwordLineEdit->setText(cfg->Get("email","password").toString());
-    ui->defaultSenderEmailLineEdit->setText(cfg->Get("email","defaultSender").toString());
+    ui->maxThreadCntComboBox->setCurrentText(cfg->Get("email","maxThreadCnt").toString());
 }
 
 //写入配置项
@@ -31,11 +31,12 @@ void ConfigSetting::writeConfig()
     QString server = ui->serverLineEdit->text();
     QString userName = ui->userNameLineEdit->text();
     QString password = ui->passwordLineEdit->text();
-    QString defaultSender = ui->defaultSenderEmailLineEdit->text();
-
+    QString defaultSender =userName;
+    QString maxThreadCnt = ui->maxThreadCntComboBox->currentText();
     cfg->Set("email","server",server);
     cfg->Set("email","userName",userName);
     cfg->Set("email","defaultSender",defaultSender);
+    cfg->Set("email","maxThreadCnt",maxThreadCnt);
     if (!password.isEmpty())
     {
         cfg->Set("email","password",password);
