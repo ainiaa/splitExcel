@@ -62,13 +62,12 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    QXlsx::Document *xlsx;
+    QXlsx::Document *xlsx = nullptr;
     QStringList *header = new QStringList();
     ConfigSetting *configSetting = new ConfigSetting(nullptr,this);
     Config *cfg = new Config();
     QThread* mailsenderThread = nullptr;
-    EmailSender *mailsender;
-
+    EmailSender *mailsender = nullptr;
     ProcessWindow *processWindow = nullptr;
 
     void errorMessage(const QString &message);

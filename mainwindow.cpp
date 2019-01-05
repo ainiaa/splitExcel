@@ -19,15 +19,29 @@ MainWindow::~MainWindow()
     if (mailsenderThread)
     {
         mailsenderThread->quit();
+        mailsenderThread->wait();
+        delete mailsenderThread;
     }
-    mailsenderThread->wait();
-    delete processWindow;
-    delete mailsender;
-    delete xlsx;
-    delete header;
+
+    if (processWindow)
+    {
+        delete processWindow;
+    }
+    if (mailsender)
+    {
+        delete mailsender;
+    }
+    if (xlsx)
+    {
+        delete xlsx;
+    }
+    if (header)
+    {
+        delete header;
+    }
+
     delete configSetting;
     delete cfg;
-    delete mailsenderThread;
 
     qDebug() << "end destroy widget";
 }
