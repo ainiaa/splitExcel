@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QDateTime>
+#include <QErrorMessage>
 namespace Ui {
 class ProcessWindow;
 }

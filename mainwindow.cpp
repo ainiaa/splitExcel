@@ -101,7 +101,8 @@ void MainWindow::receiveMessage(const int msgType, const QString &msg)
         processWindow->setProcessText(msg);
         ui->statusBar->showMessage(msg);
 
-        errorMessage(msg);
+        QMessageBox::critical(this, "Error", msg);
+        //errorMessage(msg);
         break;
     case Common::MsgTypeEmailSendFinish:
         ui->submitPushButton->setDisabled(false);
@@ -148,7 +149,7 @@ void MainWindow::on_submitPushButton_clicked()
 {
     ui->submitPushButton->setDisabled(true);
 
-    QString server = cfg->Get("email","server").toString();
+    QString server = cfg->get("email","server").toString();
     if (server.isEmpty())
     {
         QMessageBox::information(this, "Setting Error", "请先配置邮件相关配置");
@@ -162,8 +163,6 @@ void MainWindow::on_submitPushButton_clicked()
     {
         QMessageBox::information(this, "Save Path Error", "请选择保存路径");
     }
-
-    int groupbyindex = ui->groupByComboBox->currentIndex() + 1;
 
     savePath = savePath.replace("/","\\");
 
@@ -179,17 +178,28 @@ void MainWindow::on_submitPushButton_clicked()
     processWindow->show();
 
     //拆分 && 后续操作(发送email)
-    doSplitXls(groupbyindex,ui->dataComboBox->currentText(),ui->emailComboBox->currentText(),savePath);
+    doSplitXls(ui->dataComboBox->currentText(),ui->emailComboBox->currentText(),savePath);
 }
 
 //拆分 && 后续操作(发送email)
-void MainWindow::doSplitXls(int groupby, QString dataSheetName, QString emailSheetName, QString savePath)
+void MainWindow::doSplitXls(QString dataSheetName, QString emailSheetName, QString savePath)
 {
     //读取excel数据
     ui->statusBar->showMessage("开始读取excel文件信息");
     receiveMessage(Common::MsgTypeInfo,"开始读取excel文件信息");
-    QHash<QString, QList<QStringList>> dataQhash = readXls(groupby,dataSheetName);
-    QHash<QString, QList<QStringList>> emailQhash = readXls(groupby,emailSheetName);
+    QString groupbytext = ui->groupByComboBox->currentText();
+    QHash<QString, QList<QStringList>> dataQhash = readXls(groupbytext,dataSheetName, false);
+    if (dataQhash.size() < 1)
+    {
+        receiveMessage(Common::MsgTypeFail,"没有data数据！！");
+        return;
+    }
+    QHash<QString, QList<QStringList>> emailQhash = readXls(groupbytext,emailSheetName,true);
+    if (emailQhash.size() < 1)
+    {
+        receiveMessage(Common::MsgTypeFail,"没有email数据");
+        return;
+    }
 
     //写excel
     receiveMessage(Common::MsgTypeInfo,"开始拆分excel并生成新的excel文件");
@@ -223,7 +233,7 @@ void MainWindow::sendemail(QHash<QString, QList<QStringList>> emailQhash, QStrin
 }
 
 //读取xls
-QHash<QString, QList<QStringList>> MainWindow::readXls(int groupby, QString selectedSheetName)
+QHash<QString, QList<QStringList>> MainWindow::readXls(QString groupByText, QString selectedSheetName, bool isEmail)
 {
     QXlsx::CellRange range;
     xlsx->selectSheet(selectedSheetName);
@@ -232,14 +242,33 @@ QHash<QString, QList<QStringList>> MainWindow::readXls(int groupby, QString sele
     int colCount = range.columnCount();
 
     QHash<QString, QList<QStringList>> qhash;
+    int groupBy = 0;
+    for (int colum=1; colum<=colCount; ++colum)
+    {
+         QXlsx::Cell *cell =xlsx->cellAt(1, colum);
+         if (cell)
+         {
+             if (groupByText ==cell->value().toString())
+             {
+                 groupBy = colum;
+                 break;
+             }
+         }
+    }
+    if (groupBy == 0)
+    {//没有对应的分组
+        receiveMessage(Common::MsgTypeError, "分组列“" + groupByText + "” 不存在");
+        return qhash;
+    }
+
     for (int row = 2;row <= rowCount;++row)
     {
-        QString groupbyvalue;
+        QString groupByValue;
         QStringList items;
-        QXlsx::Cell *cell =xlsx->cellAt(row, groupby);
+        QXlsx::Cell *cell =xlsx->cellAt(row, groupBy);
         if (cell)
         {
-            groupbyvalue = cell->value().toString();
+            groupByValue = cell->value().toString();
         }
         for (int colum=1; colum<=colCount; ++colum)
         {
@@ -256,22 +285,28 @@ QHash<QString, QList<QStringList>> MainWindow::readXls(int groupby, QString sele
                 }
             }
         }
-        QList<QStringList> qlist = qhash.take(groupbyvalue);
+        if (isEmail && items.size() < Common::EmailColumnMinCnt)
+        {
+            receiveMessage(Common::MsgTypeError, "email第" +QString::number(row) + "行数据列小于" + QString::number(Common::EmailColumnMinCnt));
+            qhash.clear();
+            return qhash;
+        }
+        QList<QStringList> qlist = qhash.take(groupByValue);
         qlist.append(items);
-        qhash.insert(groupbyvalue,qlist);
+        qhash.insert(groupByValue,qlist);
     }
     return qhash;
 }
 
 //写xls
-void MainWindow::writeXls(QHash<QString, QList<QStringList>> qhash, QString savePath)
+void MainWindow::writeXls(QHash<QString, QList<QStringList>> qHash, QString savePath)
 {
     qDebug("writeXls");
-    QHashIterator<QString,QList<QStringList>> it(qhash);
+    QHashIterator<QString,QList<QStringList>> it(qHash);
     QString startMsg("开始拆分excel并生成新的excel文件: %1/");
     QString endMsg("完成拆分excel并生成新的excel文件: %1/");
-    startMsg.append(QString::number(qhash.size()));
-    endMsg.append(QString::number(qhash.size()));
+    startMsg.append(QString::number(qHash.size()));
+    endMsg.append(QString::number(qHash.size()));
 
     int count = 1;
     while (it.hasNext()) {

@@ -10,6 +10,8 @@ public:
     static const int MsgTypeSucc = 5;
     static const int MsgTypeFinish = 6;
     static const int MsgTypeEmailSendFinish = 7;
+
+    static const int EmailColumnMinCnt =4;
 };
 
 #endif // COMMON_H

@@ -24,7 +24,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>请选择excel</string>
+     <string>请选择 excel 文件</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -164,7 +164,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>数据</string>
+     <string>数据 Sheet</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -180,7 +180,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>email</string>
+     <string>email Sheet</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>

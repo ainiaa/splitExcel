@@ -9,10 +9,10 @@ class Config
 public:
     Config(QString qstrfilename = "");
     virtual ~Config(void);
-    void Set(QString,QString,QVariant);
-    QString GetConfigPath();
-    QVariant Get(QString,QString);
-    void Clear();
+    void set(QString,QString,QVariant);
+    QString getConfigPath();
+    QVariant get(QString,QString);
+    void clear();
 private:
     QString fileName;
     QSettings *cfg;

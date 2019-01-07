@@ -19,10 +19,10 @@ ConfigSetting::~ConfigSetting()
 //加载配置项
 void ConfigSetting::loadConfig()
 {
-    ui->serverLineEdit->setText(cfg->Get("email","server").toString());
-    ui->userNameLineEdit->setText(cfg->Get("email","userName").toString());
-    ui->passwordLineEdit->setText(cfg->Get("email","password").toString());
-    ui->maxThreadCntComboBox->setCurrentText(cfg->Get("email","maxThreadCnt").toString());
+    ui->serverLineEdit->setText(cfg->get("email","server").toString());
+    ui->userNameLineEdit->setText(cfg->get("email","userName").toString());
+    ui->passwordLineEdit->setText(cfg->get("email","password").toString());
+    ui->maxThreadCntComboBox->setCurrentText(cfg->get("email","maxThreadCnt").toString());
 }
 
 //写入配置项
@@ -33,13 +33,13 @@ void ConfigSetting::writeConfig()
     QString password = ui->passwordLineEdit->text();
     QString defaultSender =userName;
     QString maxThreadCnt = ui->maxThreadCntComboBox->currentText();
-    cfg->Set("email","server",server);
-    cfg->Set("email","userName",userName);
-    cfg->Set("email","defaultSender",defaultSender);
-    cfg->Set("email","maxThreadCnt",maxThreadCnt);
+    cfg->set("email","server",server);
+    cfg->set("email","userName",userName);
+    cfg->set("email","defaultSender",defaultSender);
+    cfg->set("email","maxThreadCnt",maxThreadCnt);
     if (!password.isEmpty())
     {
-        cfg->Set("email","password",password);
+        cfg->set("email","password",password);
     }
 }
 

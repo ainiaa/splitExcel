@@ -26,10 +26,10 @@ void EmailSender::doSend()
     qDebug("sendemail");
     QHashIterator<QString,QList<QStringList>> it(emailQhash);
 
-    QString user(cfg->Get("email","userName").toString());
-    QString password(cfg->Get("email","password").toString());
-    QString server(cfg->Get("email","server").toString());
-    QString defaultSender(cfg->Get("email","defaultSender").toString());
+    QString user(cfg->get("email","userName").toString());
+    QString password(cfg->get("email","password").toString());
+    QString server(cfg->get("email","server").toString());
+    QString defaultSender(cfg->get("email","defaultSender").toString());
     if (user.isEmpty() || password.isEmpty() || server.isEmpty() || defaultSender.isEmpty())
     {
         emit requestMsg(Common::MsgTypeError, "请先正确设置配置信息");
@@ -38,7 +38,7 @@ void EmailSender::doSend()
     emit requestMsg(Common::MsgTypeInfo, "准备发送邮件...");
 
     QThreadPool pool;
-    int maxThreadCnt = cfg->Get("email","maxThreadCnt").toInt();
+    int maxThreadCnt = cfg->get("email","maxThreadCnt").toInt();
     if (maxThreadCnt < 1)
     {
         maxThreadCnt = 2;

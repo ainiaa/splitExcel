@@ -30,11 +30,11 @@ public:
 
     QString openFile();
 
-    void doSplitXls(int groupby, QString dataSheetName, QString emailSheetName, QString savePath);
+    void doSplitXls(QString dataSheetName, QString emailSheetName, QString savePath);
 
-    QHash<QString, QList<QStringList>> readXls(int groupby, QString selectedSheetName);
-    void writeXls(QHash<QString, QList<QStringList>> qhash, QString savePath);
-    void sendemail(QHash<QString, QList<QStringList>> qhash, QString savePath);
+    QHash<QString, QList<QStringList>> readXls(QString groupByText, QString selectedSheetName, bool isEmail);
+    void writeXls(QHash<QString, QList<QStringList>> qHash, QString savePath);
+    void sendemail(QHash<QString, QList<QStringList>> qHash, QString savePath);
     void writeXlsHeader(QXlsx::Document *currXls);
 
     void convertToColName(int data, QString &res);
