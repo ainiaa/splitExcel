@@ -16,21 +16,34 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete ui;
-    if (mailsenderThread)
+    if (mailSenderThread)
     {
-        mailsenderThread->quit();
-        mailsenderThread->wait();
-        delete mailsenderThread;
+        mailSenderThread->quit();
+        mailSenderThread->wait();
+        delete mailSenderThread;
+    }
+    if (mailSender)
+    {
+        delete mailSender;
+    }
+
+    if (xlsxParserThread)
+    {
+        xlsxParserThread->quit();
+        xlsxParserThread->wait();
+        delete xlsxParserThread;
+    }
+
+    if (xlsxParser)
+    {
+        delete xlsxParser;
     }
 
     if (processWindow)
     {
         delete processWindow;
     }
-    if (mailsender)
-    {
-        delete mailsender;
-    }
+
     if (xlsx)
     {
         delete xlsx;
@@ -46,17 +59,16 @@ MainWindow::~MainWindow()
     qDebug() << "end destroy widget";
 }
 
-//选择文件
+//选择xlsx文件
 void MainWindow::on_selectFilePushButton_clicked()
 {
-    QString path = MainWindow::openFile();
+    QString path = xlsxParser->openFile(this);
     if (path.length() > 0)
     {//选择了excel文件
         ui->xlsObjLineEdit->setText(path);
-        xlsx = new QXlsx::Document (path);
 
         //获得所有的sheets
-        QStringList sheetNames = xlsx->sheetNames();
+        QStringList sheetNames = xlsxParser->getSheetNames();
         ui->dataComboBox->addItems(sheetNames);
         ui->dataComboBox->setCurrentIndex(0);
         ui->emailComboBox->addItems(sheetNames);
@@ -72,20 +84,7 @@ void MainWindow::changeGroupby(QString selectedSheetName)
 {
     header->clear();
     ui->groupByComboBox->clear();
-
-    QXlsx::CellRange range;
-    xlsx->selectSheet(selectedSheetName);
-    range = xlsx->dimension();
-    int colCount = range.columnCount();
-
-    for (int colum=1; colum<=colCount; ++colum)
-    {
-        QXlsx::Cell *cell =xlsx->cellAt(1, colum);
-        if (cell)
-        {
-            header->append(cell->value().toString());
-        }
-    }
+    header = xlsxParser->getSheetHeader(selectedSheetName);
     ui->groupByComboBox->addItems(*header);
 }
 
@@ -108,7 +107,7 @@ void MainWindow::receiveMessage(const int msgType, const QString &msg)
         ui->submitPushButton->setDisabled(false);
         ui->statusBar->showMessage(msg);
         processWindow->setProcessText(msg);
-        mailsenderThread = nullptr;
+        mailSenderThread = nullptr;
         break;
     case Common::MsgTypeSucc:
     case Common::MsgTypeInfo:
@@ -120,21 +119,7 @@ void MainWindow::receiveMessage(const int msgType, const QString &msg)
     }
 }
 
-//打开文件对话框
-QString MainWindow::openFile()
-{
-    QString path = QFileDialog::getOpenFileName(this, tr("Open Excel"), ".", tr("excel(*.xlsx)"));
-    if(path.length() == 0)
-    {
-        return "";
-    }
-    else
-    {
-        return path;
-    }
-}
-
-//选择保存目录
+//选择新Xlsx文件保存目录
 void MainWindow::on_savePathPushButton_clicked()
 {
     QString path = QFileDialog::getExistingDirectory(this, tr("Save New Excels"), ".");
@@ -164,7 +149,7 @@ void MainWindow::on_submitPushButton_clicked()
         QMessageBox::information(this, "Save Path Error", "请选择保存路径");
     }
 
-    savePath = savePath.replace("/","\\");
+    savePath = QDir::toNativeSeparators(savePath);
 
     if (processWindow == nullptr)
     {
@@ -184,17 +169,17 @@ void MainWindow::on_submitPushButton_clicked()
 //拆分 && 后续操作(发送email)
 void MainWindow::doSplitXls(QString dataSheetName, QString emailSheetName, QString savePath)
 {
-    //读取excel数据
+    //读取excel数据 todo start
     ui->statusBar->showMessage("开始读取excel文件信息");
     receiveMessage(Common::MsgTypeInfo,"开始读取excel文件信息");
-    QString groupbytext = ui->groupByComboBox->currentText();
-    QHash<QString, QList<QStringList>> dataQhash = readXls(groupbytext,dataSheetName, false);
+    QString groupByText = ui->groupByComboBox->currentText();
+    QHash<QString, QList<QStringList>> dataQhash = readXls(groupByText,dataSheetName, false);
     if (dataQhash.size() < 1)
     {
         receiveMessage(Common::MsgTypeFail,"没有data数据！！");
         return;
     }
-    QHash<QString, QList<QStringList>> emailQhash = readXls(groupbytext,emailSheetName,true);
+    QHash<QString, QList<QStringList>> emailQhash = readXls(groupByText,emailSheetName,true);
     if (emailQhash.size() < 1)
     {
         receiveMessage(Common::MsgTypeFail,"没有email数据");
@@ -206,6 +191,27 @@ void MainWindow::doSplitXls(QString dataSheetName, QString emailSheetName, QStri
     ui->statusBar->showMessage("开始拆分excel并生成新的excel文件");
     writeXls(dataQhash,savePath);
 
+    //todo end
+
+    // start ////
+    if(xlsxParserThread != nullptr)
+    {
+        return;
+    }
+
+    xlsxParserThread= new QThread();
+    xlsxParser = new XlsxParser();
+    xlsxParser->setSplitData(groupByText,dataSheetName,emailSheetName,savePath);
+    xlsxParser->moveToThread(xlsxParserThread);
+    connect(xlsxParserThread,&QThread::finished,xlsxParserThread,&QObject::deleteLater);
+    connect(xlsxParserThread,&QThread::finished,xlsxParser,&QObject::deleteLater);
+    connect(this,&MainWindow::doSplit,xlsxParser,&XlsxParser::doSplit);
+    connect(xlsxParser,&XlsxParser::requestMsg,this,&MainWindow::receiveMessage);
+    xlsxParserThread->start();
+
+    emit doSplit(); //主线程通过信号换起子线程的槽函数
+    //end ////
+
     //发送email
     sendemail(emailQhash,savePath);
 }
@@ -215,19 +221,19 @@ void MainWindow::doSplitXls(QString dataSheetName, QString emailSheetName, QStri
 void MainWindow::sendemail(QHash<QString, QList<QStringList>> emailQhash, QString savePath)
 {
     int total = emailQhash.size();
-    if(mailsenderThread != nullptr)
+    if(mailSenderThread != nullptr)
     {
         return;
     }
-    mailsenderThread= new QThread();
-    mailsender = new EmailSender();
-    mailsender->setSendData(cfg,emailQhash,savePath,total);
-    mailsender->moveToThread(mailsenderThread);
-    connect(mailsenderThread,&QThread::finished,mailsenderThread,&QObject::deleteLater);
-    connect(mailsenderThread,&QThread::finished,mailsender,&QObject::deleteLater);
-    connect(this,&MainWindow::doSend,mailsender,&EmailSender::doSend);
-    connect(mailsender,&EmailSender::requestMsg,this,&MainWindow::receiveMessage);
-    mailsenderThread->start();
+    mailSenderThread= new QThread();
+    mailSender = new EmailSender();
+    mailSender->setSendData(cfg,emailQhash,savePath,total);
+    mailSender->moveToThread(mailSenderThread);
+    connect(mailSenderThread,&QThread::finished,mailSenderThread,&QObject::deleteLater);
+    connect(mailSenderThread,&QThread::finished,mailSender,&QObject::deleteLater);
+    connect(this,&MainWindow::doSend,mailSender,&EmailSender::doSend);
+    connect(mailSender,&EmailSender::requestMsg,this,&MainWindow::receiveMessage);
+    mailSenderThread->start();
 
     emit doSend(); //主线程通过信号换起子线程的槽函数
 }
@@ -246,6 +252,7 @@ QHash<QString, QList<QStringList>> MainWindow::readXls(QString groupByText, QStr
     for (int colum=1; colum<=colCount; ++colum)
     {
          QXlsx::Cell *cell =xlsx->cellAt(1, colum);
+         QXlsx::Format format = cell->format();
          if (cell)
          {
              if (groupByText ==cell->value().toString())

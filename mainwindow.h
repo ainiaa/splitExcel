@@ -8,6 +8,7 @@
 #include <QDateTime>
 #include<QErrorMessage>
 #include<QThread>
+#include <QDir>
 
 #include "xlsxdocument.h"
 #include "configsetting.h"
@@ -15,6 +16,7 @@
 #include "emailsender.h"
 #include "common.h"
 #include "processwindow.h"
+#include "xlsxparser.h"
 
 namespace Ui {
 class MainWindow;
@@ -27,8 +29,6 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-
-    QString openFile();
 
     void doSplitXls(QString dataSheetName, QString emailSheetName, QString savePath);
 
@@ -44,6 +44,7 @@ public:
 
 signals:
     void doSend();
+    void doSplit();
 
 private slots:
     void on_selectFilePushButton_clicked();
@@ -66,8 +67,10 @@ private:
     QStringList *header = new QStringList();
     ConfigSetting *configSetting = new ConfigSetting(nullptr,this);
     Config *cfg = new Config();
-    QThread* mailsenderThread = nullptr;
-    EmailSender *mailsender = nullptr;
+    QThread *xlsxParserThread = nullptr;
+    XlsxParser * xlsxParser = new XlsxParser();
+    QThread *mailSenderThread = nullptr;
+    EmailSender *mailSender = nullptr;
     ProcessWindow *processWindow = nullptr;
 
     void errorMessage(const QString &message);

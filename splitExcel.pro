@@ -32,7 +32,8 @@ SOURCES += \
     emailsender.cpp \
     common.cpp \
     emailsenderrunnable.cpp \
-    processwindow.cpp
+    processwindow.cpp \
+    xlsxparser.cpp
 
 
 HEADERS += \
@@ -42,7 +43,8 @@ HEADERS += \
     emailsender.h \
     common.h \
     emailsenderrunnable.h \
-    processwindow.h
+    processwindow.h \
+    xlsxparser.h
 
 FORMS += \
         mainwindow.ui \

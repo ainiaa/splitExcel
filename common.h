@@ -9,7 +9,10 @@ public:
     static const int MsgTypeFail = 4;
     static const int MsgTypeSucc = 5;
     static const int MsgTypeFinish = 6;
+
     static const int MsgTypeEmailSendFinish = 7;
+    static const int MsgTypeParseXlsxFinish = 8;
+    static const int MsgTypeWriteXlsxFinish = 9;
 
     static const int EmailColumnMinCnt =4;
 };
