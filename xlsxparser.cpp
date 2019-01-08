@@ -2,15 +2,24 @@
 
 XlsxParser::XlsxParser(QObject *parent):mParent(parent)
 {
-
+    m_success_cnt = 0;
+    m_failure_cnt = 0;
+    m_process_cnt = 0;
+    m_receive_msg_cnt = 0;
 }
 
 XlsxParser::~XlsxParser()
 {
-
+    qDebug() << "~XlsxParser start";
+    if (xlsx != nullptr)
+    {
+        delete xlsx;
+    }
+    qDebug() << "~XlsxParser end";
 }
-void XlsxParser::setSplitData(QString groupByText, QString dataSheetName, QString emailSheetName, QString savePath)
+void XlsxParser::setSplitData(Config *cfg, QString groupByText, QString dataSheetName, QString emailSheetName, QString savePath)
 {
+    this->cfg = cfg;
     this->groupByText = groupByText;
     this->dataSheetName = dataSheetName;
     this->emailSheetName = emailSheetName;
@@ -79,10 +88,14 @@ void XlsxParser::receiveMessage(const int msgType, const QString &result)
     switch (msgType)
     {
     case Common::MsgTypeError:
-        emit requestMsg(msgType, result);
+        m_failure_cnt++;
+        m_receive_msg_cnt++;
+        emit requestMsg(msgType, msg.arg(m_success_cnt).arg(m_failure_cnt).arg(m_process_cnt).arg(result));
         break;
     case Common::MsgTypeSucc:
-        emit requestMsg(msgType,result);
+        m_success_cnt++;
+        m_receive_msg_cnt++;
+        emit requestMsg(msgType, msg.arg(m_success_cnt).arg(m_failure_cnt).arg(m_process_cnt).arg(result));
         break;
     case Common::MsgTypeInfo:
     case Common::MsgTypeWarn:
@@ -90,6 +103,10 @@ void XlsxParser::receiveMessage(const int msgType, const QString &result)
     default:
         emit requestMsg(msgType, result);
         break;
+    }
+    if (m_total_cnt > 0 && m_receive_msg_cnt == m_total_cnt)
+    { //全部处理完毕
+        emit requestMsg(Common::MsgTypeWriteXlsxFinish, "excel文件拆分完毕！");
     }
 }
 
@@ -104,7 +121,7 @@ void XlsxParser::doSplit()
         emit requestMsg(Common::MsgTypeFail, "没有data数据！！");
         return;
     }
-    emailQhash = readEmailXls(groupByText, emailSheetName, true);
+    emailQhash = readEmailXls(groupByText, emailSheetName);
     if (emailQhash.size() < 1)
     {
         emit requestMsg(Common::MsgTypeFail, "没有email数据");
@@ -113,7 +130,8 @@ void XlsxParser::doSplit()
 
     //写excel
     emit requestMsg(Common::MsgTypeInfo, "开始拆分excel并生成新的excel文件");
-    writeXls(dataSheetName,dataQhash,savePath);
+    m_total_cnt = dataQhash.size();
+    writeXls(dataSheetName, dataQhash, savePath);
 }
 
 QHash<QString, QList<QStringList>> XlsxParser::getEmailData()
@@ -168,7 +186,7 @@ QHash<QString, QList<int>> XlsxParser::readDataXls(QString groupByText, QString 
 }
 
 //读取xls
-QHash<QString, QList<QStringList>> XlsxParser::readEmailXls(QString groupByText, QString selectedSheetName, bool isEmail)
+QHash<QString, QList<QStringList>> XlsxParser::readEmailXls(QString groupByText, QString selectedSheetName)
 {
     QXlsx::CellRange range;
     xlsx->selectSheet(selectedSheetName);
@@ -221,7 +239,7 @@ QHash<QString, QList<QStringList>> XlsxParser::readEmailXls(QString groupByText,
                 }
             }
         }
-        if (isEmail && items.size() < Common::EmailColumnMinCnt)
+        if ( items.size() < Common::EmailColumnMinCnt)
         {
             emit requestMsg(Common::MsgTypeError, "email第" +QString::number(row) + "行数据列小于" + QString::number(Common::EmailColumnMinCnt));
             qhash.clear();
@@ -237,86 +255,34 @@ QHash<QString, QList<QStringList>> XlsxParser::readEmailXls(QString groupByText,
 //写xls
 void XlsxParser::writeXls(QString selectedSheetName, QHash<QString, QList<int>> qHash, QString savePath)
 {
-    QXlsx::CellRange range;
-    xlsx->selectSheet(selectedSheetName);
-    range = xlsx->dimension();
-    int rowCount = range.rowCount();
-    int colCount = range.columnCount();
-
-    qDebug("writeXls");
     QHashIterator<QString,QList<int>> it(qHash);
-    QString startMsg("开始拆分excel并生成新的excel文件: %1/");
-    QString endMsg("完成拆分excel并生成新的excel文件: %1/");
-    startMsg.append(QString::number(qHash.size()));
-    endMsg.append(QString::number(qHash.size()));
-    int count = 1;
+    QThreadPool pool;
+    int maxThreadCnt = cfg->get("email","maxThreadCnt").toInt();
+    if (maxThreadCnt < 1)
+    {
+        maxThreadCnt = 2;
+    }
+    pool.setMaxThreadCount(maxThreadCnt);
     while (it.hasNext()) {
         it.next();
-
-        emit requestMsg(Common::MsgTypeInfo,startMsg.arg(QString::number(count)));
         QString key = it.key();
         QList<int> content = it.value();
-        QXlsx::Document currXls;
+        XlsxParserRunnable *runnable = new XlsxParserRunnable(this);
+        runnable->setID(++m_process_cnt);
+        runnable->setSplitData(xlsx, selectedSheetName, key, content, savePath, qHash.size());
+        runnable->setAutoDelete(true);
 
-        //写表头
-        writeXlsHeader(&currXls, selectedSheetName);
+        pool.start(runnable);
 
-        QString xlsName;
-        int rows =  content.size();
-        xlsName.append(savePath).append("\\").append(key).append(".xlsx");
-
-        for(int row = 0; row < rows;row++)
+        if (m_process_cnt % maxThreadCnt == 0)
         {
-            int dataRow = content.at(row);
-            QXlsx::CellReference cellReference = "";
-            QVariant value = xlsx->read(cellReference);
-
-            for (int column=1; column<=colCount; ++column)
-            {
-                QXlsx::Cell *sourceCell =xlsx->cellAt(dataRow, column);
-                if (sourceCell)
-                {
-                    QString columnName;
-                    convertToColName(column,columnName) ;
-                    QString cell;
-                    QXlsx::Format format = sourceCell->format();
-                    QXlsx::Format newfmt;
-
-                    cell.append(columnName).append(QString::number(row+2));
-                    newfmt.setFont(format.font());
-                    newfmt.setFontBold(format.fontBold());
-                    newfmt.setFontName(format.fontName());
-                    newfmt.setFontSize(format.fontSize());
-                    newfmt.setFontColor(format.fontColor());
-                    newfmt.setFontItalic(format.fontItalic());
-                    newfmt.setFontUnderline(format.fontUnderline());
-
-                    newfmt.setTextWarp(format.textWrap());
-
-                    newfmt.setNumberFormat(format.numberFormat());
-
-                    newfmt.setVerticalAlignment(format.verticalAlignment());
-                    newfmt.setHorizontalAlignment(format.horizontalAlignment());
-
-                    newfmt.setPatternBackgroundColor(format.patternBackgroundColor());
-                    newfmt.setPatternForegroundColor(format.patternForegroundColor());
-
-                    if (sourceCell->isDateTime() && !sourceCell->value().isNull())
-                    {
-                        currXls.write(cell,sourceCell->dateTime(),newfmt);
-                    }
-                    else
-                    {
-                        currXls.write(cell,sourceCell->value(), newfmt);
-                    }
-                }
-            }
+            pool.waitForDone();
         }
-        currXls.saveAs(xlsName);
-        emit requestMsg(Common::MsgTypeInfo,endMsg.arg(QString::number(count)));
-        count++;
     }
-    emit requestMsg(Common::MsgTypeInfo,"拆分excel结束");
+    if (pool.activeThreadCount() > 0)
+    {
+        pool.waitForDone();
+    }
 }
 
 void  XlsxParser::writeXlsHeader(QXlsx::Document *xls, QString selectedSheetName)
@@ -334,34 +300,45 @@ void  XlsxParser::writeXlsHeader(QXlsx::Document *xls, QString selectedSheetName
             QString columnName;
             convertToColName(column,columnName) ;
             QString cell;
-            QXlsx::Format sourceFormat = sourceCell->format();
-
-            QXlsx::Format format = sourceCell->format();
-            QXlsx::Format newfmt = format;
-            newfmt.setFont(format.font());
-            newfmt.setFontBold(format.fontBold());
-            newfmt.setFontName(format.fontName());
-            newfmt.setFontSize(format.fontSize());
-            newfmt.setFontColor(format.fontColor());
-            newfmt.setFontItalic(format.fontItalic());
-            newfmt.setFontUnderline(format.fontUnderline());
-            newfmt.setTextWarp(format.textWrap());
-            newfmt.setNumberFormat(format.numberFormat());
-            newfmt.setVerticalAlignment(format.verticalAlignment());
-            newfmt.setHorizontalAlignment(format.horizontalAlignment());
-            newfmt.setPatternBackgroundColor(format.patternBackgroundColor());
-            newfmt.setPatternForegroundColor(format.patternForegroundColor());
-
+            QXlsx::Format newFormat = copyFormat(sourceCell->format());
             cell.append(columnName).append(QString::number(1));
-            qDebug() << "cell:" <<cell << " column:" <<column;
-            xls->write(cell, sourceCell->value(), newfmt);
+            xls->write(cell, sourceCell->value(), newFormat);
             xls->setColumnFormat(column,xlsx->columnFormat(column));
             xls->setColumnWidth(column,xlsx->columnWidth(column));
         }
     }
     xls->setRowFormat(1,xlsx->rowFormat(1));
     xls->setRowHeight(1,xlsx->rowHeight(1));
+}
 
+
+QXlsx::Format XlsxParser::copyFormat(QXlsx::Format format)
+{
+    QXlsx::Format newFomat = format;
+    newFomat.setFont(format.font());
+    newFomat.setFontBold(format.fontBold());
+    newFomat.setFontName(format.fontName());
+    newFomat.setFontSize(format.fontSize());
+    newFomat.setFontColor(format.fontColor());
+    newFomat.setFontItalic(format.fontItalic());
+    newFomat.setFontUnderline(format.fontUnderline());
+
+    newFomat.setTextWarp(format.textWrap());
+
+    newFomat.setNumberFormat(format.numberFormat());
+
+    newFomat.setVerticalAlignment(format.verticalAlignment());
+    newFomat.setHorizontalAlignment(format.horizontalAlignment());
+
+    newFomat.setPatternBackgroundColor(format.patternBackgroundColor());
+    newFomat.setPatternForegroundColor(format.patternForegroundColor());
+
+    newFomat.setTopBorderStyle(format.topBorderStyle());
+    newFomat.setTopBorderColor(format.topBorderColor());
+    newFomat.setBottomBorderStyle(format.bottomBorderStyle());
+    newFomat.setBottomBorderColor(format.bottomBorderColor());
+
+    return newFomat;
 }
 
 ///

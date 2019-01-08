@@ -9,6 +9,7 @@
 #include<QErrorMessage>
 #include<QThread>
 #include <QDir>
+#include <QHash>
 
 #include "xlsxdocument.h"
 #include "configsetting.h"
@@ -31,7 +32,7 @@ public:
     ~MainWindow();
 
     void doSplitXls(QString dataSheetName, QString emailSheetName, QString savePath);
-    void sendemail(QHash<QString, QList<QStringList>> qHash, QString savePath);
+    void sendemail();
     void loadConfig();
 
 signals:
@@ -60,10 +61,11 @@ private:
     ConfigSetting *configSetting = new ConfigSetting(nullptr,this);
     Config *cfg = new Config();
     QThread *xlsxParserThread = nullptr;
-    XlsxParser * xlsxParser = new XlsxParser();
+    XlsxParser * xlsxParser = nullptr;
     QThread *mailSenderThread = nullptr;
     EmailSender *mailSender = nullptr;
     ProcessWindow *processWindow = nullptr;
+    QString savePath;
 
     void errorMessage(const QString &message);
 };

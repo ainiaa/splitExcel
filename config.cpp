@@ -7,7 +7,6 @@ Config::Config(QString qstrfilename)
     if (qstrfilename.isEmpty())
     {
         fileName = this->getConfigPath()+ "Config.ini";
-        printf("fileName:%s\r\n", fileName.toUtf8().data());
     }
     else
     {
@@ -20,7 +19,6 @@ Config::Config(QString qstrfilename)
 Config::~Config()
 {
     delete cfg;
-    fileName = nullptr;
 }
 void Config::set(QString qstrnodename,QString qstrkeyname,QVariant qvarvalue)
 {

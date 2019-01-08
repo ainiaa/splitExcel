@@ -10,23 +10,30 @@ MainWindow::MainWindow(QWidget *parent) :
     setWindowFlags(windowFlags()& ~Qt::WindowMaximizeButtonHint);
     setFixedSize(this->width(), this->height());
 
+    xlsxParser = new XlsxParser();
     connect(ui->actionConfig_Setting, SIGNAL(triggered()), this, SLOT(showConfigSetting()));
 }
 
 MainWindow::~MainWindow()
 {
+    qDebug() << "MainWindow::~MainWindow start";
     delete ui;
+
+    if (mailSender)
+    {
+        delete mailSender;
+    }
     if (mailSenderThread)
     {
         mailSenderThread->quit();
         mailSenderThread->wait();
         delete mailSenderThread;
     }
-    if (mailSender)
-    {
-        delete mailSender;
-    }
 
+    if (xlsxParser)
+    {
+        delete xlsxParser;
+    }
     if (xlsxParserThread)
     {
         xlsxParserThread->quit();
@@ -34,10 +41,7 @@ MainWindow::~MainWindow()
         delete xlsxParserThread;
     }
 
-    if (xlsxParser)
-    {
-        delete xlsxParser;
-    }
+
 
     if (processWindow)
     {
@@ -53,10 +57,16 @@ MainWindow::~MainWindow()
         delete header;
     }
 
-    delete configSetting;
-    delete cfg;
+    if (configSetting)
+    {
+        delete configSetting;
+    }
 
-    qDebug() << "end destroy widget";
+    if (cfg)
+    {
+        delete cfg;
+    }
+    qDebug() << "MainWindow::~MainWindow end";
 }
 
 //选择xlsx文件
@@ -103,6 +113,12 @@ void MainWindow::receiveMessage(const int msgType, const QString &msg)
         QMessageBox::critical(this, "Error", msg);
         //errorMessage(msg);
         break;
+    case Common::MsgTypeWriteXlsxFinish:
+        processWindow->setProcessText(msg);
+        ui->statusBar->showMessage(msg);
+        //发送email
+        sendemail();
+        break;
     case Common::MsgTypeEmailSendFinish:
         ui->submitPushButton->setDisabled(false);
         ui->statusBar->showMessage(msg);
@@ -126,6 +142,7 @@ void MainWindow::on_savePathPushButton_clicked()
     if(path.length() > 0)
     {
         ui->savePathLineEdit->setText(path);
+        savePath = QDir::toNativeSeparators(path);
     }
 }
 
@@ -139,7 +156,6 @@ void MainWindow::on_submitPushButton_clicked()
     {
         QMessageBox::information(this, "Setting Error", "请先配置邮件相关配置");
     }
-    QString savePath = ui->savePathLineEdit->text();
 
     if (ui->xlsObjLineEdit->text().isEmpty())
     {
@@ -149,8 +165,6 @@ void MainWindow::on_submitPushButton_clicked()
     {
         QMessageBox::information(this, "Save Path Error", "请选择保存路径");
     }
-
-    savePath = QDir::toNativeSeparators(savePath);
 
     if (processWindow == nullptr)
     {
@@ -164,7 +178,7 @@ void MainWindow::on_submitPushButton_clicked()
     processWindow->show();
 
     //拆分 && 后续操作(发送email)
-    doSplitXls(ui->dataComboBox->currentText(),ui->emailComboBox->currentText(),savePath);
+    doSplitXls(ui->dataComboBox->currentText(), ui->emailComboBox->currentText(), savePath);
 }
 
 //拆分 && 后续操作(发送email)
@@ -176,25 +190,22 @@ void MainWindow::doSplitXls(QString dataSheetName, QString emailSheetName, QStri
     }
     QString groupByText = ui->groupByComboBox->currentText();
     xlsxParserThread= new QThread();
-    xlsxParser->setSplitData(groupByText,dataSheetName,emailSheetName,savePath);
+    xlsxParser->setSplitData(cfg, groupByText, dataSheetName, emailSheetName, savePath);
     xlsxParser->moveToThread(xlsxParserThread);
-    connect(xlsxParserThread,&QThread::finished,xlsxParserThread,&QObject::deleteLater);
-    connect(xlsxParserThread,&QThread::finished,xlsxParser,&QObject::deleteLater);
-    connect(this,&MainWindow::doSplit,xlsxParser,&XlsxParser::doSplit);
-    connect(xlsxParser,&XlsxParser::requestMsg,this,&MainWindow::receiveMessage);
+    connect(xlsxParserThread, &QThread::finished, xlsxParserThread, &QObject::deleteLater);
+    connect(xlsxParserThread, &QThread::finished, xlsxParser, &QObject::deleteLater);
+    connect(this, &MainWindow::doSplit, xlsxParser, &XlsxParser::doSplit);
+    connect(xlsxParser, &XlsxParser::requestMsg, this, &MainWindow::receiveMessage);
     xlsxParserThread->start();
 
     emit doSplit(); //主线程通过信号换起子线程的槽函数
-
-    //发送email
-    //QHash<QString, QList<QStringList>>emailQhash = xlsxParser->getEmailData();
-    //sendemail(emailQhash,savePath);
 }
 
 //发送邮件
 //@see https://blog.csdn.net/czyt1988/article/details/71194457
-void MainWindow::sendemail(QHash<QString, QList<QStringList>> emailQhash, QString savePath)
+void MainWindow::sendemail()
 {
+    QHash<QString, QList<QStringList>> emailQhash = xlsxParser->getEmailData();
     int total = emailQhash.size();
     if(mailSenderThread != nullptr)
     {
@@ -204,10 +215,10 @@ void MainWindow::sendemail(QHash<QString, QList<QStringList>> emailQhash, QStrin
     mailSender = new EmailSender();
     mailSender->setSendData(cfg,emailQhash,savePath,total);
     mailSender->moveToThread(mailSenderThread);
-    connect(mailSenderThread,&QThread::finished,mailSenderThread,&QObject::deleteLater);
-    connect(mailSenderThread,&QThread::finished,mailSender,&QObject::deleteLater);
-    connect(this,&MainWindow::doSend,mailSender,&EmailSender::doSend);
-    connect(mailSender,&EmailSender::requestMsg,this,&MainWindow::receiveMessage);
+    connect(mailSenderThread, &QThread::finished, mailSenderThread, &QObject::deleteLater);
+    connect(mailSenderThread, &QThread::finished, mailSender, &QObject::deleteLater);
+    connect(this, &MainWindow::doSend, mailSender, &EmailSender::doSend);
+    connect(mailSender, &EmailSender::requestMsg, this, &MainWindow::receiveMessage);
     mailSenderThread->start();
 
     emit doSend(); //主线程通过信号换起子线程的槽函数
@@ -222,11 +233,13 @@ void MainWindow::errorMessage(const QString &message)
     err.exec();
 }
 
+//修改分组
 void MainWindow::on_dataComboBox_currentTextChanged(const QString &arg1)
 {
     changeGroupby(arg1);
 }
 
+//显示配置UI
 void MainWindow::showConfigSetting()
 {
     this->hide();

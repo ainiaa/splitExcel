@@ -4,8 +4,11 @@
 #include <QRunnable>
 #include <QMetaObject>
 #include <QFileInfo>
-#include "smtpclient/src/SmtpMime"
+#include <QDateTime>
+
+#include "xlsxdocument.h"
 #include "common.h"
+#include "config.h"
 class XlsxParserRunnable : public QRunnable
 {
 public:
@@ -16,18 +19,27 @@ public:
 
     void setID(const int &id);
 
-    void setSplitData(QString groupByText,QString dataSheetName, QString emailSheetName, QString savePath);
+    void setSplitData(QXlsx::Document *xlsx, QString selectedSheetName,QString key, QList<int> contentList, QString savePath,int m_total);
 
     void requestMsg(const int msgType, const QString &result);
+
+    void writeXls(QString selectedSheetName,QHash<QString, QList<int>> qHash, QString savePath);
+    void writeXlsHeader(QXlsx::Document *currXls,QString selectedSheetName);
+
+    QXlsx::Format copyFormat(QXlsx::Format sourceCellFormat);
+    void convertToColName(int data, QString &res);
+    QString to26AlphabetString(int data);
 
 private:
     //父对象
     QObject *mParent;
     int runnableID;
-    QString groupByText;
-    QString dataSheetName;
-    QString emailSheetName;
+    int m_total;
+    QString key;
+    QList<int> contentList;
     QString savePath;
+    QXlsx::Document *xlsx;
+    QString selectedSheetName;
 };
 
 #endif // XLSXPARSERRUNNABLE_H

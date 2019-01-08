@@ -20,9 +20,10 @@ public:
     EmailSender(QObject* parent = nullptr);
     ~EmailSender();
 
+    void setSendData(Config *cfg, QHash<QString, QList<QStringList>> emailQhash, QString savePath, int total);
+
 public slots:
     void doSend();
-    void setSendData(Config *cfg, QHash<QString, QList<QStringList>> emailQhash, QString savePath, int total);
     void stop();
     void receiveMessage(const int msgType, const QString &result);
 

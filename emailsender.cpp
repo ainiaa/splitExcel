@@ -7,7 +7,10 @@ EmailSender::EmailSender(QObject *parent):QObject (parent)
     m_process_cnt = 0;
     m_receive_msg_cnt = 0;
 }
-EmailSender::~EmailSender(){}
+EmailSender::~EmailSender()
+{
+        qDebug()<< "EmailSender::~EmailSender";
+}
 
 void EmailSender::setSendData(Config *cfg, QHash<QString, QList<QStringList>> emailQhash, QString savePath, int total)
 {
