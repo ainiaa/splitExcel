@@ -29,7 +29,6 @@ void XlsxParserRunnable::setSplitData(QXlsx::Document *xlsx, QString selectedShe
 void XlsxParserRunnable::run()
 {
     qDebug("XlsxParserRunnable::run start") ;
-    requestMsg(Common::MsgTypeInfo, "XlsxParserRunnable::run");
 
     QXlsx::CellRange range;
     xlsx->selectSheet(selectedSheetName);

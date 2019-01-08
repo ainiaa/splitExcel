@@ -90,12 +90,12 @@ void XlsxParser::receiveMessage(const int msgType, const QString &result)
     case Common::MsgTypeError:
         m_failure_cnt++;
         m_receive_msg_cnt++;
-        emit requestMsg(msgType, msg.arg(m_success_cnt).arg(m_failure_cnt).arg(m_process_cnt).arg(result));
+         emit requestMsg(msgType, result);
         break;
     case Common::MsgTypeSucc:
         m_success_cnt++;
         m_receive_msg_cnt++;
-        emit requestMsg(msgType, msg.arg(m_success_cnt).arg(m_failure_cnt).arg(m_process_cnt).arg(result));
+         emit requestMsg(msgType, result);
         break;
     case Common::MsgTypeInfo:
     case Common::MsgTypeWarn:

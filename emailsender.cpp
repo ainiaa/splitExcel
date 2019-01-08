@@ -18,7 +18,7 @@ void EmailSender::setSendData(Config *cfg, QHash<QString, QList<QStringList>> em
     this->emailQhash = emailQhash;
     this->savePath = savePath;
     this->m_total_cnt = total;
-    QString msg("发送邮件。。。 已处理：%3封 成功：%1封  失败：%2封 /共：");
+    QString msg("发送邮件。。。 成功：%1封  失败：%2封 /共：");
     msg.append(QString::number(m_total_cnt)).append("封");
     msg.append("    补充信息: %4 ");
     this->msg = msg;
@@ -85,12 +85,12 @@ void EmailSender::receiveMessage(const int msgType, const QString &result)
     case Common::MsgTypeError:
         m_failure_cnt++;
         m_receive_msg_cnt++;
-        emit requestMsg(msgType, msg.arg(m_success_cnt).arg(m_failure_cnt).arg(m_process_cnt).arg(result));
+        emit requestMsg(msgType, msg.arg(m_success_cnt).arg(m_failure_cnt).arg(result));
         break;
     case Common::MsgTypeSucc:
         m_success_cnt++;
         m_receive_msg_cnt++;
-        emit requestMsg(msgType, msg.arg(m_success_cnt).arg(m_failure_cnt).arg(m_process_cnt).arg(result));
+        emit requestMsg(msgType, msg.arg(m_success_cnt).arg(m_failure_cnt).arg(result));
         break;
     case Common::MsgTypeInfo:
     case Common::MsgTypeWarn:
