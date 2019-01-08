@@ -17,8 +17,9 @@ public:
     QString openFile(QWidget *dlgParent);
     void setSplitData(QString groupByText,QString dataSheetName, QString emailSheetName, QString savePath);
 
-    QHash<QString, QList<QStringList>> readXls(QString groupByText, QString selectedSheetName, bool isEmail);
+    QHash<QString, QList<QStringList>> readEmailXls(QString groupByText, QString selectedSheetName, bool isEmail);
     QHash<QString, QList<int>> readDataXls(QString groupByText, QString selectedSheetName);
+    QHash<QString, QList<QStringList>> getEmailData();
     void writeXls(QString selectedSheetName,QHash<QString, QList<int>> qHash, QString savePath);
     void sendemail(QHash<QString, QList<QStringList>> qHash, QString savePath);
     void writeXlsHeader(QXlsx::Document *currXls,QString selectedSheetName);
@@ -45,5 +46,6 @@ private:
     QString dataSheetName;
     QString emailSheetName;
     QString savePath;
+    QHash<QString, QList<QStringList>> emailQhash;
 };
 #endif // XLSPARSER_H

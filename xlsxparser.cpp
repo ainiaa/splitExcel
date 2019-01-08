@@ -104,7 +104,7 @@ void XlsxParser::doSplit()
         emit requestMsg(Common::MsgTypeFail, "没有data数据！！");
         return;
     }
-    QHash<QString, QList<QStringList>> emailQhash = readXls(groupByText, emailSheetName, true);
+    emailQhash = readEmailXls(groupByText, emailSheetName, true);
     if (emailQhash.size() < 1)
     {
         emit requestMsg(Common::MsgTypeFail, "没有email数据");
@@ -116,6 +116,10 @@ void XlsxParser::doSplit()
     writeXls(dataSheetName,dataQhash,savePath);
 }
 
+QHash<QString, QList<QStringList>> XlsxParser::getEmailData()
+{
+    return emailQhash;
+}
 
 //读取xls
 QHash<QString, QList<int>> XlsxParser::readDataXls(QString groupByText, QString selectedSheetName)
@@ -164,7 +168,7 @@ QHash<QString, QList<int>> XlsxParser::readDataXls(QString groupByText, QString 
 }
 
 //读取xls
-QHash<QString, QList<QStringList>> XlsxParser::readXls(QString groupByText, QString selectedSheetName, bool isEmail)
+QHash<QString, QList<QStringList>> XlsxParser::readEmailXls(QString groupByText, QString selectedSheetName, bool isEmail)
 {
     QXlsx::CellRange range;
     xlsx->selectSheet(selectedSheetName);

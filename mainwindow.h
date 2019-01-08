@@ -31,15 +31,7 @@ public:
     ~MainWindow();
 
     void doSplitXls(QString dataSheetName, QString emailSheetName, QString savePath);
-
-    QHash<QString, QList<QStringList>> readXls(QString groupByText, QString selectedSheetName, bool isEmail);
-    void writeXls(QHash<QString, QList<QStringList>> qHash, QString savePath);
     void sendemail(QHash<QString, QList<QStringList>> qHash, QString savePath);
-    void writeXlsHeader(QXlsx::Document *currXls);
-
-    void convertToColName(int data, QString &res);
-    QString to26AlphabetString(int data);
-
     void loadConfig();
 
 signals:
