@@ -18,9 +18,10 @@ public:
     void setSplitData(QString groupByText,QString dataSheetName, QString emailSheetName, QString savePath);
 
     QHash<QString, QList<QStringList>> readXls(QString groupByText, QString selectedSheetName, bool isEmail);
-    void writeXls(QHash<QString, QList<QStringList>> qHash, QString savePath);
+    QHash<QString, QList<int>> readDataXls(QString groupByText, QString selectedSheetName);
+    void writeXls(QString selectedSheetName,QHash<QString, QList<int>> qHash, QString savePath);
     void sendemail(QHash<QString, QList<QStringList>> qHash, QString savePath);
-    void writeXlsHeader(QXlsx::Document *currXls);
+    void writeXlsHeader(QXlsx::Document *currXls,QString selectedSheetName);
 
     QStringList* getSheetHeader(QString selectedSheetName);
 

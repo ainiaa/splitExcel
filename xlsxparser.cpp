@@ -98,7 +98,7 @@ void XlsxParser::doSplit()
 {
     //读取excel数据
     emit requestMsg(Common::MsgTypeInfo, "开始读取excel文件信息");
-    QHash<QString, QList<QStringList>> dataQhash = readXls(groupByText, dataSheetName, false);
+    QHash<QString, QList<int>> dataQhash = readDataXls(groupByText, dataSheetName);
     if (dataQhash.size() < 1)
     {
         emit requestMsg(Common::MsgTypeFail, "没有data数据！！");
@@ -113,9 +113,55 @@ void XlsxParser::doSplit()
 
     //写excel
     emit requestMsg(Common::MsgTypeInfo, "开始拆分excel并生成新的excel文件");
-    writeXls(dataQhash,savePath);
+    writeXls(dataSheetName,dataQhash,savePath);
 }
 
+
+//读取xls
+QHash<QString, QList<int>> XlsxParser::readDataXls(QString groupByText, QString selectedSheetName)
+{
+    QXlsx::CellRange range;
+    xlsx->selectSheet(selectedSheetName);
+    range = xlsx->dimension();
+    int rowCount = range.rowCount();
+    int colCount = range.columnCount();
+
+    QHash<QString, QList<int>> qHash;
+    int groupBy = 0;
+    for (int colum=1; colum<=colCount; ++colum)
+    {
+        QXlsx::Cell *cell =xlsx->cellAt(1, colum);
+        QXlsx::Format format = cell->format();
+        if (cell)
+        {
+            if (groupByText ==cell->value().toString())
+            {
+                groupBy = colum;
+                break;
+            }
+        }
+    }
+    if (groupBy == 0)
+    {//没有对应的分组
+        emit requestMsg(Common::MsgTypeError, "分组列“" + groupByText + "” 不存在");
+        return qHash;
+    }
+
+    for (int row = 2;row <= rowCount;++row)
+    {
+        QString groupByValue;
+        QXlsx::Cell *cell =xlsx->cellAt(row, groupBy);
+        if (cell)
+        {
+            groupByValue = cell->value().toString();
+        }
+
+        QList<int> qlist = qHash.take(groupByValue);
+        qlist.append(row);
+        qHash.insert(groupByValue,qlist);
+    }
+    return qHash;
+}
 
 //读取xls
 QHash<QString, QList<QStringList>> XlsxParser::readXls(QString groupByText, QString selectedSheetName, bool isEmail)
@@ -185,26 +231,31 @@ QHash<QString, QList<QStringList>> XlsxParser::readXls(QString groupByText, QStr
 }
 
 //写xls
-void XlsxParser::writeXls(QHash<QString, QList<QStringList>> qHash, QString savePath)
+void XlsxParser::writeXls(QString selectedSheetName, QHash<QString, QList<int>> qHash, QString savePath)
 {
+    QXlsx::CellRange range;
+    xlsx->selectSheet(selectedSheetName);
+    range = xlsx->dimension();
+    int rowCount = range.rowCount();
+    int colCount = range.columnCount();
+
     qDebug("writeXls");
-    QHashIterator<QString,QList<QStringList>> it(qHash);
+    QHashIterator<QString,QList<int>> it(qHash);
     QString startMsg("开始拆分excel并生成新的excel文件: %1/");
     QString endMsg("完成拆分excel并生成新的excel文件: %1/");
     startMsg.append(QString::number(qHash.size()));
     endMsg.append(QString::number(qHash.size()));
-
     int count = 1;
     while (it.hasNext()) {
         it.next();
 
         emit requestMsg(Common::MsgTypeInfo,startMsg.arg(QString::number(count)));
         QString key = it.key();
-        QList<QStringList> content = it.value();
+        QList<int> content = it.value();
         QXlsx::Document currXls;
 
         //写表头
-        writeXlsHeader(&currXls);
+        writeXlsHeader(&currXls, selectedSheetName);
 
         QString xlsName;
         int rows =  content.size();
@@ -212,15 +263,49 @@ void XlsxParser::writeXls(QHash<QString, QList<QStringList>> qHash, QString save
 
         for(int row = 0; row < rows;row++)
         {
-            QStringList qsl = content.at(row);
-            int columns = qsl.size();
-            for (int column =0;column < columns;column++)
+            int dataRow = content.at(row);
+            QXlsx::CellReference cellReference = "";
+            QVariant value = xlsx->read(cellReference);
+
+            for (int column=1; column<=colCount; ++column)
             {
-                QString columnName;
-                convertToColName(column+1,columnName) ;
-                QString cell;
-                cell.append(columnName).append(QString::number(row+2));
-                currXls.write(cell,qsl.at(column));
+                QXlsx::Cell *sourceCell =xlsx->cellAt(dataRow, column);
+                if (sourceCell)
+                {
+                    QString columnName;
+                    convertToColName(column,columnName) ;
+                    QString cell;
+                    QXlsx::Format format = sourceCell->format();
+                    QXlsx::Format newfmt;
+
+                    cell.append(columnName).append(QString::number(row+2));
+                    newfmt.setFont(format.font());
+                    newfmt.setFontBold(format.fontBold());
+                    newfmt.setFontName(format.fontName());
+                    newfmt.setFontSize(format.fontSize());
+                    newfmt.setFontColor(format.fontColor());
+                    newfmt.setFontItalic(format.fontItalic());
+                    newfmt.setFontUnderline(format.fontUnderline());
+
+                    newfmt.setTextWarp(format.textWrap());
+
+                    newfmt.setNumberFormat(format.numberFormat());
+
+                    newfmt.setVerticalAlignment(format.verticalAlignment());
+                    newfmt.setHorizontalAlignment(format.horizontalAlignment());
+
+                    newfmt.setPatternBackgroundColor(format.patternBackgroundColor());
+                    newfmt.setPatternForegroundColor(format.patternForegroundColor());
+
+                    if (sourceCell->isDateTime() && !sourceCell->value().isNull())
+                    {
+                        currXls.write(cell,sourceCell->dateTime(),newfmt);
+                    }
+                    else
+                    {
+                        currXls.write(cell,sourceCell->value(), newfmt);
+                    }
+                }
             }
         }
         currXls.saveAs(xlsName);
@@ -230,17 +315,49 @@ void XlsxParser::writeXls(QHash<QString, QList<QStringList>> qHash, QString save
     emit requestMsg(Common::MsgTypeInfo,"拆分excel结束");
 }
 
-void  XlsxParser::writeXlsHeader(QXlsx::Document *xls)
+void  XlsxParser::writeXlsHeader(QXlsx::Document *xls, QString selectedSheetName)
 {
-    int columns =header->size();
-    for (int column =0;column < columns;column++)
+    QXlsx::CellRange range;
+    xlsx->selectSheet(selectedSheetName);
+    range = xlsx->dimension();
+    int colCount = range.columnCount();
+
+    for (int column=1; column<=colCount; ++column)
     {
-        QString columnName;
-        convertToColName(column+1,columnName) ;
-        QString cell;
-        cell.append(columnName).append(QString::number(1));
-        xls->write(cell,header->at(column));
+        QXlsx::Cell *sourceCell =xlsx->cellAt(1, column);
+        if (sourceCell)
+        {
+            QString columnName;
+            convertToColName(column,columnName) ;
+            QString cell;
+            QXlsx::Format sourceFormat = sourceCell->format();
+
+            QXlsx::Format format = sourceCell->format();
+            QXlsx::Format newfmt = format;
+            newfmt.setFont(format.font());
+            newfmt.setFontBold(format.fontBold());
+            newfmt.setFontName(format.fontName());
+            newfmt.setFontSize(format.fontSize());
+            newfmt.setFontColor(format.fontColor());
+            newfmt.setFontItalic(format.fontItalic());
+            newfmt.setFontUnderline(format.fontUnderline());
+            newfmt.setTextWarp(format.textWrap());
+            newfmt.setNumberFormat(format.numberFormat());
+            newfmt.setVerticalAlignment(format.verticalAlignment());
+            newfmt.setHorizontalAlignment(format.horizontalAlignment());
+            newfmt.setPatternBackgroundColor(format.patternBackgroundColor());
+            newfmt.setPatternForegroundColor(format.patternForegroundColor());
+
+            cell.append(columnName).append(QString::number(1));
+            qDebug() << "cell:" <<cell << " column:" <<column;
+            xls->write(cell, sourceCell->value(), newfmt);
+            xls->setColumnFormat(column,xlsx->columnFormat(column));
+            xls->setColumnWidth(column,xlsx->columnWidth(column));
+        }
     }
+    xls->setRowFormat(1,xlsx->rowFormat(1));
+    xls->setRowHeight(1,xlsx->rowHeight(1));
+
 }
 
 ///
@@ -251,9 +368,9 @@ void  XlsxParser::writeXlsHeader(QXlsx::Document *xls)
 void XlsxParser::convertToColName(int data, QString &res)
 {
     int tempData = data / 26;
-    if(tempData > 0)
+    int mode = data % 26;
+    if(tempData > 0 && mode > 0)
     {
-        int mode = data % 26;
         convertToColName(mode,res);
         convertToColName(tempData,res);
     }

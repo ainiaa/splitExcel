@@ -140,7 +140,8 @@ void MainWindow::on_submitPushButton_clicked()
         QMessageBox::information(this, "Setting Error", "请先配置邮件相关配置");
     }
     QString savePath = ui->savePathLineEdit->text();
-    if (xlsx == nullptr)
+
+    if (ui->xlsObjLineEdit->text().isEmpty())
     {
         QMessageBox::information(this, "Save Path Error", "请选择待拆分的excel");
     }
@@ -169,38 +170,12 @@ void MainWindow::on_submitPushButton_clicked()
 //拆分 && 后续操作(发送email)
 void MainWindow::doSplitXls(QString dataSheetName, QString emailSheetName, QString savePath)
 {
-    //读取excel数据 todo start
-    ui->statusBar->showMessage("开始读取excel文件信息");
-    receiveMessage(Common::MsgTypeInfo,"开始读取excel文件信息");
-    QString groupByText = ui->groupByComboBox->currentText();
-    QHash<QString, QList<QStringList>> dataQhash = readXls(groupByText,dataSheetName, false);
-    if (dataQhash.size() < 1)
-    {
-        receiveMessage(Common::MsgTypeFail,"没有data数据！！");
-        return;
-    }
-    QHash<QString, QList<QStringList>> emailQhash = readXls(groupByText,emailSheetName,true);
-    if (emailQhash.size() < 1)
-    {
-        receiveMessage(Common::MsgTypeFail,"没有email数据");
-        return;
-    }
-
-    //写excel
-    receiveMessage(Common::MsgTypeInfo,"开始拆分excel并生成新的excel文件");
-    ui->statusBar->showMessage("开始拆分excel并生成新的excel文件");
-    writeXls(dataQhash,savePath);
-
-    //todo end
-
-    // start ////
     if(xlsxParserThread != nullptr)
     {
         return;
     }
-
+    QString groupByText = ui->groupByComboBox->currentText();
     xlsxParserThread= new QThread();
-    xlsxParser = new XlsxParser();
     xlsxParser->setSplitData(groupByText,dataSheetName,emailSheetName,savePath);
     xlsxParser->moveToThread(xlsxParserThread);
     connect(xlsxParserThread,&QThread::finished,xlsxParserThread,&QObject::deleteLater);
@@ -210,10 +185,10 @@ void MainWindow::doSplitXls(QString dataSheetName, QString emailSheetName, QStri
     xlsxParserThread->start();
 
     emit doSplit(); //主线程通过信号换起子线程的槽函数
-    //end ////
+
 
     //发送email
-    sendemail(emailQhash,savePath);
+    //sendemail(emailQhash,savePath);
 }
 
 //发送邮件
