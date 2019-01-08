@@ -16,7 +16,7 @@ public:
 
     void setID(const int &id);
 
-    void setSendData(QString userName,QString password, QString server,QString defaultSender,QString savePath,QString key,QList<QStringList> content);
+    void setSplitData(QString groupByText,QString dataSheetName, QString emailSheetName, QString savePath);
 
     void requestMsg(const int msgType, const QString &result);
 
@@ -24,6 +24,10 @@ private:
     //父对象
     QObject *mParent;
     int runnableID;
+    QString groupByText;
+    QString dataSheetName;
+    QString emailSheetName;
+    QString savePath;
 };
 
 #endif // XLSXPARSERRUNNABLE_H
