@@ -139,7 +139,10 @@ QXlsx::Format XlsxParserRunnable::copyFormat(QXlsx::Format format)
     newFomat.setVerticalAlignment(format.verticalAlignment());
     newFomat.setHorizontalAlignment(format.horizontalAlignment());
 
-    newFomat.setPatternBackgroundColor(format.patternBackgroundColor());
+    if (format.patternBackgroundColor() != Qt::black)
+    {
+        newFomat.setPatternBackgroundColor(format.patternBackgroundColor());
+    }
     newFomat.setPatternForegroundColor(format.patternForegroundColor());
 
     newFomat.setTopBorderStyle(format.topBorderStyle());

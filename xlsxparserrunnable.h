@@ -7,6 +7,7 @@
 #include <QDateTime>
 
 #include "xlsxdocument.h"
+#include "xlsxworkbook.h"
 #include "common.h"
 #include "config.h"
 class XlsxParserRunnable : public QRunnable

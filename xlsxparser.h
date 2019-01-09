@@ -24,18 +24,12 @@ public:
     QHash<QString, QList<int>> readDataXls(QString groupByText, QString selectedSheetName);
     QHash<QString, QList<QStringList>> getEmailData();
     void writeXls(QString selectedSheetName,QHash<QString, QList<int>> qHash, QString savePath);
-    void writeXlsHeader(QXlsx::Document *currXls,QString selectedSheetName);
-
-    QXlsx::Format copyFormat(QXlsx::Format sourceCellFormat);
 
     QStringList* getSheetHeader(QString selectedSheetName);
 
     bool selectSheet(const QString &name);
     QXlsx::CellRange dimension();
     QStringList getSheetNames();
-
-    void convertToColName(int data, QString &res);
-    QString to26AlphabetString(int data);
 
 public slots:
     void receiveMessage(const int msgType, const QString &result);

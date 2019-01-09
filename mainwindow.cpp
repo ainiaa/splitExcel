@@ -117,7 +117,7 @@ void MainWindow::receiveMessage(const int msgType, const QString &msg)
         processWindow->setProcessText(msg);
         ui->statusBar->showMessage(msg);
         //发送email
-        sendemail();
+        //sendemail();
         break;
     case Common::MsgTypeEmailSendFinish:
         ui->submitPushButton->setDisabled(false);
