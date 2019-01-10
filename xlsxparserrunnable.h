@@ -10,6 +10,10 @@
 #include "xlsxworkbook.h"
 #include "common.h"
 #include "config.h"
+#include "xlsxcelllocation.h"
+#include "xlsxformat.h"
+#include "xlsxformat_p.h"
+
 class XlsxParserRunnable : public QRunnable
 {
 public:

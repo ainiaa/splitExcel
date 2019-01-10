@@ -76,12 +76,16 @@ Chartsheet::Chartsheet(const QString &name, int id, Workbook *workbook, CreateFl
     }
 }
 
+void Chartsheet::fliterRows(QList<int> rows)
+{
+    //:Todo
+    Q_UNUSED(rows)
+}
 /*!
  * \internal
  *
  * Make a copy of this sheet.
  */
-
 Chartsheet *Chartsheet::copy(const QString &distName, int distId) const
 {
     //:Todo
@@ -89,6 +93,25 @@ Chartsheet *Chartsheet::copy(const QString &distName, int distId) const
     Q_UNUSED(distId)
     return 0;
 }
+Chartsheet* Chartsheet::copyFrom(Document* doc, const QString &distName, int distId) const
+{
+    //:Todo
+    Q_UNUSED(doc)
+    Q_UNUSED(distName)
+    Q_UNUSED(distId)
+    return 0;
+}
+
+Chartsheet* Chartsheet::copyFrom(Document* doc, const QString &distName, int distId, QList<int> rows) const
+{
+    //:Todo
+    Q_UNUSED(doc)
+    Q_UNUSED(distName)
+    Q_UNUSED(distId)
+    Q_UNUSED(rows)
+    return 0;
+}
+
 
 /*!
  * Destroys this workssheet.

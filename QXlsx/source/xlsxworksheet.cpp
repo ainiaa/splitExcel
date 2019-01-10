@@ -47,6 +47,7 @@
 #include "xlsxcellformula.h"
 #include "xlsxcellformula_p.h"
 #include "xlsxcelllocation.h"
+#include "xlsxdocument.h"
 
 QT_BEGIN_NAMESPACE_XLSX
 
@@ -216,6 +217,135 @@ Worksheet *Worksheet::copy(const QString &distName, int distId) const
 //    sheet_d->conditionalFormattingList = d->conditionalFormattingList;
 
 	return sheet;
+}
+
+Worksheet *Worksheet::copy(const QString &distName, int distId, QList<int> rows) const
+{
+    Q_D(const Worksheet);
+    Worksheet *sheet = new Worksheet(distName, distId, d->workbook, F_NewFromScratch);
+    WorksheetPrivate *sheet_d = sheet->d_func();
+
+    sheet_d->dimension = d->dimension;
+
+    QMapIterator<int, QMap<int, QSharedPointer<Cell> > > it(d->cellTable);
+    while (it.hasNext()) {
+        it.next();
+        int row = it.key();
+        if (!rows.contains(row))
+        {
+            continue;
+        }
+        QMapIterator<int, QSharedPointer<Cell> > it2(it.value());
+        while (it2.hasNext()) {
+            it2.next();
+            int col = it2.key();
+
+            QSharedPointer<Cell> cell(new Cell(it2.value().data()));
+            cell->d_ptr->parent = sheet;
+
+            if (cell->cellType() == Cell::SharedStringType)
+                d->workbook->sharedStrings()->addSharedString(cell->d_ptr->richString);
+
+            sheet_d->cellTable[row][col] = cell;
+        }
+    }
+
+    sheet_d->merges = d->merges;
+//    sheet_d->rowsInfo = d->rowsInfo;
+//    sheet_d->colsInfo = d->colsInfo;
+//    sheet_d->colsInfoHelper = d->colsInfoHelper;
+//    sheet_d->dataValidationsList = d->dataValidationsList;
+//    sheet_d->conditionalFormattingList = d->conditionalFormattingList;
+
+    return sheet;
+}
+
+WorksheetPrivate* Worksheet::getWorksheetPrivate()
+{
+    Q_D(Worksheet);
+    return d;
+}
+
+AbstractSheet* Worksheet::copyFrom(Document* doc, const QString &distName, int distId) const
+{
+    Q_D(const Worksheet);
+    Worksheet* sourceworksheet = (Worksheet*)doc->workbook()->activeSheet();
+    WorksheetPrivate* sp = sourceworksheet->getWorksheetPrivate();
+    Worksheet *sheet = new Worksheet(distName, distId, sp->workbook, F_NewFromScratch);
+    WorksheetPrivate *sheet_d = sheet->d_func();
+
+    sheet_d->dimension = sp->dimension;
+
+    QMapIterator<int, QMap<int, QSharedPointer<Cell> > > it(sp->cellTable);
+    while (it.hasNext()) {
+        it.next();
+        int row = it.key();
+        QMapIterator<int, QSharedPointer<Cell> > it2(it.value());
+        while (it2.hasNext()) {
+            it2.next();
+            int col = it2.key();
+
+            QSharedPointer<Cell> cell(new Cell(it2.value().data()));
+            cell->d_ptr->parent = sheet;
+
+            if (cell->cellType() == Cell::SharedStringType)
+                d->workbook->sharedStrings()->addSharedString(cell->d_ptr->richString);
+
+            sheet_d->cellTable[row][col] = cell;
+        }
+    }
+
+    sheet_d->merges = sp->merges;
+//    sheet_d->rowsInfo = d->rowsInfo;
+//    sheet_d->colsInfo = d->colsInfo;
+//    sheet_d->colsInfoHelper = d->colsInfoHelper;
+//    sheet_d->dataValidationsList = d->dataValidationsList;
+//    sheet_d->conditionalFormattingList = d->conditionalFormattingList;
+
+    return sheet;
+}
+
+AbstractSheet* Worksheet::copyFrom(Document* doc, const QString &distName, int distId, QList<int> rows) const
+{
+    Q_D(const Worksheet);
+    WorksheetPrivate* sourcewoorkbook = (WorksheetPrivate*)doc->workbook()->activeSheet();
+
+    Worksheet *sheet = new Worksheet(distName, distId, d->workbook, F_NewFromScratch);
+    WorksheetPrivate *sheet_d = sheet->d_func();
+
+    sheet_d->dimension = sourcewoorkbook->dimension;
+
+    QMapIterator<int, QMap<int, QSharedPointer<Cell> > > it(sourcewoorkbook->cellTable);
+    while (it.hasNext()) {
+        it.next();
+        int row = it.key();
+        if (!rows.contains(row))
+        {
+            continue;
+        }
+        QMapIterator<int, QSharedPointer<Cell> > it2(it.value());
+        while (it2.hasNext()) {
+            it2.next();
+            int col = it2.key();
+
+            QSharedPointer<Cell> cell(new Cell(it2.value().data()));
+            cell->d_ptr->parent = sheet;
+
+            if (cell->cellType() == Cell::SharedStringType)
+                d->workbook->sharedStrings()->addSharedString(cell->d_ptr->richString);
+
+            sheet_d->cellTable[row][col] = cell;
+        }
+    }
+
+    sheet_d->merges = d->merges;
+//    sheet_d->rowsInfo = d->rowsInfo;
+//    sheet_d->colsInfo = d->colsInfo;
+//    sheet_d->colsInfoHelper = d->colsInfoHelper;
+//    sheet_d->dataValidationsList = d->dataValidationsList;
+//    sheet_d->conditionalFormattingList = d->conditionalFormattingList;
+
+    return sheet;
 }
 
 /*!
@@ -2521,5 +2651,32 @@ QVector<CellLocation> Worksheet::getFullCells(int* maxRow, int* maxCol)
 
     return ret;
 }
+
+QMap<int, QMap<int, QSharedPointer<Cell> > > WorksheetPrivate::getCellTable()
+{
+    return cellTable;
+}
+void WorksheetPrivate::setCellTable(QMap<int, QMap<int, QSharedPointer<Cell> > > ct)
+{
+     cellTable = ct;
+}
+
+void Worksheet::fliterRows(QList<int> rows)
+{
+    QMapIterator<int, QMap<int, QSharedPointer<Cell> > > _it( getWorksheetPrivate()->getCellTable());
+    QMap<int, QMap<int, QSharedPointer<Cell> > > newcellTable;
+    int i = 0;
+    while ( _it.hasNext() )
+    {
+        _it.next();
+        int row = _it.key();
+        if (rows.contains(row))
+        {
+            newcellTable.insert(++i,_it.value());
+        }
+    }
+    getWorksheetPrivate()->setCellTable(newcellTable);
+}
+
 
 QT_END_NAMESPACE_XLSX

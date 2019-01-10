@@ -65,6 +65,7 @@ public:
     bool copySheet(int index, const QString &newName=QString());
     bool moveSheet(int srcIndex, int distIndex);
 
+
     AbstractSheet *activeSheet() const;
     bool setActiveSheet(int index);
 
@@ -87,6 +88,10 @@ public:
     void addChartFile(QSharedPointer<Chart> chartFile);
     QList<QSharedPointer<Chart> > chartFiles() const;
 
+    WorkbookPrivate* getWorkbookPrivate();
+    bool copySheetFrom(Document* doc, const QString &newName);
+    bool copySheetFrom(Document* doc, const QString &newName, QList<int> rows);
+    bool copySheetFrom(int index, const QString &newName);
 private:
     friend class Worksheet;
     friend class Chartsheet;

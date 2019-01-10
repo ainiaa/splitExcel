@@ -183,6 +183,9 @@ public:
     void loadXmlSheetViews(QXmlStreamReader &reader);
     void loadXmlHyperlinks(QXmlStreamReader &reader);
 
+    QMap<int, QMap<int, QSharedPointer<Cell> > > getCellTable();
+    void setCellTable(QMap<int, QMap<int, QSharedPointer<Cell> > > cellTable);
+
     QList<QSharedPointer<XlsxRowInfo> > getRowInfoList(int rowFirst, int rowLast);
     QList <QSharedPointer<XlsxColumnInfo> > getColumnInfoList(int colFirst, int colLast);
     QList<int> getColumnIndexes(int colFirst, int colLast);

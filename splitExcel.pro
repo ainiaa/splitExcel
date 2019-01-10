@@ -59,7 +59,11 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 # qtxlsx
-include(xlsx/qtxlsx.pri)
+#include(xlsx/qtxlsx.pri)
+QXLSX_PARENTPATH=QXlsx/         # current QXlsx path is . (. means curret directory)
+QXLSX_HEADERPATH=QXlsx/header/  # current QXlsx header path is ./header/
+QXLSX_SOURCEPATH=QXlsx/source/  # current QXlsx source path is ./source/
+include(QXlsx/QXlsx.pri)
 
 # stmp client
 include(smtpclient/smtpclient.pri)

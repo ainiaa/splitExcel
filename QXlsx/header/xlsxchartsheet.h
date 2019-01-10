@@ -41,12 +41,15 @@ public:
 
     ~Chartsheet();
     Chart *chart();
+    void fliterRows(QList<int>);
 
 private:
     friend class DocumentPrivate;
     friend class Workbook;
     Chartsheet(const QString &sheetName, int sheetId, Workbook *book, CreateFlag flag);
     Chartsheet *copy(const QString &distName, int distId) const;
+    Chartsheet* copyFrom(Document* doc, const QString &distName, int distId) const;
+    Chartsheet* copyFrom(Document* doc, const QString &distName, int distId, QList<int> rows) const;
 
     void saveToXmlFile(QIODevice *device) const;
     bool loadFromXmlFile(QIODevice *device);

@@ -35,6 +35,7 @@ class WorksheetTest;
 
 QT_BEGIN_NAMESPACE_XLSX
 
+class Document;
 class DocumentPrivate;
 class Workbook;
 class Format;
@@ -141,13 +142,25 @@ public:
 
     QVector<CellLocation> getFullCells(int* maxRow, int* maxCol);
 
+    WorksheetPrivate* getWorksheetPrivate();
+
+    Worksheet *copy(const QString &distName, int distId) const;
+
+    Worksheet *copy(const QString &distName, int distId, QList<int>) const;
+
+    AbstractSheet *copyFrom(Document* doc,const QString &distName, int distId) const;
+    AbstractSheet *copyFrom(Document* doc,const QString &distName, int distId, QList<int>) const;
+    bool copySheetFrom(int index, const QString &newName);
+
+    void fliterRows(QList<int>);
+
 private:
 
     friend class DocumentPrivate;
     friend class Workbook;
     friend class ::WorksheetTest;
     Worksheet(const QString &sheetName, int sheetId, Workbook *book, CreateFlag flag);
-    Worksheet *copy(const QString &distName, int distId) const;
+
 
     void saveToXmlFile(QIODevice *device) const;
     bool loadFromXmlFile(QIODevice *device);

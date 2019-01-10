@@ -961,6 +961,29 @@ bool Document::copySheet(const QString &srcName, const QString &distName)
 	return d->workbook->copySheet(sheetNames().indexOf(srcName), distName);
 }
 
+void Document::fliterRows(QList<int> rows)
+{
+    Q_D(Document);
+    d->workbook->activeSheet()->fliterRows(rows);
+}
+
+bool Document::copyFrom(Document* doc, const QString &distName)
+{
+    Q_D(Document);
+
+    return d->workbook->copySheetFrom(doc, distName);
+}
+
+bool Document::copyFrom(Document* doc, const QString &distName, QList<int> rows)
+{
+    Q_D(Document);
+    QString srcName = doc->workbook()->activeSheet()->sheetName();
+    if (srcName == distName)
+        return false;
+    return d->workbook->copySheetFrom(doc, distName,rows);
+}
+
+
 /*!
    Move the worksheet \a srcName to the new pos \a distIndex.
    Returns true if the success.

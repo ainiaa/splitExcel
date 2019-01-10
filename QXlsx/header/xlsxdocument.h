@@ -101,6 +101,7 @@ public:
 	bool moveSheet(const QString &srcName, int distIndex);
 	bool deleteSheet(const QString &name);
 
+
 	Workbook *workbook() const;
 	AbstractSheet *sheet(const QString &sheetName) const;
 	AbstractSheet *currentSheet() const;
@@ -114,6 +115,10 @@ public:
 	bool load() const; // equals to isLoadPackage()
 
 	bool changeimage(int filenoinmidea,QString newfile); // add by liufeijin20181025
+
+    bool copyFrom(Document* doc, const QString &distName);
+    bool copyFrom(Document* doc, const QString &distName, QList<int> rows);
+    void fliterRows(QList<int> rows);
 
 private:
 	Q_DISABLE_COPY(Document)

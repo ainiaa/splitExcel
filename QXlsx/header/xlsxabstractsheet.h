@@ -30,6 +30,7 @@
 #include <QSharedPointer>
 
 QT_BEGIN_NAMESPACE_XLSX
+class Document;
 class Workbook;
 class Drawing;
 class AbstractSheetPrivate;
@@ -60,11 +61,14 @@ public:
     void setVisible(bool visible);
 
     Workbook *workbook() const;
+    virtual void fliterRows(QList<int>) = 0;
 
 protected:
     friend class Workbook;
     AbstractSheet(const QString &sheetName, int sheetId, Workbook *book, AbstractSheetPrivate *d);
     virtual AbstractSheet *copy(const QString &distName, int distId) const = 0;
+    virtual AbstractSheet* copyFrom(Document* doc, const QString &distName, int distId) const =0;
+    virtual AbstractSheet* copyFrom(Document* doc, const QString &distName, int distId, QList<int> rows) const =0;
     void setSheetName(const QString &sheetName);
     void setSheetType(SheetType type);
     int sheetId() const;

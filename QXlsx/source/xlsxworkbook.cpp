@@ -33,7 +33,7 @@
 #include "xlsxformat_p.h"
 #include "xlsxmediafile_p.h"
 #include "xlsxutility_p.h"
-
+#include "xlsxdocument.h"
 #include <QXmlStreamWriter>
 #include <QXmlStreamReader>
 #include <QFile>
@@ -375,6 +375,60 @@ bool Workbook::copySheet(int index, const QString &newName)
     return false;
 }
 
+bool Workbook::copySheetFrom(Document* doc, const QString &newName)
+{
+    Q_D(Workbook);
+
+    QString worksheetName = createSafeSheetName(newName);
+    if (!newName.isEmpty()) {
+        //If user given an already in-used name, we should not continue any more!
+        if (d->sheetNames.contains(newName))
+            return false;
+    } else {
+        int copy_index = 1;
+        do {
+            ++copy_index;
+            worksheetName = QStringLiteral("%1(%2)").arg(newName).arg(copy_index);
+        } while (d->sheetNames.contains(worksheetName));
+    }
+    AbstractSheet::SheetType type = doc->workbook()->activeSheet()->sheetType();
+    AbstractSheet *sheet = addSheet(worksheetName, type);//新增sheet
+    sheet= sheet->copyFrom(doc,worksheetName, sheet->sheetId());
+    int sheetIndex = d->sheetNames.indexOf(sheet->sheetName());
+    d->sheets.replace(sheetIndex,QSharedPointer<AbstractSheet>(sheet));
+    //d->sheets[sheetIndex] = sheet;
+//    d->sheets.append(QSharedPointer<AbstractSheet> (sheet));
+//    d->sheetNames.append(sheet->sheetName());
+
+    return false;
+}
+
+bool Workbook::copySheetFrom(Document* doc, const QString &newName, QList<int> rows)
+{
+    Q_D(Workbook);
+
+
+    QString worksheetName = createSafeSheetName(newName);
+    if (!newName.isEmpty()) {
+        //If user given an already in-used name, we should not continue any more!
+        if (d->sheetNames.contains(newName))
+            return false;
+    } else {
+        int copy_index = 1;
+        do {
+            ++copy_index;
+            worksheetName = QStringLiteral("%1(%2)").arg(newName).arg(copy_index);
+        } while (d->sheetNames.contains(worksheetName));
+    }
+
+    ++d->last_sheet_id;
+    AbstractSheet *sheet = d->sheets[d->last_sheet_id]->copyFrom(doc,worksheetName, d->last_sheet_id,rows);
+    d->sheets.append(QSharedPointer<AbstractSheet> (sheet));
+    d->sheetNames.append(sheet->sheetName());
+
+    return false;
+}
+
 /*!
  * Returns count of worksheets.
  */
@@ -692,6 +746,13 @@ void Workbook::addChartFile(QSharedPointer<Chart> chart)
 
     if (!d->chartFiles.contains(chart))
         d->chartFiles.append(chart);
+}
+
+WorkbookPrivate* Workbook::getWorkbookPrivate()
+{
+    Q_D(Workbook);
+
+    return d;
 }
 
 QT_END_NAMESPACE_XLSX
