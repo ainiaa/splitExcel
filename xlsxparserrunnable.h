@@ -4,6 +4,7 @@
 #include <QRunnable>
 #include <QMetaObject>
 #include <QFileInfo>
+#include <QDir>
 #include <QDateTime>
 
 #include "xlsxdocument.h"
@@ -24,7 +25,7 @@ public:
 
     void setID(const int &id);
 
-    void setSplitData(QXlsx::Document *xlsx, QString selectedSheetName,QString key, QList<int> contentList, QString savePath,int m_total);
+    void setSplitData(QString sourcePath, QString selectedSheetName,QString key, QList<int> contentList, QString savePath,int m_total);
 
     void requestMsg(const int msgType, const QString &result);
 
@@ -35,15 +36,17 @@ public:
     void convertToColName(int data, QString &res);
     QString to26AlphabetString(int data);
 
+   bool copyFileToPath(QString sourceDir ,QString toDir, bool coverFileIfExist);
+
 private:
     //父对象
+    QString sourcePath;
     QObject *mParent;
     int runnableID;
     int m_total;
     QString key;
     QList<int> contentList;
     QString savePath;
-    QXlsx::Document *xlsx;
     QString selectedSheetName;
 };
 

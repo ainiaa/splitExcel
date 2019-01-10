@@ -40,6 +40,7 @@ private:
     QObject *mParent;
 
     Config *cfg;
+    QString sourcePath;
     QXlsx::Document *xlsx = nullptr;
     QStringList *header = new QStringList();
     QString groupByText;

@@ -76,6 +76,7 @@ QString XlsxParser::openFile(QWidget *dlgParent)
     }
     else
     {
+        this->sourcePath = path;
         xlsx = new QXlsx::Document (path);
         return path;
     }
@@ -113,18 +114,20 @@ void XlsxParser::receiveMessage(const int msgType, const QString &result)
 //拆分excel文件
 void XlsxParser::doSplit()
 {
+    //读取email
+    emailQhash = readEmailXls(groupByText, emailSheetName);
+    if (emailQhash.size() < 1)
+    {
+        emit requestMsg(Common::MsgTypeFail, "没有email数据");
+        return;
+    }
+
     //读取excel数据
     emit requestMsg(Common::MsgTypeInfo, "开始读取excel文件信息");
     QHash<QString, QList<int>> dataQhash = readDataXls(groupByText, dataSheetName);
     if (dataQhash.size() < 1)
     {
         emit requestMsg(Common::MsgTypeFail, "没有data数据！！");
-        return;
-    }
-    emailQhash = readEmailXls(groupByText, emailSheetName);
-    if (emailQhash.size() < 1)
-    {
-        emit requestMsg(Common::MsgTypeFail, "没有email数据");
         return;
     }
 
@@ -263,15 +266,14 @@ void XlsxParser::writeXls(QString selectedSheetName, QHash<QString, QList<int>> 
         maxThreadCnt = 2;
     }
     pool.setMaxThreadCount(maxThreadCnt);
+    int totalCnt =qHash.size();
     while (it.hasNext()) {
         it.next();
         QString key = it.key();
         QList<int> content = it.value();
         XlsxParserRunnable *runnable = new XlsxParserRunnable(this);
         runnable->setID(++m_process_cnt);
-        runnable->setSplitData(xlsx, selectedSheetName, key, content, savePath, qHash.size());
-        runnable->setAutoDelete(true);
-
+        runnable->setSplitData(sourcePath, selectedSheetName, key, content, savePath, totalCnt);
         pool.start(runnable);
 
         if (m_process_cnt % maxThreadCnt == 0)

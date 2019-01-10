@@ -46,34 +46,30 @@ void EmailSender::doSend()
     {
         maxThreadCnt = 2;
     }
+
     pool.setMaxThreadCount(maxThreadCnt);
+
+    int maxProcessCntPreThread = qCeil(emailQhash.size() * 1.0 / maxThreadCnt);
+    qDebug() << "emailQhash.size() :" << emailQhash.size()  << " maxThreadCnt:" <<maxThreadCnt <<" maxProcessCntPreThread:" << maxProcessCntPreThread;
+    QHash<QString, QList<QStringList>> fragmentEmailQhash;
+    int runnableId = 1;
     while (it.hasNext()) {
         it.next();
-        MimeMessage mineMsg;
-
-        //防止中文乱码
-        mineMsg.setHeaderEncoding(MimePart::Encoding::Base64);
-        mineMsg.setSender(new EmailAddress(defaultSender, defaultSender));
-
+        ++m_process_cnt;
         QString key = it.key();
         QList<QStringList> content = it.value();
-
-        EmailSenderRunnable *runnable = new EmailSenderRunnable(this);
-        runnable->setID(++m_process_cnt);
-        runnable->setSendData(user,password,server,defaultSender,savePath,key,content);
-        runnable->setAutoDelete(true);
-
-        pool.start(runnable);
-        if (m_process_cnt % maxThreadCnt == 0)
+        fragmentEmailQhash.insert(key,content);
+        int mod = m_process_cnt % maxProcessCntPreThread;
+        if (mod==0 || !it.hasNext())
         {
-            pool.waitForDone();
+            EmailSenderRunnable *runnable = new EmailSenderRunnable(this) ;
+            runnable->setID(runnableId++);
+            runnable->setSendData(user,password,server,defaultSender,savePath,fragmentEmailQhash);
+            runnable->setAutoDelete(true);
+            pool.start(runnable);
+            fragmentEmailQhash.clear();
         }
     }
-    if (pool.activeThreadCount() > 0)
-    {
-        pool.waitForDone();
-    }
-
     qDebug("处理完毕！") ;
 }
 

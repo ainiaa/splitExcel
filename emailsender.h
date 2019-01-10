@@ -8,6 +8,8 @@
 #include <QMessageBox>
 #include <QFileInfo>
 #include <QThreadPool>
+#include <QtCore/qmath.h>
+
 #include "smtpclient/src/SmtpMime"
 #include "config.h"
 #include "common.h"

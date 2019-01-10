@@ -16,7 +16,7 @@ public:
 
     void setID(const int &id);
 
-    void setSendData(QString userName,QString password, QString server,QString defaultSender,QString savePath,QString key,QList<QStringList> content);
+    void setSendData(QString userName,QString password, QString server,QString defaultSender,QString savePath,QHash<QString, QList<QStringList>> fragmentEmailData);
 
     void requestMsg(const int msgType, const QString &result);
 
@@ -26,11 +26,10 @@ private:
     int runnableID;
     QString defaultSender;
     QString savePath;
-    QString key;
     QString userName;
     QString password;
     QString server;
-    QList<QStringList> content;
+    QHash<QString, QList<QStringList>> fragmentEmailData;
 };
 
 #endif // EMAILSENDERRUNABLE_H
