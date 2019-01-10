@@ -29,29 +29,29 @@ SOURCES += \
         mainwindow.cpp \
         configsetting.cpp \
         config.cpp \
-    emailsender.cpp \
-    common.cpp \
-    emailsenderrunnable.cpp \
-    processwindow.cpp \
-    xlsxparser.cpp \
-    xlsxparserrunnable.cpp
+        common.cpp \
+        processwindow.cpp \
+        emailsender.cpp \
+        emailsenderrunnable.cpp \
+        xlsxparser.cpp \
+        xlsxparserrunnable.cpp
 
 
 HEADERS += \
         mainwindow.h \
         configsetting.h \
         config.h \
-    emailsender.h \
-    common.h \
-    emailsenderrunnable.h \
-    processwindow.h \
-    xlsxparser.h \
-    xlsxparserrunnable.h
+        common.h \
+        processwindow.h \
+        emailsender.h \
+        emailsenderrunnable.h \
+        xlsxparser.h \
+        xlsxparserrunnable.h
 
 FORMS += \
         mainwindow.ui \
         configsetting.ui \
-    processwindow.ui
+        processwindow.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

@@ -11,6 +11,8 @@
 #include <QDir>
 #include <QHash>
 
+#include <QException>
+
 #include "xlsxdocument.h"
 #include "configsetting.h"
 #include "config.h"

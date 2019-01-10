@@ -5,6 +5,7 @@
 #include <QDateTime>
 #include <QDebug>
 #include <QThreadPool>
+#include <QtCore/qmath.h>
 
 #include "common.h"
 #include "xlsxdocument.h"
@@ -37,11 +38,9 @@ public slots:
 signals:
    void requestMsg(const int msgType, const QString &result);
 private:
-    QObject *mParent;
-
     Config *cfg;
     QString sourcePath;
-    QXlsx::Document *xlsx = nullptr;
+    QXlsx::Document* xlsx;
     QStringList *header = new QStringList();
     QString groupByText;
     QString dataSheetName;

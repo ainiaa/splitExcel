@@ -25,7 +25,7 @@ public:
 
     void setID(const int &id);
 
-    void setSplitData(QString sourcePath, QString selectedSheetName,QString key, QList<int> contentList, QString savePath,int m_total);
+    void setSplitData(QString sourcePath, QString selectedSheetName,QHash<QString, QList<int>> fragmentDataQhash, QString savePath,int m_total);
 
     void requestMsg(const int msgType, const QString &result);
 
@@ -48,6 +48,7 @@ private:
     QList<int> contentList;
     QString savePath;
     QString selectedSheetName;
+    QHash<QString, QList<int>> fragmentDataQhash;
 };
 
 #endif // XLSXPARSERRUNNABLE_H

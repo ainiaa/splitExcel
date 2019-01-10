@@ -11,8 +11,7 @@
 # MIT License
 
 
-QT += core
-QT += gui-private
+QT += core gui-private
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
@@ -137,62 +136,3 @@ $${QXLSX_SOURCEPATH}xlsxworksheet.cpp \
 $${QXLSX_SOURCEPATH}xlsxzipreader.cpp \
 $${QXLSX_SOURCEPATH}xlsxzipwriter.cpp \
 $${QXLSX_SOURCEPATH}xlsxcelllocation.cpp
-
-
-######################################################################
-# custom setting for compiler & system
-
-win32-g++ {
-    message("compiling for windows g++. mingw or msys or cygwin.")
-    INCLUDEPATH += $${QXLSX_HEADERPATH}win32-gcc 
-	CONFIG(debug, debug|release) {
-	} else {
-	}	
-}
-win32-msvc2013 {
-    message("compiling for visual studio 2013")
-    INCLUDEPATH += $${QXLSX_HEADERPATH}msvc2013 
-	CONFIG(debug, debug|release) {
-	} else {
-	}		
-}
-win32-msvc2015 {
-    message("compiling for visual studio 2015")
-    INCLUDEPATH += $${QXLSX_HEADERPATH}msvc2015 
-	CONFIG(debug, debug|release) {
-	} else {
-	}		
-}
-win32-msvc2017 {
-    message("compiling for visual studio 2017")
-    INCLUDEPATH += $${QXLSX_HEADERPATH}msvc2017 
-	CONFIG(debug, debug|release) {
-	} else {
-	}		
-}
-unix {
-   !contains(QT_ARCH, x86_64){
-       LIB=lib32
-       message("compiling for 32bit linux/unix system")
-    } else {
-       LIB=lib64
-       message("compiling for 64bit linux/unix system")
-   }
-
-   INCLUDEPATH += $${QXLSX_HEADERPATH}unix-gcc
-
-    # target.path = /usr/lib
-    # INSTALLS += target
-	
-	CONFIG(debug, debug|release) {
-	} else {
-	}		
-}
-mac {
-    message("compiling for mac os")
-    INCLUDEPATH += $${QXLSX_HEADERPATH}mac
-	CONFIG(debug, debug|release) {
-	} else {
-	}		
-}
-

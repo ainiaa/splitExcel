@@ -1,6 +1,6 @@
 #include "xlsxparser.h"
 
-XlsxParser::XlsxParser(QObject *parent):mParent(parent)
+XlsxParser::XlsxParser(QObject *parent):QObject (parent)
 {
     m_success_cnt = 0;
     m_failure_cnt = 0;
@@ -11,10 +11,7 @@ XlsxParser::XlsxParser(QObject *parent):mParent(parent)
 XlsxParser::~XlsxParser()
 {
     qDebug() << "~XlsxParser start";
-    if (xlsx != nullptr)
-    {
-        delete xlsx;
-    }
+
     qDebug() << "~XlsxParser end";
 }
 void XlsxParser::setSplitData(Config *cfg, QString groupByText, QString dataSheetName, QString emailSheetName, QString savePath)
@@ -29,7 +26,7 @@ void XlsxParser::setSplitData(Config *cfg, QString groupByText, QString dataShee
 QStringList XlsxParser::getSheetNames()
 {
     QStringList sheetNames;
-    if (xlsx != nullptr)
+    if (nullptr != xlsx)
     {
         sheetNames = xlsx->sheetNames();
     }
@@ -77,7 +74,7 @@ QString XlsxParser::openFile(QWidget *dlgParent)
     else
     {
         this->sourcePath = path;
-        xlsx = new QXlsx::Document (path);
+        xlsx = new QXlsx::Document(path);
         return path;
     }
 }
@@ -265,24 +262,38 @@ void XlsxParser::writeXls(QString selectedSheetName, QHash<QString, QList<int>> 
     {
         maxThreadCnt = 2;
     }
+    maxThreadCnt = 1; //多线程处理xlsx会出现段错误 ???
+
+    int maxProcessCntPreThread = qCeil(qHash.size() * 1.0 / maxThreadCnt);
+    qDebug() << "qHash.size() :" << qHash.size()  << " maxThreadCnt:" <<maxThreadCnt <<" maxProcessCntPreThread:" << maxProcessCntPreThread;
+    QHash<QString, QList<int>> fragmentDataQhash;
+
     pool.setMaxThreadCount(maxThreadCnt);
     int totalCnt =qHash.size();
+    int runnableId = 1;
     while (it.hasNext()) {
         it.next();
         QString key = it.key();
         QList<int> content = it.value();
-        XlsxParserRunnable *runnable = new XlsxParserRunnable(this);
-        runnable->setID(++m_process_cnt);
-        runnable->setSplitData(sourcePath, selectedSheetName, key, content, savePath, totalCnt);
-        pool.start(runnable);
+//        XlsxParserRunnable *runnable = new XlsxParserRunnable(this);
+//        runnable->setID(++m_process_cnt);
+//        runnable->setSplitData(sourcePath, selectedSheetName, key, content, savePath, totalCnt);
+//        pool.start(runnable);
 
-        if (m_process_cnt % maxThreadCnt == 0)
+//        if (m_process_cnt % maxThreadCnt == 0)
+//        {
+//            pool.waitForDone();
+//        }
+        fragmentDataQhash.insert(key,content);
+        int mod = m_process_cnt % maxProcessCntPreThread;
+        if (mod==0 || !it.hasNext())
         {
+            XlsxParserRunnable *runnable = new XlsxParserRunnable(this) ;
+            runnable->setID(runnableId++);
+            runnable->setSplitData(sourcePath, selectedSheetName, fragmentDataQhash, savePath, totalCnt);
+            pool.start(runnable);
+            fragmentDataQhash.clear();
             pool.waitForDone();
         }
-    }
-    if (pool.activeThreadCount() > 0)
-    {
-        pool.waitForDone();
     }
 }
