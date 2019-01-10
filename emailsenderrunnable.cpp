@@ -45,7 +45,7 @@ void EmailSenderRunnable::run()
         requestMsg(Common::MsgTypeError, "邮件服务器认证失败（邮件用户名或者密码错误）!!");
         return;
     }
-    requestMsg(Common::MsgTypeInfo, "开始发送邮件 线程("+ QString::number(runnableID) + ")");
+    requestMsg(Common::MsgTypeInfo, "开始发送邮件（线程" + QString::number(runnableID) + ")");
 
     QHashIterator<QString,QList<QStringList>> it(fragmentEmailData);
     while (it.hasNext()) {
