@@ -224,6 +224,10 @@ QHash<QString, QList<QStringList>> XlsxParser::readEmailXls(QString groupByText,
         {
             groupByValue = cell->value().toString();
         }
+        if (groupByValue.isNull() || groupByValue.isEmpty())
+        {
+            continue;
+        }
         for (int colum=1; colum<=colCount; ++colum)
         {
             QXlsx::Cell *cell =xlsx->cellAt(row, colum);
