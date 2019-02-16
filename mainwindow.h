@@ -15,6 +15,7 @@
 
 #include "xlsxdocument.h"
 #include "configsetting.h"
+#include "splitonlywindow.h"
 #include "config.h"
 #include "emailsender.h"
 #include "common.h"
@@ -54,6 +55,8 @@ private slots:
 
     void showConfigSetting();
 
+    void showSplitOnly();
+
     void receiveMessage(const int msgType, const QString &result);
 
 private:
@@ -61,6 +64,8 @@ private:
     QXlsx::Document *xlsx = nullptr;
     QStringList *header = new QStringList();
     ConfigSetting *configSetting = new ConfigSetting(nullptr,this);
+    SplitOnlyWindow *splitOnlyWindow = new SplitOnlyWindow(nullptr,this);
+
     Config *cfg = new Config();
     QThread *xlsxParserThread = nullptr;
     XlsxParser * xlsxParser = nullptr;

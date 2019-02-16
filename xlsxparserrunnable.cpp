@@ -28,17 +28,17 @@ void XlsxParserRunnable::setSplitData(QString sourcePath, QString selectedSheetN
 void XlsxParserRunnable::run()
 {
     qDebug("XlsxParserRunnable::run start") ;
+    QString startMsg("开始拆分excel并生成新的excel文件: %1/");
+    QString endMsg("完成拆分excel并生成新的excel文件: %1/");
+    startMsg.append(QString::number(m_total));
+    endMsg.append(QString::number(m_total));
+     requestMsg(Common::MsgTypeInfo, startMsg.arg(QString::number(runnableID)));
     QHashIterator<QString,QList<int>> it(fragmentDataQhash);
     while (it.hasNext()) {
         it.next();
         QString key = it.key();
         QList<int> contentList = it.value();
         contentList.insert(0,1);
-        QString startMsg("开始拆分excel并生成新的excel文件: %1/");
-        QString endMsg("完成拆分excel并生成新的excel文件: %1/");
-        startMsg.append(QString::number(m_total));
-        endMsg.append(QString::number(m_total));
-        requestMsg(Common::MsgTypeInfo, startMsg.arg(QString::number(runnableID)));
 
         QString xlsName;
        // int rows =  contentList.size();
@@ -62,11 +62,22 @@ void XlsxParserRunnable::run()
             currXls->deleteSheet(currSheetName);
         }
         //删除多余的sheet end
+
+        //尝试修复行高不正确的问题
+        QXlsx::CellRange cellRange = currXls->dimension();
+        for (int row_num = cellRange.firstRow(); row_num <= cellRange.lastRow(); row_num++) {
+            double rowHeigh = currXls->rowHeight(row_num);
+            if (rowHeigh < 14)
+            {
+                currXls->setRowHeight(row_num, 18);
+            }
+        }
+
         currXls->save();
         delete currXls;
-        requestMsg(Common::MsgTypeSucc, endMsg.arg(QString::number(runnableID)));
     }
-    qDebug("EmailSenderRunnable::run end") ;
+    requestMsg(Common::MsgTypeSucc, endMsg.arg(QString::number(runnableID)));
+    qDebug("XlsxParserRunnable::run end") ;
 }
 
 void XlsxParserRunnable::requestMsg(const int msgType, const QString &msg)

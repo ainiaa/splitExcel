@@ -111,12 +111,15 @@ void XlsxParser::receiveMessage(const int msgType, const QString &result)
 //拆分excel文件
 void XlsxParser::doSplit()
 {
-    //读取email
-    emailQhash = readEmailXls(groupByText, emailSheetName);
-    if (emailQhash.size() < 1)
+    if (nullptr !=emailSheetName )
     {
-        emit requestMsg(Common::MsgTypeFail, "没有email数据");
-        return;
+        //读取email
+        emailQhash = readEmailXls(groupByText, emailSheetName);
+        if (emailQhash.size() < 1)
+        {
+            emit requestMsg(Common::MsgTypeFail, "没有email数据");
+            return;
+        }
     }
 
     //读取excel数据

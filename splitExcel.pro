@@ -34,7 +34,8 @@ SOURCES += \
         emailsender.cpp \
         emailsenderrunnable.cpp \
         xlsxparser.cpp \
-        xlsxparserrunnable.cpp
+        xlsxparserrunnable.cpp \
+    splitonlywindow.cpp
 
 
 HEADERS += \
@@ -46,12 +47,14 @@ HEADERS += \
         emailsender.h \
         emailsenderrunnable.h \
         xlsxparser.h \
-        xlsxparserrunnable.h
+        xlsxparserrunnable.h \
+    splitonlywindow.h
 
 FORMS += \
         mainwindow.ui \
         configsetting.ui \
-        processwindow.ui
+        processwindow.ui \
+    splitonlywindow.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

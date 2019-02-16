@@ -12,6 +12,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     xlsxParser = new XlsxParser();
     connect(ui->actionConfig_Setting, SIGNAL(triggered()), this, SLOT(showConfigSetting()));
+    connect(ui->actionSplit_Only, SIGNAL(triggered()), this, SLOT(showSplitOnly()));
 }
 
 MainWindow::~MainWindow()
@@ -155,15 +156,21 @@ void MainWindow::on_submitPushButton_clicked()
     if (server.isEmpty())
     {
         QMessageBox::information(this, "Setting Error", "请先配置邮件相关配置");
+         ui->submitPushButton->setDisabled(false);
+        return;
     }
 
     if (ui->xlsObjLineEdit->text().isEmpty())
     {
         QMessageBox::information(this, "Save Path Error", "请选择待拆分的excel");
+        ui->submitPushButton->setDisabled(false);
+        return;
     }
     if (savePath.length() == 0)
     {
         QMessageBox::information(this, "Save Path Error", "请选择保存路径");
+        ui->submitPushButton->setDisabled(false);
+        return;
     }
 
     if (processWindow == nullptr)
@@ -244,4 +251,11 @@ void MainWindow::showConfigSetting()
 {
     this->hide();
     configSetting->show();
+}
+
+//显示配置UI
+void MainWindow::showSplitOnly()
+{
+    this->hide();
+    splitOnlyWindow->show();
 }
