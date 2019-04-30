@@ -111,8 +111,10 @@ void XlsxParser::receiveMessage(const int msgType, const QString &result)
 //拆分excel文件
 void XlsxParser::doSplit()
 {
+    qDebug() << "doSplit";
     if (nullptr !=emailSheetName )
     {
+        qDebug() << "doSplit readEmailXls";
         //读取email
         emailQhash = readEmailXls(groupByText, emailSheetName);
         if (emailQhash.size() < 1)
@@ -122,6 +124,7 @@ void XlsxParser::doSplit()
         }
     }
 
+    qDebug() << "doSplit readDataXls";
     //读取excel数据
     emit requestMsg(Common::MsgTypeInfo, "开始读取excel文件信息");
     QHash<QString, QList<int>> dataQhash = readDataXls(groupByText, dataSheetName);
@@ -134,6 +137,7 @@ void XlsxParser::doSplit()
     //写excel
     emit requestMsg(Common::MsgTypeInfo, "开始拆分excel并生成新的excel文件");
     m_total_cnt = dataQhash.size();
+    qDebug() << "doSplit writeXls";
     writeXls(dataSheetName, dataQhash, savePath);
 }
 

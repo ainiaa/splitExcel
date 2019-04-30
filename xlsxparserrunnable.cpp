@@ -1,3 +1,4 @@
+#include "xlsxparser.h"
 #include "xlsxparserrunnable.h"
 
 XlsxParserRunnable::XlsxParserRunnable(QObject *parent)
@@ -82,7 +83,8 @@ void XlsxParserRunnable::run()
 
 void XlsxParserRunnable::requestMsg(const int msgType, const QString &msg)
 {
-    QMetaObject::invokeMethod(mParent, "receiveMessage", Qt::QueuedConnection, Q_ARG(int,msgType),Q_ARG(QString, msg));
+     qobject_cast<XlsxParser *>(mParent)->receiveMessage(msgType,msg.arg(msgType));
+    //QMetaObject::invokeMethod(mParent, "receiveMessage", Qt::QueuedConnection, Q_ARG(int,msgType),Q_ARG(QString, msg));//不能及时返回信息
 }
 
 ///

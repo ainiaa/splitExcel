@@ -9,7 +9,8 @@
 #include <QFileInfo>
 #include <QThreadPool>
 #include <QtCore/qmath.h>
-
+#include <QCoreApplication>
+#include<QElapsedTimer>
 #include "smtpclient/src/SmtpMime"
 #include "config.h"
 #include "common.h"
@@ -26,6 +27,7 @@ public:
 
 public slots:
     void doSend();
+    void splitSendTask();
     void stop();
     void receiveMessage(const int msgType, const QString &result);
 

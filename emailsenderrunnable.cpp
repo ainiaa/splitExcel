@@ -1,3 +1,4 @@
+#include "emailsender.h"
 #include "emailsenderrunnable.h"
 
 EmailSenderRunnable::EmailSenderRunnable(QObject *parent)
@@ -118,5 +119,6 @@ void EmailSenderRunnable::run()
 }
 void EmailSenderRunnable::requestMsg(const int msgType, const QString &msg)
 {
-    QMetaObject::invokeMethod(mParent, "receiveMessage", Qt::QueuedConnection, Q_ARG(int,msgType),Q_ARG(QString, msg));
+     qobject_cast<EmailSender *>(mParent)->receiveMessage(msgType,msg.arg(msgType));
+    //QMetaObject::invokeMethod(mParent, "receiveMessage", Qt::QueuedConnection, Q_ARG(int,msgType),Q_ARG(QString, msg));//不能及时返回信息
 }

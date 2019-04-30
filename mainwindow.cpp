@@ -184,6 +184,7 @@ void MainWindow::on_submitPushButton_clicked()
     processWindow->setWindowModality(Qt::WindowModality::ApplicationModal);
     processWindow->show();
 
+    qDebug() << "拆分 && 后续操作(发送email)";
     //拆分 && 后续操作(发送email)
     doSplitXls(ui->dataComboBox->currentText(), ui->emailComboBox->currentText(), savePath);
 }
