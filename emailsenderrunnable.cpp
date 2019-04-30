@@ -93,6 +93,16 @@ void EmailSenderRunnable::run()
         text.setText(emailData.at(3));
         mineMsg.addPart(&text);
 
+        if (emailData.size() == 5)
+        { //包含cc 添加抄送 多个抄送之间使用逗号分隔
+            QStringList ccList = emailData.at(4).split(",");
+           for(QString cc : ccList )
+           {
+               EmailAddress * email = new EmailAddress(cc, cc);
+                mineMsg.addBcc(email);
+           }
+        }
+
         if (smtpClient->sendMail(mineMsg))
         {//success
             requestMsg(Common::MsgTypeSucc,"邮件发送成功(" + key + ")");

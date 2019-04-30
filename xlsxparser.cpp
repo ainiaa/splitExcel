@@ -82,7 +82,7 @@ QString XlsxParser::openFile(QWidget *dlgParent)
 
 void XlsxParser::receiveMessage(const int msgType, const QString &result)
 {
-    qDebug() << "EmailSender::receiveMessage msgType:" << QString::number(msgType).toUtf8() <<" msg:"<<result;
+    qDebug() << "XlsxParser::receiveMessage msgType:" << QString::number(msgType).toUtf8() <<" msg:"<<result;
     switch (msgType)
     {
     case Common::MsgTypeError:

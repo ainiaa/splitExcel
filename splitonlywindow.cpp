@@ -58,14 +58,6 @@ void SplitOnlyWindow::on_submitPushButton_clicked()
 {
     ui->submitPushButton->setDisabled(true);
 
-    QString server = cfg->get("email","server").toString();
-    if (server.isEmpty())
-    {
-        QMessageBox::information(this, "Setting Error", "请先配置邮件相关配置");
-        ui->submitPushButton->setDisabled(false);
-        return;
-    }
-
     if (ui->xlsObjLineEdit->text().isEmpty())
     {
         QMessageBox::information(this, "Save Path Error", "请选择待拆分的excel");
