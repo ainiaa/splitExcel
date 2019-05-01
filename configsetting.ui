@@ -18,7 +18,7 @@
     <property name="geometry">
      <rect>
       <x>169</x>
-      <y>268</y>
+      <y>322</y>
       <width>75</width>
       <height>31</height>
      </rect>
@@ -101,7 +101,7 @@
     <property name="geometry">
      <rect>
       <x>348</x>
-      <y>268</y>
+      <y>322</y>
       <width>75</width>
       <height>31</height>
      </rect>
@@ -114,7 +114,7 @@
     <property name="geometry">
      <rect>
       <x>170</x>
-      <y>126</y>
+      <y>124</y>
       <width>341</width>
       <height>31</height>
      </rect>
@@ -124,7 +124,7 @@
     <property name="geometry">
      <rect>
       <x>69</x>
-      <y>126</y>
+      <y>124</y>
       <width>91</width>
       <height>31</height>
      </rect>
@@ -169,7 +169,7 @@
     <property name="geometry">
      <rect>
       <x>69</x>
-      <y>220</y>
+      <y>273</y>
       <width>91</width>
       <height>31</height>
      </rect>
@@ -185,7 +185,7 @@
     <property name="geometry">
      <rect>
       <x>438</x>
-      <y>269</y>
+      <y>323</y>
       <width>75</width>
       <height>31</height>
      </rect>
@@ -198,7 +198,7 @@
     <property name="geometry">
      <rect>
       <x>258</x>
-      <y>268</y>
+      <y>322</y>
       <width>75</width>
       <height>31</height>
      </rect>
@@ -211,7 +211,7 @@
     <property name="geometry">
      <rect>
       <x>170</x>
-      <y>220</y>
+      <y>273</y>
       <width>341</width>
       <height>31</height>
      </rect>
@@ -256,6 +256,38 @@
       <string>50</string>
      </property>
     </item>
+   </widget>
+   <widget class="QLabel" name="maxProcessPerPeriodLabel">
+    <property name="geometry">
+     <rect>
+      <x>49</x>
+      <y>222</y>
+      <width>111</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>单位时间最大发送量</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="maxProcessPerPeriodLineEdit">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>222</y>
+      <width>341</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="inputMethodHints">
+     <set>Qt::ImhNone</set>
+    </property>
+    <property name="echoMode">
+     <enum>QLineEdit::Normal</enum>
+    </property>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">

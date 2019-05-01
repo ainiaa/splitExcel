@@ -23,6 +23,7 @@ void ConfigSetting::loadConfig()
     ui->userNameLineEdit->setText(cfg->get("email","userName").toString());
     ui->passwordLineEdit->setText(cfg->get("email","password").toString());
     ui->maxThreadCntComboBox->setCurrentText(cfg->get("email","maxThreadCnt").toString());
+    ui->maxProcessPerPeriodLineEdit->setText(cfg->get("email","maxProcessPerPeriod").toString());
 }
 
 //写入配置项
@@ -33,10 +34,12 @@ void ConfigSetting::writeConfig()
     QString password = ui->passwordLineEdit->text();
     QString defaultSender =userName;
     QString maxThreadCnt = ui->maxThreadCntComboBox->currentText();
+    QString maxProcessPerPeriod = ui->maxProcessPerPeriodLineEdit->text();
     cfg->set("email","server",server);
     cfg->set("email","userName",userName);
     cfg->set("email","defaultSender",defaultSender);
     cfg->set("email","maxThreadCnt",maxThreadCnt);
+    cfg->set("email","maxProcessPerPeriod",maxProcessPerPeriod);
     if (!password.isEmpty())
     {
         cfg->set("email","password",password);

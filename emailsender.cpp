@@ -83,6 +83,11 @@ void EmailSender::splitSendTask()
     QString password(cfg->get("email","password").toString());
     QString server(cfg->get("email","server").toString());
     QString defaultSender(cfg->get("email","defaultSender").toString());
+    int maxProcessPerPeriod(cfg->get("email", "maxProcessPerPeriod").toInt());;// 没单位时间可以执行的最大数量
+    if (maxProcessPerPeriod == 0)
+    {
+        maxProcessPerPeriod = 1000;
+    }
     if (user.isEmpty() || password.isEmpty() || server.isEmpty() || defaultSender.isEmpty())
     {
         emit requestMsg(Common::MsgTypeError, "请先正确设置配置信息");
@@ -99,7 +104,7 @@ void EmailSender::splitSendTask()
 
     pool.setMaxThreadCount(maxThreadCnt);
 
-    int maxProcessPerPeriod = 1000;// 没单位时间可以执行的最大数量
+
 
     int splitTaskCnt =qCeil(emailQhash.size() * 1.0 / maxProcessPerPeriod);
 
@@ -131,7 +136,7 @@ void EmailSender::splitSendTask()
 
                 if (currentProcessCnt >= currentCnt)
                 {
-                    this->showIdleMsg();
+                    this->showIdleMsg();//显示休息信息
                 }
             }
             emailQhash.remove(key);
