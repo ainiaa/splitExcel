@@ -35,7 +35,8 @@ SOURCES += \
         emailsenderrunnable.cpp \
         xlsxparser.cpp \
         xlsxparserrunnable.cpp \
-    splitonlywindow.cpp
+    splitonlywindow.cpp \
+    testtimeer.cpp
 
 
 HEADERS += \
@@ -48,13 +49,15 @@ HEADERS += \
         emailsenderrunnable.h \
         xlsxparser.h \
         xlsxparserrunnable.h \
-    splitonlywindow.h
+    splitonlywindow.h \
+    testtimeer.h
 
 FORMS += \
         mainwindow.ui \
         configsetting.ui \
         processwindow.ui \
-    splitonlywindow.ui
+    splitonlywindow.ui \
+    testtimeer.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

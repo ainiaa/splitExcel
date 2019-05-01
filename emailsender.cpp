@@ -75,6 +75,57 @@ void EmailSender::doSend()
     qDebug("处理完毕！") ;
 }
 
+//发送email
+void EmailSender::doSendNew()
+{
+    qDebug("sendemail");
+    QHashIterator<QString,QList<QStringList>> it(emailQhash);
+
+    QString user(cfg->get("email","userName").toString());
+    QString password(cfg->get("email","password").toString());
+    QString server(cfg->get("email","server").toString());
+    QString defaultSender(cfg->get("email","defaultSender").toString());
+    if (user.isEmpty() || password.isEmpty() || server.isEmpty() || defaultSender.isEmpty())
+    {
+        emit requestMsg(Common::MsgTypeError, "请先正确设置配置信息");
+        return;
+    }
+    emit requestMsg(Common::MsgTypeInfo, "准备发送邮件...");
+
+    QThreadPool pool;
+    int maxThreadCnt = cfg->get("email","maxThreadCnt").toInt();
+    if (maxThreadCnt < 1)
+    {
+        maxThreadCnt = 2;
+    }
+
+    pool.setMaxThreadCount(maxThreadCnt);
+
+    int emailQhashCnt = emailQhash.size();
+    int maxProcessCntPreThread = qCeil(emailQhashCnt * 1.0 / maxThreadCnt);
+    qDebug() << "emailQhash.size():" << emailQhashCnt << " maxThreadCnt:" <<maxThreadCnt <<" maxProcessCntPreThread:" << maxProcessCntPreThread;
+    QHash<QString, QList<QStringList>> fragmentEmailQhash;
+    int runnableId = 1;
+    while (it.hasNext()) {
+        it.next();
+        ++m_process_cnt;
+        QString key = it.key();
+        QList<QStringList> content = it.value();
+        fragmentEmailQhash.insert(key,content);
+        int mod = m_process_cnt % maxProcessCntPreThread;
+        if (mod==0 || !it.hasNext())
+        {
+            EmailSenderRunnable *runnable = new EmailSenderRunnable(this) ;
+            runnable->setID(runnableId++);
+            runnable->setSendData(user,password,server,defaultSender,savePath,fragmentEmailQhash);
+            runnable->setAutoDelete(true);
+            pool.start(runnable);
+            fragmentEmailQhash.clear();
+        }
+    }
+    qDebug("处理完毕！") ;
+}
+
 void EmailSender::splitSendTask()
 {
     qDebug("sendemail");
@@ -105,7 +156,6 @@ void EmailSender::splitSendTask()
     pool.setMaxThreadCount(maxThreadCnt);
 
 
-
     int splitTaskCnt =qCeil(emailQhash.size() * 1.0 / maxProcessPerPeriod);
 
     for (int i = 0; i < splitTaskCnt; i++)
@@ -123,6 +173,7 @@ void EmailSender::splitSendTask()
             ++m_process_cnt;
             QString key = it.key();
             QList<QStringList> content = it.value();
+            emailQhash.remove(key);
             fragmentEmailQhash.insert(key,content);
             int mod = m_process_cnt % maxProcessCntPreThread;
             if (mod==0 || !it.hasNext())
@@ -136,10 +187,79 @@ void EmailSender::splitSendTask()
 
                 if (currentProcessCnt >= currentCnt)
                 {
-                    this->showIdleMsg();//显示休息信息
+                    int timeUnit = 1000; //时间单位
+                    int periodTime = timeUnit * 60; //1min
+                    int idleMsgShowPeriod = 2 * timeUnit;//2s一个周期
+
+                    this->leftTime = periodTime;
+                    QElapsedTimer timer;
+                    timer.start();
+                    this->idleMsgShowPeriod = idleMsgShowPeriod;
+                    this->timeUnit = timeUnit;
+                    this->timer = timer;
+                    this->showIdleMsg();
                 }
             }
+
+        }
+    }
+
+    qDebug("处理完毕！") ;
+}
+
+void EmailSender::splitSendTaskNew()
+{
+    qDebug("sendemail");
+    QHashIterator<QString,QList<QStringList>> it(emailQhash);
+
+    int maxProcessPerPeriod(cfg->get("email", "maxProcessPerPeriod").toInt());;// 没单位时间可以执行的最大数量
+    if (maxProcessPerPeriod == 0)
+    {
+        maxProcessPerPeriod = 1000;
+    }
+
+    int maxThreadCnt = cfg->get("email","maxThreadCnt").toInt();
+    if (maxThreadCnt < 1)
+    {
+        maxThreadCnt = 2;
+    }
+
+    int splitTaskCnt =qCeil(emailQhash.size() * 1.0 / maxProcessPerPeriod);
+
+    for (int i = 0; i < splitTaskCnt; i++)
+    {
+        int currentProcessCnt = 0;
+        int emailQhashCnt = emailQhash.size();
+        int currentCnt = qMin(emailQhashCnt,maxProcessPerPeriod);
+        int maxProcessCntPreThread = qCeil(currentCnt * 1.0 / maxThreadCnt);
+        qDebug() << "currentCnt:" << currentCnt << " maxThreadCnt:" <<maxThreadCnt <<" maxProcessCntPreThread:" << maxProcessCntPreThread;
+        QHash<QString, QList<QStringList>> fragmentEmailQhash;
+        int runnableId = 1;
+        while (it.hasNext()) {
+            it.next();
+            ++currentProcessCnt;
+            QString key = it.key();
+            QList<QStringList> content = it.value();
             emailQhash.remove(key);
+            fragmentEmailQhash.insert(key,content);
+            int mod = m_process_cnt % maxProcessCntPreThread;
+            if (currentProcessCnt >= currentCnt)
+            {
+                if (mod==0 || !it.hasNext())
+                {
+                    int timeUnit = 1000; //时间单位
+                    int periodTime = timeUnit * 60; //1min
+                    int idleMsgShowPeriod = 2 * timeUnit;//2s一个周期
+
+                    this->leftTime = periodTime;
+                    QElapsedTimer timer;
+                    timer.start();
+                    this->idleMsgShowPeriod = idleMsgShowPeriod;
+                    this->timeUnit = timeUnit;
+                    this->timer = timer;
+                    this->showIdleMsg();
+                }
+            }
         }
     }
 
@@ -148,21 +268,23 @@ void EmailSender::splitSendTask()
 
 void EmailSender::showIdleMsg()
 {
-    QString idleMsg("达到当前处理上线，暂时进入休息状态. 剩余休息时间 %1s");
-    int timeUnit = 1000; //时间单位
-    int periodTime = timeUnit * 60; //1min
-    int idleMsgShowPeriod = 2 * timeUnit;//2s一个周期
-    QElapsedTimer t;
-    t.start();
-    int leftTime =periodTime;
-    while(t.elapsed()<periodTime)
+    QString idleMsg("达到当前处理上线，暂时进入休息状态. 剩余休息时间 %1 %2s");
+
+    int ela = this->timer.elapsed();
+    int currentLeftTime = this->leftTime - ela;
+
+    this->receiveMessage(Common::MsgTypeInfo, idleMsg.arg(ela).arg(currentLeftTime));
+    if (currentLeftTime > 0)
     {
-        if (t.elapsed() % idleMsgShowPeriod)
+        if (ela % this->idleMsgShowPeriod == 0)
         {
-            leftTime -= t.elapsed();
-            emit requestMsg(Common::MsgTypeInfo, idleMsg.arg(leftTime/timeUnit));
+            this->receiveMessage(Common::MsgTypeInfo, idleMsg.arg(ela).arg(currentLeftTime));
         }
-        QCoreApplication::processEvents();
+        QTimer::singleShot(100, this, SLOT(showIdleMsg()));
+    }
+    else
+    {
+        this->receiveMessage(Common::MsgTypeInfo, "休息状态结束.");
     }
 }
 
