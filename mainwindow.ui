@@ -258,8 +258,10 @@
     <property name="title">
      <string>帮助</string>
     </property>
-    <addaction name="action"/>
-    <addaction name="action_2"/>
+    <addaction name="actionAbout"/>
+    <addaction name="actionCheckUpdate"/>
+    <addaction name="actionReportBug"/>
+    <addaction name="actionSuggest"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menu"/>
@@ -288,14 +290,36 @@
     <string>拆分Excel</string>
    </property>
   </action>
-  <action name="action">
+  <action name="actionAbout">
    <property name="text">
-    <string>说明</string>
+    <string>关于</string>
+   </property>
+   <property name="toolTip">
+    <string>工具说明</string>
    </property>
   </action>
-  <action name="action_2">
+  <action name="actionCheckUpdate">
    <property name="text">
     <string>检查更新</string>
+   </property>
+   <property name="toolTip">
+    <string>检查工具更新</string>
+   </property>
+  </action>
+  <action name="actionReportBug">
+   <property name="text">
+    <string>提交 bug</string>
+   </property>
+   <property name="toolTip">
+    <string>提交 bug</string>
+   </property>
+  </action>
+  <action name="actionSuggest">
+   <property name="text">
+    <string>建议</string>
+   </property>
+   <property name="toolTip">
+    <string>建议</string>
    </property>
   </action>
  </widget>
