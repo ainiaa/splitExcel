@@ -254,7 +254,15 @@
     <addaction name="actionConfig_Setting"/>
     <addaction name="actionSplit_Only"/>
    </widget>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>帮助</string>
+    </property>
+    <addaction name="action"/>
+    <addaction name="action_2"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menu"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -278,6 +286,16 @@
   <action name="actionSplit_Only">
    <property name="text">
     <string>拆分Excel</string>
+   </property>
+  </action>
+  <action name="action">
+   <property name="text">
+    <string>说明</string>
+   </property>
+  </action>
+  <action name="action_2">
+   <property name="text">
+    <string>检查更新</string>
    </property>
   </action>
  </widget>
