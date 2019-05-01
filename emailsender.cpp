@@ -44,7 +44,7 @@ void EmailSender::doSend()
 
     if (maxProcessPerPeriod >0)
     { //使用队列处理
-        this->doSendWithQueue();
+        this->splitSendTask();
     }
     else
     {

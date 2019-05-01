@@ -37,7 +37,6 @@ SOURCES += \
         xlsxparserrunnable.cpp \
     splitonlywindow.cpp \
     testtimeer.cpp \
-    emailtaskqueue.cpp \
     emailtaskqueuedata.cpp
 
 
@@ -53,7 +52,6 @@ HEADERS += \
         xlsxparserrunnable.h \
     splitonlywindow.h \
     testtimeer.h \
-    emailtaskqueue.h \
     emailtaskqueuedata.h
 
 FORMS += \
