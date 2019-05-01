@@ -24,7 +24,7 @@ public:
     ~EmailSender();
 
     void setSendData(Config *cfg, QHash<QString, QList<QStringList>> emailQhash, QString savePath, int total);
-
+    void showIdleMsg();
 public slots:
     void doSend();
     void splitSendTask();
