@@ -114,32 +114,21 @@ void EmailSender::splitSendTask()
         maxProcessPerPeriod = 1000;
     }
 
-    int maxThreadCnt = cfg->get("email","maxThreadCnt").toInt();
-    if (maxThreadCnt < 1)
-    {
-        maxThreadCnt = 2;
-    }
-
     int splitTaskCnt =qCeil(emailQhash.size() * 1.0 / maxProcessPerPeriod);
-
+    qDebug() << "splitSendTask" << " emailQhash.size() :" << emailQhash.size() << " maxProcessPerPeriod:" << maxProcessPerPeriod;
     QHashIterator<QString,QList<QStringList>> it(emailQhash);
     int emailQhashCnt = emailQhash.size();
-    int leftCnt = emailQhashCnt;
     for (int i = 0; i < splitTaskCnt; i++)
     {
         int currentPartationCnt = 0;
-        int currentCnt = qMin(leftCnt,maxProcessPerPeriod);
-        int maxProcessCntPreThread = qCeil(currentCnt * 1.0 / maxThreadCnt);
-        qDebug() << "currentCnt:" << currentCnt << " maxThreadCnt:" <<maxThreadCnt <<" maxProcessCntPreThread:" << maxProcessCntPreThread;
         QHash<QString, QList<QStringList>> fragmentEmailQhash;
         while (it.hasNext()) {
             it.next();
             ++currentPartationCnt;
-            leftCnt--;
             QString key = it.key();
             QList<QStringList> content = it.value();
             fragmentEmailQhash.insert(key,content);
-            if (currentPartationCnt >= currentCnt || !it.hasNext())
+            if (currentPartationCnt == maxProcessPerPeriod || !it.hasNext())
             {
                 EmailTaskQueueData queueData;
                 queueData.setMsg(msg.arg(splitTaskCnt).arg(i + 1).arg(fragmentEmailQhash.size()));
@@ -148,6 +137,7 @@ void EmailSender::splitSendTask()
                 queueData.setEmailQhash(fragmentEmailQhash);
 
                 emailTaskQueue.enqueue(queueData);
+                break;
             }
         }
     }
@@ -157,41 +147,53 @@ void EmailSender::splitSendTask()
 
 void EmailSender::initTimer()
 {
+    qDebug() << "initTimer";
+    int timeUnit = 1000; //时间单位
+    int periodTime = timeUnit * 60; //1min
+
+    this->leftTime = periodTime;
+    this->timeUnit = timeUnit;
+    QElapsedTimer timer;
+    timer.start();
+    this->timer =timer;
+}
+
+void EmailSender::initIdleTimer()
+{
+    qDebug() << "initIdleTimer";
     int timeUnit = 1000; //时间单位
     int periodTime = timeUnit * 60; //1min
     int idleMsgShowPeriod = 2 * timeUnit;//2s一个周期
 
-    this->leftTime = periodTime;
+    this->idleLeftTime = periodTime;
     this->idleMsgShowPeriod = idleMsgShowPeriod;
-    this->timeUnit = timeUnit;
-    if (this->timer == nullptr)
-    {
-        this->timer = new QElapsedTimer();
-        this->timer->start();
-    }
-    else
-    {
-        this->timer->restart();
-    }
+    this->idleTimeUnit = timeUnit;
+    QElapsedTimer timer;
+    timer.start();
+    this->idleTimer =timer;
 }
 
 //发送email(待队列)
 void EmailSender::doSendWithQueue()
 {
     qDebug("doSendWithQueue");
+
     if (emailTaskQueue.isEmpty())
     {
         emit requestMsg(Common::MsgTypeError, "没有邮件待发送...");
-        this->timer = nullptr;
         return;
     }
+    this->use_queue = true;
 
-    this->initTimer();
+
+    //this->initTimer();
 
     EmailTaskQueueData emailTaskQueueData = emailTaskQueue.dequeue();
     QHash<QString, QList<QStringList>> currentEmailQhash = emailTaskQueueData.getEmailQhash();
     QHashIterator<QString,QList<QStringList>> it(currentEmailQhash);
     QString currentSavePath = emailTaskQueueData.getSavePath();
+    this->m_current_queue_process_cnt = currentEmailQhash.size();
+    this->m_current_queue_receive_cnt = 0;
 
     emit requestMsg(Common::MsgTypeInfo,  emailTaskQueueData.getMsg());
 
@@ -212,6 +214,7 @@ void EmailSender::doSendWithQueue()
     {
         maxThreadCnt = 2;
     }
+    maxThreadCnt  = 1;//禁用多线程
 
     pool.setMaxThreadCount(maxThreadCnt);
 
@@ -243,41 +246,44 @@ void EmailSender::doSendWithQueue()
 
 void EmailSender::showIdleMsg()
 {
-    QString idleMsg("达到当前处理上限，暂时进入休息状态. 剩余休息时间 %1 %2s");
+    QString idleMsg("达到当前处理上限，暂时进入休息状态. 剩余休息时间 %1s");
 
-    int ela = this->timer->elapsed();
-    int currentLeftTime = this->leftTime - ela;
-
-    this->receiveMessage(Common::MsgTypeInfo, idleMsg.arg(ela).arg(currentLeftTime));
+    int ela = this->idleTimer.elapsed();
+    int secs = 0;//this->idleTimer.secsTo(this->idleTimer);
+    int currentLeftTime = this->idleLeftTime - ela;
+    qDebug() << "showIdleMsg ela:" << ela << "  secs:" << secs << " currentLeftTime:"<< currentLeftTime;
     if (currentLeftTime > 0)
     {
-        if (ela % this->idleMsgShowPeriod == 0)
-        {
-            this->receiveMessage(Common::MsgTypeInfo, idleMsg.arg(ela/this->timeUnit).arg(currentLeftTime/this->timeUnit));
-        }
-        QTimer::singleShot(100, this, SLOT(showIdleMsg()));
+        this->receiveMessage(Common::MsgTypeInfo, idleMsg.arg(currentLeftTime/this->idleTimeUnit));
+        QTimer::singleShot(300, this, SLOT(showIdleMsg()));
     }
     else
     {
         this->receiveMessage(Common::MsgTypeInfo, "休息状态结束.");
-        QTimer::singleShot(0, this, SLOT(doSendWithQueue())); //尝试继续处理
+        QTimer::singleShot(this->idleTimeUnit, this, SLOT(doSendWithQueue())); //尝试继续处理
     }
 }
 
 void EmailSender::receiveMessage(const int msgType, const QString &result)
 {
     qDebug() << "EmailSender::receiveMessage msgType:" << QString::number(msgType).toUtf8() <<" msg:"<<result;
+    bool continued = false;
     switch (msgType)
     {
     case Common::MsgTypeError:
+    case Common::MsgTypeFail:
         m_failure_cnt++;
         m_receive_msg_cnt++;
+        m_current_queue_receive_cnt++;
         emit requestMsg(msgType, msg.arg(m_success_cnt).arg(m_failure_cnt).arg(result));
+        continued = true;
         break;
     case Common::MsgTypeSucc:
         m_success_cnt++;
         m_receive_msg_cnt++;
+        m_current_queue_receive_cnt++;
         emit requestMsg(msgType, msg.arg(m_success_cnt).arg(m_failure_cnt).arg(result));
+        continued = true;
         break;
     case Common::MsgTypeInfo:
     case Common::MsgTypeWarn:
@@ -285,6 +291,10 @@ void EmailSender::receiveMessage(const int msgType, const QString &result)
     default:
         emit requestMsg(msgType, result);
         break;
+    }
+    if (!continued)
+    {
+        return;
     }
     if (!this->use_queue)
     { //没有使用队列
@@ -295,17 +305,16 @@ void EmailSender::receiveMessage(const int msgType, const QString &result)
     }
     else
     { //使用队列
-        if (m_current_queue_process_cnt > 0 && m_receive_msg_cnt == m_current_queue_process_cnt)
+        if (m_current_queue_process_cnt > 0 && m_current_queue_receive_cnt == m_current_queue_process_cnt)
         { //当前处理完毕
-            emit requestMsg(Common::MsgTypeEmailSendFinish, "处理完毕！");
-
             if (this->emailTaskQueue.isEmpty())
             {//全部处理完毕
                 emit requestMsg(Common::MsgTypeEmailSendFinish, "全部邮件处理完毕！");
             }
             else
             {//还有邮件没有处理
-                if (this->timer->elapsed() > this->periodTime)
+                /*
+                if (this->timer.elapsed() > this->periodTime)
                 { //当前处理时间 大于周期时间 无需等待
                     //QTimer::singleShot(0, this, SLOT(doSendWithQueue()));
                 }
@@ -313,8 +322,14 @@ void EmailSender::receiveMessage(const int msgType, const QString &result)
                 { //当前处理时间 大于周期时间 需要等待
                     //QTimer::singleShot(0, this, SLOT(showIdleMsg()));
                 }
-                this->initTimer();//初始化计时器
-                QTimer::singleShot(0, this, SLOT(showIdleMsg()));
+                //this->initIdleTimer();//初始化计时器
+                //this->showIdleMsg();
+                //QTimer::singleShot(0, this, SLOT(showIdleMsg()));
+                */
+                //QTimer::singleShot(10, this, SLOT(doSendWithQueue()));
+               // doSendWithQueue();
+                this->initIdleTimer();//初始化计时器
+               QTimer::singleShot(0, this, SLOT(showIdleMsg()));
             }
         }
     }

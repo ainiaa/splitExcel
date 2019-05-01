@@ -28,6 +28,7 @@ public:
 
     void setSendData(Config *cfg, QHash<QString, QList<QStringList>> emailQhash, QString savePath, int total);
     void initTimer();
+    void initIdleTimer();
 public slots:
     void doSend();
     void doSendWithoutQueue();
@@ -52,11 +53,18 @@ private:
     int m_failure_cnt;
     int m_receive_msg_cnt;
     int m_current_queue_process_cnt;
+    int m_current_queue_receive_cnt;
     int leftTime;
-    int idleMsgShowPeriod;
+
     int timeUnit;
-    QElapsedTimer* timer;
+    QElapsedTimer timer;
     bool use_queue = false;
     int periodTime;
+
+    //idle msg 相关配置
+    int idleLeftTime;
+    QElapsedTimer idleTimer;
+    int idleMsgShowPeriod;
+    int idleTimeUnit;
 };
 #endif // EMAILSENDER_H
