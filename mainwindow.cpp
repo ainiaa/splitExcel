@@ -42,8 +42,6 @@ MainWindow::~MainWindow()
         delete xlsxParserThread;
     }
 
-
-
     if (processWindow)
     {
         delete processWindow;
@@ -259,10 +257,4 @@ void MainWindow::showSplitOnly()
 {
     this->hide();
     splitOnlyWindow->show();
-}
-
-void MainWindow::on_cancelPushButton_2_clicked()
-{
-    this->hide();
-    testTimeer->show();
 }

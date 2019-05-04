@@ -60,8 +60,6 @@ private slots:
 
     void receiveMessage(const int msgType, const QString &result);
 
-    void on_cancelPushButton_2_clicked();
-
 private:
     Ui::MainWindow *ui;
     QXlsx::Document *xlsx = nullptr;
