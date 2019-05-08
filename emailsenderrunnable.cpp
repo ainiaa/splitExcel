@@ -86,8 +86,7 @@ void EmailSenderRunnable::run()
             return;
         }
         //email的数据顺序为  （站，email,title,content）
-        EmailAddress * email = new EmailAddress(emailData.at(1), emailData.at(1));
-        mineMsg.addRecipient(email);
+        mineMsg.addRecipient(new EmailAddress(emailData.at(1), emailData.at(1)));
         mineMsg.setSubject(emailData.at(2));
 
         MimeText text;
@@ -99,8 +98,7 @@ void EmailSenderRunnable::run()
             QStringList ccList = emailData.at(4).split(",");
            for(QString cc : ccList )
            {
-               EmailAddress * ccEmailAddress = new EmailAddress(cc, cc);
-               mineMsg.addCc(ccEmailAddress);
+               mineMsg.addCc(new EmailAddress(cc, cc));
            }
         }
 
