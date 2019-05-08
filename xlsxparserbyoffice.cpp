@@ -1,6 +1,6 @@
-#include "xlsxparser.h"
+#include "xlsxparserbyoffice.h"
 
-XlsxParser::XlsxParser(QObject *parent):QObject (parent)
+XlsxParserByOffice::XlsxParserByOffice(QObject *parent):QObject (parent)
 {
     m_success_cnt = 0;
     m_failure_cnt = 0;
@@ -8,13 +8,14 @@ XlsxParser::XlsxParser(QObject *parent):QObject (parent)
     m_receive_msg_cnt = 0;
 }
 
-XlsxParser::~XlsxParser()
+XlsxParserByOffice::~XlsxParserByOffice()
 {
-    qDebug() << "~XlsxParser start";
+    qDebug() << "~XlsxParserByOffice start";
 
-    qDebug() << "~XlsxParser end";
+    qDebug() << "~XlsxParserByOffice end";
 }
-void XlsxParser::setSplitData(Config *cfg, QString groupByText, QString dataSheetName, QString emailSheetName, QString savePath)
+
+void XlsxParserByOffice::setSplitData(Config *cfg, QString groupByText, QString dataSheetName, QString emailSheetName, QString savePath)
 {
     this->cfg = cfg;
     this->groupByText = groupByText;
@@ -23,7 +24,7 @@ void XlsxParser::setSplitData(Config *cfg, QString groupByText, QString dataShee
     this->savePath = savePath;
 }
 
-QStringList XlsxParser::getSheetNames()
+QStringList XlsxParserByOffice::getSheetNames()
 {
     QStringList sheetNames;
     if (nullptr != xlsx)
@@ -33,17 +34,17 @@ QStringList XlsxParser::getSheetNames()
     return sheetNames;
 }
 
-bool XlsxParser::selectSheet(const QString &name)
+bool XlsxParserByOffice::selectSheet(const QString &name)
 {
     return xlsx->selectSheet(name);
 }
 
-QXlsx::CellRange XlsxParser::dimension()
+QXlsx::CellRange XlsxParserByOffice::dimension()
 {
     return xlsx->dimension();
 }
 
-QStringList* XlsxParser::getSheetHeader(QString selectedSheetName)
+QStringList* XlsxParserByOffice::getSheetHeader(QString selectedSheetName)
 {
     QStringList *currentHeader = new QStringList();
     QXlsx::CellRange range;
@@ -64,7 +65,7 @@ QStringList* XlsxParser::getSheetHeader(QString selectedSheetName)
 
 
 //打开文件对话框
-QString XlsxParser::openFile(QWidget *dlgParent)
+QString XlsxParserByOffice::openFile(QWidget *dlgParent)
 {
     QString path = QFileDialog::getOpenFileName(dlgParent, tr("Open Excel"), ".", tr("excel(*.xlsx)"));
     if(path.length() == 0)
@@ -80,20 +81,20 @@ QString XlsxParser::openFile(QWidget *dlgParent)
 }
 
 
-void XlsxParser::receiveMessage(const int msgType, const QString &result)
+void XlsxParserByOffice::receiveMessage(const int msgType, const QString &result)
 {
-    qDebug() << "XlsxParser::receiveMessage msgType:" << QString::number(msgType).toUtf8() <<" msg:"<<result;
+    qDebug() << "XlsxParserByOffice::receiveMessage msgType:" << QString::number(msgType).toUtf8() <<" msg:"<<result;
     switch (msgType)
     {
     case Common::MsgTypeError:
         m_failure_cnt++;
         m_receive_msg_cnt++;
-         emit requestMsg(msgType, result);
+        emit requestMsg(msgType, result);
         break;
     case Common::MsgTypeSucc:
         m_success_cnt++;
         m_receive_msg_cnt++;
-         emit requestMsg(msgType, result);
+        emit requestMsg(msgType, result);
         break;
     case Common::MsgTypeInfo:
     case Common::MsgTypeWarn:
@@ -109,7 +110,7 @@ void XlsxParser::receiveMessage(const int msgType, const QString &result)
 }
 
 //拆分excel文件
-void XlsxParser::doSplit()
+void XlsxParserByOffice::doSplit()
 {
     qDebug() << "doSplit";
     if (nullptr !=emailSheetName )
@@ -141,13 +142,13 @@ void XlsxParser::doSplit()
     writeXls(dataSheetName, dataQhash, savePath);
 }
 
-QHash<QString, QList<QStringList>> XlsxParser::getEmailData()
+QHash<QString, QList<QStringList>> XlsxParserByOffice::getEmailData()
 {
     return emailQhash;
 }
 
 //读取xls
-QHash<QString, QList<int>> XlsxParser::readDataXls(QString groupByText, QString selectedSheetName)
+QHash<QString, QList<int>> XlsxParserByOffice::readDataXls(QString groupByText, QString selectedSheetName)
 {
     QXlsx::CellRange range;
     xlsx->selectSheet(selectedSheetName);
@@ -192,19 +193,49 @@ QHash<QString, QList<int>> XlsxParser::readDataXls(QString groupByText, QString 
     return qHash;
 }
 
-QHash<QString, QList<QStringList>> XlsxParser::readXlsData(QString groupByText, QString selectedSheetName)
+QHash<QString, QList<QStringList>> XlsxParserByOffice::readXlsData(QString groupByText, QString selectedSheetName)
 {
-        QXlsx::CellRange range;
-        xlsx->selectSheet(selectedSheetName);
-        range = xlsx->dimension();
-        int rowCount = range.rowCount();
-        int colCount = range.columnCount();
+    QXlsx::CellRange range;
+    xlsx->selectSheet(selectedSheetName);
+    range = xlsx->dimension();
+    int rowCount = range.rowCount();
+    int colCount = range.columnCount();
 
-        QHash<QString, QList<QStringList>> qHash;
-        int groupBy = 0;
+    QHash<QString, QList<QStringList>> qHash;
+    int groupBy = 0;
+    for (int colum=1; colum<=colCount; ++colum)
+    {
+        QXlsx::Cell *cell =xlsx->cellAt(1, colum);
+        QXlsx::Format format = cell->format();
+        if (cell)
+        {
+            if (groupByText ==cell->value().toString())
+            {
+                groupBy = colum;
+                break;
+            }
+        }
+    }
+    if (groupBy == 0)
+    {//没有对应的分组
+        emit requestMsg(Common::MsgTypeError, "分组列“" + groupByText + "” 不存在");
+        return qHash;
+    }
+
+    for (int row = 2;row <= rowCount;++row)
+    {
+        QString groupByValue;
+        QXlsx::Cell *cell =xlsx->cellAt(row, groupBy);
+        if (cell)
+        {
+            groupByValue = cell->value().toString();
+        }
+
+        QList<QStringList> qlist = qHash.take(groupByValue);
+        QStringList rowData;
         for (int colum=1; colum<=colCount; ++colum)
         {
-            QXlsx::Cell *cell =xlsx->cellAt(1, colum);
+            QXlsx::Cell *cell =xlsx->cellAt(row, colum);
             QXlsx::Format format = cell->format();
             if (cell)
             {
@@ -215,44 +246,14 @@ QHash<QString, QList<QStringList>> XlsxParser::readXlsData(QString groupByText, 
                 }
             }
         }
-        if (groupBy == 0)
-        {//没有对应的分组
-            emit requestMsg(Common::MsgTypeError, "分组列“" + groupByText + "” 不存在");
-            return qHash;
-        }
-
-        for (int row = 2;row <= rowCount;++row)
-        {
-            QString groupByValue;
-            QXlsx::Cell *cell =xlsx->cellAt(row, groupBy);
-            if (cell)
-            {
-                groupByValue = cell->value().toString();
-            }
-
-            QList<QStringList> qlist = qHash.take(groupByValue);
-            QStringList rowData;
-            for (int colum=1; colum<=colCount; ++colum)
-            {
-                QXlsx::Cell *cell =xlsx->cellAt(row, colum);
-                QXlsx::Format format = cell->format();
-                if (cell)
-                {
-                    if (groupByText ==cell->value().toString())
-                    {
-                        groupBy = colum;
-                        break;
-                    }
-                }
-            }
-            qlist.append(rowData);
-            qHash.insert(groupByValue,qlist);
-        }
-        return qHash;
+        qlist.append(rowData);
+        qHash.insert(groupByValue,qlist);
+    }
+    return qHash;
 }
 
 //读取xls
-QHash<QString, QList<QStringList>> XlsxParser::readEmailXls(QString groupByText, QString selectedSheetName)
+QHash<QString, QList<QStringList>> XlsxParserByOffice::readEmailXls(QString groupByText, QString selectedSheetName)
 {
     QXlsx::CellRange range;
     xlsx->selectSheet(selectedSheetName);
@@ -323,7 +324,7 @@ QHash<QString, QList<QStringList>> XlsxParser::readEmailXls(QString groupByText,
 }
 
 //写xls
-void XlsxParser::writeXls(QString selectedSheetName, QHash<QString, QList<int>> qHash, QString savePath)
+void XlsxParserByOffice::writeXls(QString selectedSheetName, QHash<QString, QList<int>> qHash, QString savePath)
 {
     QHashIterator<QString,QList<int>> it(qHash);
     QThreadPool pool;
@@ -349,7 +350,7 @@ void XlsxParser::writeXls(QString selectedSheetName, QHash<QString, QList<int>> 
         int mod = m_process_cnt % maxProcessCntPreThread;
         if (mod==0 || !it.hasNext())
         {
-            XlsxParserRunnable *runnable = new XlsxParserRunnable(this) ;
+            XlsxParserByOfficeRunnable *runnable = new XlsxParserByOfficeRunnable(this) ;
             runnable->setID(runnableId++);
             runnable->setSplitData(sourcePath, selectedSheetName, fragmentDataQhash, savePath, totalCnt);
             pool.start(runnable);

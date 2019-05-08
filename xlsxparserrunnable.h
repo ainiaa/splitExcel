@@ -42,9 +42,10 @@ public:
     void processByOffice(QString key, QList<int> contentList);
     void processByQxls(QString key, QList<int> contentList);
     bool isInstalledExcelApp();
+    void processSourceFile();
 
    bool copyFileToPath(QString sourceDir ,QString toDir, bool coverFileIfExist);
-
+   void generateTplXls();
 private:
     //父对象
     QString sourcePath;
@@ -57,6 +58,17 @@ private:
     QHash<QString, QList<int>> fragmentDataQhash;
     QXlsx::Document* xlsx;
     bool installedExcelApp;
+
+    int sourceRowStart; // 起始行数
+    int sourceColStart;  // 起始列数
+    QString sourceMinAlphabetCol;//最小列（字符）
+    QString sourceMaxAlphabetCol;//最大列（字符）
+    int sourceRowCnt;//最大行数
+    int sourceColCnt;//最大列数
+    int sourceWorkSheetCnt;//sheets数量
+    int selectedSheetIndex;//选中索引
+    QString tplXlsPath;
+    QString deleteRangeFormat;
 };
 
 #endif // XLSXPARSERRUNNABLE_H

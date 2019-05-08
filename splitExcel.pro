@@ -40,7 +40,9 @@ SOURCES += \
     emailtaskqueuedata.cpp \
     officehelper.cpp \
     qstringutil.cpp \
-    excelbase.cpp
+    excelbase.cpp \
+    xlsxparserbyoffice.cpp \
+    xlsxparserbyofficerunnable.cpp
 
 
 HEADERS += \
@@ -58,7 +60,9 @@ HEADERS += \
     emailtaskqueuedata.h \
     officehelper.h \
     qstringutil.h \
-    excelbase.h
+    excelbase.h \
+    xlsxparserbyoffice.h \
+    xlsxparserbyofficerunnable.h
 
 FORMS += \
         mainwindow.ui \
