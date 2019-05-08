@@ -192,15 +192,15 @@ void OfficeHelper::process()
 
         QString X = "A" + QString::number(10 + 1); //设置要操作的单元格，A1
         QString rangeFormat = "A%1:AM%2";
-        for(int row= 1; row <= intRow;row++)
-        {
-            if (row % 5 == 0)
-            {
-                QAxObject* range = worksheet->querySubObject("Range(QVariant)", rangeFormat.arg(row).arg(row)); //获取单元格
-                //qDebug() << " Delete row:" << row;
-                range->dynamicCall("Delete()");
-            }
-        }
+//        for(int row= 1; row <= intRow;row++)
+//        {
+//            if (row % 5 == 0)
+//            {
+//                QAxObject* range = worksheet->querySubObject("Range(QVariant)", rangeFormat.arg(row).arg(row)); //获取单元格
+//                //qDebug() << " Delete row:" << row;
+//                range->dynamicCall("Delete()");
+//            }
+//        }
 
         filePath = "D:\\www\\qt\\build-splitExcel-Desktop_Qt_5_12_0_MinGW_64_bit-Release\\补贴拆分测试-190506.test-dd.xlsx";
         workbook->dynamicCall("SaveAs(const QString&)",QDir::toNativeSeparators(filePath));//保存至filepath，注意一定要用QDir::toNativeSeparators将路径中的"/"转换为"\"，不然一定保存不了。
@@ -210,6 +210,7 @@ void OfficeHelper::process()
         excel->dynamicCall("Quit()");//关闭excel
         delete excel;
         excel=nullptr;
+        qDebug() << "finished";
     }
 }
 

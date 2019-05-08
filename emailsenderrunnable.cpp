@@ -99,8 +99,8 @@ void EmailSenderRunnable::run()
             QStringList ccList = emailData.at(4).split(",");
            for(QString cc : ccList )
            {
-               EmailAddress * email = new EmailAddress(cc, cc);
-               mineMsg.addCc(email);
+               EmailAddress * ccEmailAddress = new EmailAddress(cc, cc);
+               mineMsg.addCc(ccEmailAddress);
            }
         }
 
