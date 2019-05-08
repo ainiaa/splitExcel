@@ -185,7 +185,6 @@ void EmailSender::doSendWithQueue()
     }
     this->use_queue = true;
 
-
     //this->initTimer();
 
     EmailTaskQueueData emailTaskQueueData = emailTaskQueue.dequeue();
@@ -255,7 +254,7 @@ void EmailSender::showIdleMsg()
     if (currentLeftTime > 0)
     {
         this->receiveMessage(Common::MsgTypeInfo, idleMsg.arg(currentLeftTime/this->idleTimeUnit));
-        QTimer::singleShot(300, this, SLOT(showIdleMsg()));
+        QTimer::singleShot(this->idleTimeUnit, this, SLOT(showIdleMsg()));
     }
     else
     {

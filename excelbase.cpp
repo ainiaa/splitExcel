@@ -71,6 +71,7 @@ void ExcelBasePrivate::construct()
     excel = new QAxObject(q_ptr);
     excel->setControl("Excel.Application");
     excel->setProperty("Visible",false);
+   excel->setProperty("EnableEvents",false);//没有这个会报错
     if (excel->isNull())
     {
         excel->setControl("ET.Application");
@@ -169,8 +170,8 @@ void ExcelBase::saveAs(const QString& filename)
         QString strPath = d->filename;
         strPath = strPath.replace('/','\\');
         qDebug()<<strPath;
-        d->book->dynamicCall("SaveAs(const QString&,int,const QString&,const QString&,bool,bool)", strPath
-                             ,56,QString(""),QString(""),false,false);
+        //d->book->dynamicCall("SaveAs(const QString&,int,const QString&,const QString&,bool,bool)", strPath ,56,QString(""),QString(""),false,false);
+        d->book->dynamicCall("SaveAs(const QString&)", filename);
     }
 #else
     Q_UNUSED(filename)

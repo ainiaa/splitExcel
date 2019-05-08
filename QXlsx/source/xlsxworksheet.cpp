@@ -2663,6 +2663,7 @@ void WorksheetPrivate::setCellTable(QMap<int, QMap<int, QSharedPointer<Cell> > >
 
 void Worksheet::fliterRows(QList<int> rows)
 {
+
     QMapIterator<int, QMap<int, QSharedPointer<Cell> > > _it( getWorksheetPrivate()->getCellTable());
     QMap<int, QMap<int, QSharedPointer<Cell> > > newcellTable;
     int i = 0;
@@ -2670,9 +2671,26 @@ void Worksheet::fliterRows(QList<int> rows)
     {
         _it.next();
         int row = _it.key();
+
         if (rows.contains(row))
         {
             newcellTable.insert(++i,_it.value());
+        }
+        else
+        {//删除多余的 QSharedPointer
+            QMapIterator<int, QSharedPointer<Cell> > it2(_it.value());
+            while (it2.hasNext()) {
+                it2.next();
+                QSharedPointer<Cell> cell = it2.value();
+
+                if (cell->cellType() == Cell::SharedStringType)
+                {
+//                    qDebug() << "row:" << row << "richString:" << cell->d_ptr->richString.toPlainString() << " value:" << cell->value().toString();
+                    //d->workbook->sharedStrings()->removeSharedString(cell->d_ptr->richString);
+//getWorksheetPrivate()->workbook->sharedStrings()->removeSharedString(cell->value().);
+//                    getWorksheetPrivate()->workbook->sharedStrings()->removeSharedString(cell->d_ptr->richString);
+                }
+            }
         }
     }
     getWorksheetPrivate()->setCellTable(newcellTable);

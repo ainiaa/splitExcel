@@ -14,6 +14,7 @@
 #include "xlsxcelllocation.h"
 #include "xlsxformat.h"
 #include "xlsxformat_p.h"
+#include<QAxObject>
 
 class XlsxParserRunnable : public QRunnable
 {
@@ -36,6 +37,10 @@ public:
     void convertToColName(int data, QString &res);
     QString to26AlphabetString(int data);
 
+    void processByOffice(QString key, QList<int> contentList);
+    void processByQxls(QString key, QList<int> contentList);
+    bool isInstalledExcelApp();
+
    bool copyFileToPath(QString sourceDir ,QString toDir, bool coverFileIfExist);
 
 private:
@@ -45,10 +50,11 @@ private:
     int runnableID;
     int m_total;
     QString key;
-    QList<int> contentList;
     QString savePath;
     QString selectedSheetName;
     QHash<QString, QList<int>> fragmentDataQhash;
+    QXlsx::Document* xlsx;
+    bool installedExcelApp;
 };
 
 #endif // XLSXPARSERRUNNABLE_H

@@ -22,6 +22,7 @@
 #include "processwindow.h"
 #include "xlsxparser.h"
 #include "testtimeer.h"
+#include "officehelper.h"
 
 namespace Ui {
 class MainWindow;
@@ -59,6 +60,8 @@ private slots:
     void showSplitOnly();
 
     void receiveMessage(const int msgType, const QString &result);
+
+    void on_cancelPushButton_2_clicked();
 
 private:
     Ui::MainWindow *ui;

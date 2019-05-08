@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui axcontainer
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -37,7 +37,10 @@ SOURCES += \
         xlsxparserrunnable.cpp \
     splitonlywindow.cpp \
     testtimeer.cpp \
-    emailtaskqueuedata.cpp
+    emailtaskqueuedata.cpp \
+    officehelper.cpp \
+    qstringutil.cpp \
+    excelbase.cpp
 
 
 HEADERS += \
@@ -52,7 +55,10 @@ HEADERS += \
         xlsxparserrunnable.h \
     splitonlywindow.h \
     testtimeer.h \
-    emailtaskqueuedata.h
+    emailtaskqueuedata.h \
+    officehelper.h \
+    qstringutil.h \
+    excelbase.h
 
 FORMS += \
         mainwindow.ui \
@@ -72,6 +78,7 @@ QXLSX_PARENTPATH=QXlsx/         # current QXlsx path is . (. means curret direct
 QXLSX_HEADERPATH=QXlsx/header/  # current QXlsx header path is ./header/
 QXLSX_SOURCEPATH=QXlsx/source/  # current QXlsx source path is ./source/
 include(QXlsx/QXlsx.pri)
+
 
 # stmp client
 include(smtpclient/smtpclient.pri)

@@ -4,6 +4,7 @@
 XlsxParserRunnable::XlsxParserRunnable(QObject *parent)
 {
     this->mParent = parent;
+    this->installedExcelApp = isInstalledExcelApp();
 }
 
 XlsxParserRunnable::~XlsxParserRunnable()
@@ -19,12 +20,14 @@ void XlsxParserRunnable::setID(const int &id)
 void XlsxParserRunnable::setSplitData(QString sourcePath, QString selectedSheetName, QHash<QString, QList<int>> fragmentDataQhash, QString savePath, int total)
 {
     qDebug("setSplitData") ;
+    this->xlsx = new QXlsx::Document(sourcePath);
     this->sourcePath = sourcePath;
     this->selectedSheetName = selectedSheetName;
     this->fragmentDataQhash = fragmentDataQhash;
     this->savePath = savePath;
     this->m_total = total;
 }
+
 
 void XlsxParserRunnable::run()
 {
@@ -33,7 +36,7 @@ void XlsxParserRunnable::run()
     QString endMsg("完成拆分excel并生成新的excel文件: %1/");
     startMsg.append(QString::number(m_total));
     endMsg.append(QString::number(m_total));
-     requestMsg(Common::MsgTypeInfo, startMsg.arg(QString::number(runnableID)));
+    requestMsg(Common::MsgTypeInfo, startMsg.arg(QString::number(runnableID)));
     QHashIterator<QString,QList<int>> it(fragmentDataQhash);
     while (it.hasNext()) {
         it.next();
@@ -41,45 +44,228 @@ void XlsxParserRunnable::run()
         QList<int> contentList = it.value();
         contentList.insert(0,1);
 
-        QString xlsName;
-       // int rows =  contentList.size();
-        xlsName.append(savePath).append(QDir::separator()).append(key).append(".xlsx");
-        //xlsx.saveAs(xlsName);
-        copyFileToPath(sourcePath,xlsName,true);
-
-        QXlsx::Document* currXls = new QXlsx::Document(xlsName);
-
-        currXls->fliterRows(contentList);//删除多余的行  多线程的生活会出现问题。
-
-        //删除多余的sheet start
-        QStringList sheetNames = currXls->sheetNames();
-        for (int i = 0;i<sheetNames.size();i++)
+        if (this->installedExcelApp)
+        {//安装了 offcie
+            this->processByOffice(key, contentList);
+        }
+        else
         {
-            QString currSheetName = sheetNames.at(i);
-            if (selectedSheetName == currSheetName)
-            {
-                continue;
-            }
-            currXls->deleteSheet(currSheetName);
+            this->processByQxls(key, contentList);
         }
-        //删除多余的sheet end
-
-        //尝试修复行高不正确的问题
-        QXlsx::CellRange cellRange = currXls->dimension();
-        for (int row_num = cellRange.firstRow(); row_num <= cellRange.lastRow(); row_num++) {
-            double rowHeigh = currXls->rowHeight(row_num);
-            if (rowHeigh < 14)
-            {
-                currXls->setRowHeight(row_num, 18);
-            }
-        }
-
-        currXls->save();
-        delete currXls;
     }
     requestMsg(Common::MsgTypeSucc, endMsg.arg(QString::number(runnableID)));
     qDebug("XlsxParserRunnable::run end") ;
 }
+
+bool XlsxParserRunnable::isInstalledExcelApp()
+{
+    QAxObject excel("Excel.Application");
+    if (excel.isNull())
+    {
+        return false;
+    }
+    return true;
+}
+
+void XlsxParserRunnable::processByOffice(QString key, QList<int> contentList)
+{
+    QString xlsName;
+    xlsName.append(savePath).append(QDir::separator()).append(key).append(".xlsx");
+    copyFileToPath(sourcePath,xlsName,true);
+
+    QAxObject excel("Excel.Application");
+
+
+}
+void XlsxParserRunnable::processByQxls(QString key, QList<int> contentList)
+{
+    QString xlsName;
+    xlsName.append(savePath).append(QDir::separator()).append(key).append(".xlsx");
+    copyFileToPath(sourcePath,xlsName,true);
+
+    QXlsx::Document* currXls = new QXlsx::Document(xlsName);
+
+    currXls->fliterRows(contentList);//删除多余的行  多线程的生活会出现问题。
+
+    //删除多余的sheet start
+    QStringList sheetNames = currXls->sheetNames();
+    for (int i = 0;i<sheetNames.size();i++)
+    {
+        QString currSheetName = sheetNames.at(i);
+        if (selectedSheetName == currSheetName)
+        {
+            continue;
+        }
+        currXls->deleteSheet(currSheetName);
+    }
+    //删除多余的sheet end
+
+
+    //尝试修复行高不正确的问题
+    QXlsx::CellRange cellRange = currXls->dimension();
+    for (int row_num = cellRange.firstRow(); row_num <= cellRange.lastRow(); row_num++) {
+        double rowHeigh = currXls->rowHeight(row_num);
+        if (rowHeigh < 14)
+        {
+            currXls->setRowHeight(row_num, 18);
+        }
+    }
+
+    currXls->save();
+    delete currXls;
+}
+
+// old  start
+
+/*
+void XlsxParserRunnable::run()
+{
+    qDebug("XlsxParserRunnable::run start") ;
+    requestMsg(Common::MsgTypeInfo, "XlsxParserRunnable::run");
+
+    QXlsx::CellRange range;
+    xlsx->selectSheet(selectedSheetName);
+    range = xlsx->dimension();
+    int colCount = range.columnCount();
+
+    QString startMsg("开始拆分excel并生成新的excel文件: %1/");
+    QString endMsg("完成拆分excel并生成新的excel文件: %1/");
+    startMsg.append(QString::number(m_total));
+    endMsg.append(QString::number(m_total));
+    requestMsg(Common::MsgTypeInfo, startMsg.arg(QString::number(runnableID)));
+
+    QHashIterator<QString,QList<int>> it(fragmentDataQhash);
+    while (it.hasNext()) {
+        it.next();
+        QString key = it.key();
+        QList<int> contentList = it.value();
+        QXlsx::Document currXls;
+
+        //写表头
+        writeXlsHeader(&currXls, selectedSheetName);
+        QString xlsName;
+        int rows =  contentList.size();
+        xlsName.append(savePath).append("\\").append(key).append(".xlsx");
+        qDebug() << "xlsName:" << xlsName;
+
+        for(int row = 0; row < rows;row++)
+        {
+            int dataRow = contentList.at(row);
+            int newRow = row + 2;
+            QXlsx::CellReference cellReference = "";
+            QVariant value = xlsx->read(cellReference);
+
+            for (int column=1; column<=colCount; ++column)
+            {
+                QXlsx::Cell *sourceCell =xlsx->cellAt(dataRow, column);
+                if (sourceCell)
+                {
+                    QString columnName;
+                    convertToColName(column,columnName) ;
+                    QString cell;
+                    QXlsx::Format newFormat = copyFormat(sourceCell->format());
+                    cell.append(columnName).append(QString::number(newRow));
+                    if (sourceCell->isDateTime() && !sourceCell->value().isNull())
+                    {
+                        currXls.write(cell,sourceCell->dateTime(), newFormat);
+                    }
+                    else
+                    {
+                        currXls.write(cell,sourceCell->value(), newFormat);
+                    }
+                    currXls.setColumnFormat(column, xlsx->columnFormat(column));
+                    currXls.setColumnWidth(column, xlsx->columnWidth(column));
+                }
+            }
+            currXls.setRowFormat(newRow, xlsx->rowFormat(newRow));
+            currXls.setRowHeight(newRow, xlsx->rowHeight(newRow));
+        }
+        currXls.saveAs(xlsName);
+        requestMsg(Common::MsgTypeSucc, endMsg.arg(QString::number(runnableID)));
+    }
+
+    qDebug("EmailSenderRunnable::run end") ;
+}
+*/
+
+void  XlsxParserRunnable::writeXlsHeader(QXlsx::Document *xls, QString selectedSheetName)
+{
+    QXlsx::CellRange range;
+    xlsx->selectSheet(selectedSheetName);
+    range = xlsx->dimension();
+    int colCount = range.columnCount();
+
+    for (int column=1; column<=colCount; ++column)
+    {
+        QXlsx::Cell *sourceCell =xlsx->cellAt(1, column);
+        if (sourceCell)
+        {
+            QString columnName;
+            convertToColName(column,columnName) ;
+            QString cell;
+            QXlsx::Format newFormat = copyFormat(sourceCell->format());
+            cell.append(columnName).append(QString::number(1));
+            xls->write(cell, sourceCell->value(), newFormat);
+            xls->setColumnFormat(column,xlsx->columnFormat(column));
+            xls->setColumnWidth(column,xlsx->columnWidth(column));
+        }
+    }
+    xls->setRowFormat(1,xlsx->rowFormat(1));
+    xls->setRowHeight(1,xlsx->rowHeight(1));
+}
+
+
+QXlsx::Format XlsxParserRunnable::copyFormat(QXlsx::Format format)
+{
+    QXlsx::Format newFomat = format;
+    newFomat.setFont(format.font());
+    newFomat.setFontBold(format.fontBold());
+    newFomat.setFontName(format.fontName());
+    newFomat.setFontSize(format.fontSize());
+    newFomat.setFontColor(format.fontColor());
+    newFomat.setFontItalic(format.fontItalic());
+    newFomat.setFontUnderline(format.fontUnderline());
+    newFomat.setFontScript(format.fontScript());
+    newFomat.setFontOutline(format.fontOutline());
+
+    newFomat.setTextWarp(format.textWrap());
+
+    newFomat.setHidden(format.hidden());
+
+    newFomat.setIndent(format.indent());
+    newFomat.setLocked(format.locked());
+    newFomat.setXfIndex(format.xfIndex());
+    newFomat.setDxfIndex(format.dxfIndex());
+    newFomat.setRotation(format.rotation());
+    newFomat.setFillIndex(format.fillIndex());
+    newFomat.setFillPattern(format.fillPattern());
+    newFomat.setBorderIndex(format.borderIndex());
+    newFomat.setShrinkToFit(format.shrinkToFit());
+    newFomat.setNumberFormat(format.numberFormat());
+    newFomat.setRightBorderColor(format.rightBorderColor());
+    newFomat.setRightBorderStyle(format.rightBorderStyle());
+    newFomat.setTopBorderColor(format.topBorderColor());
+    newFomat.setTopBorderStyle(format.topBorderStyle());
+    newFomat.setLeftBorderColor(format.leftBorderColor());
+    newFomat.setLeftBorderStyle(format.leftBorderStyle());
+    newFomat.setBottomBorderColor(format.bottomBorderColor());
+    newFomat.setBottomBorderStyle(format.bottomBorderStyle());
+    newFomat.setNumberFormatIndex(format.numberFormatIndex());
+    newFomat.setDiagonalBorderType(format.diagonalBorderType());
+    newFomat.setDiagonalBorderColor(format.diagonalBorderColor());
+    newFomat.setDiagonalBorderStyle(format.diagonalBorderStyle());
+
+    newFomat.setVerticalAlignment(format.verticalAlignment());
+    newFomat.setHorizontalAlignment(format.horizontalAlignment());
+
+    newFomat.setPatternBackgroundColor(format.patternBackgroundColor());
+    newFomat.setPatternForegroundColor(format.patternForegroundColor());
+
+    return newFomat;
+}
+
+//old end
+
 
 void XlsxParserRunnable::requestMsg(const int msgType, const QString &msg)
 {

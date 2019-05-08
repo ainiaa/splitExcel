@@ -100,7 +100,7 @@ void EmailSenderRunnable::run()
            for(QString cc : ccList )
            {
                EmailAddress * email = new EmailAddress(cc, cc);
-                mineMsg.addBcc(email);
+               mineMsg.addCc(email);
            }
         }
 
