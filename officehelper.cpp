@@ -124,7 +124,7 @@ void OfficeHelper::process()
     delete xlsx;
     xlsx = nullptr;
 }*/
-
+/*
 void OfficeHelper::process()
 {
     QString filePath= "D:\\www\\qt\\build-splitExcel-Desktop_Qt_5_12_0_MinGW_64_bit-Release\\补贴拆分测试-190506.xlsx";//获取保存路径
@@ -213,6 +213,7 @@ void OfficeHelper::process()
         qDebug() << "finished";
     }
 }
+*/
 
 /*
 void OfficeHelper::process()
@@ -226,3 +227,38 @@ void OfficeHelper::process()
     excel.close();
 }
 */
+
+void OfficeHelper::process()
+{
+    int rowStart = 1;
+    int rowEnd = 10000;
+    QList<int> contentList;
+    contentList << 5 << 6 << 11 << 20 << 50 << 100 << 120 <<1000 <<1200<< 5000;
+    QList<QString> ddd;
+    int intContentList = contentList.size();
+
+    QString dddFormat = "%1:%2";
+    int latestStart =rowStart;
+    for (int i = 0; i <intContentList;i++ )
+    {
+        int max = contentList.takeAt(0);
+        if (latestStart == max)
+        {
+            latestStart = max+1;
+            continue;
+        }
+        else
+        {
+            ddd << dddFormat.arg(latestStart).arg(max-1);
+            latestStart = max+1;
+        }
+    }
+    if (latestStart < rowEnd)
+    {
+        ddd << dddFormat.arg(latestStart).arg(rowEnd);
+    }
+    for (int i = 0; i < ddd.size();i++)
+    {
+        qDebug() << " ddd["<< i <<"] = " << ddd.at(i);
+    }
+}

@@ -75,12 +75,13 @@ void XlsxParserRunnable::processByOffice(QString key, QList<int> contentList)
 
     QAxObject *excel = new QAxObject("Excel.Application");//连接Excel控件
     excel->dynamicCall("SetVisible (bool Visible)",false);//不显示窗体
-    excel->setProperty("DisplayAlerts", false);//不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
+    excel->setProperty("DisplayAlerts",  false);//不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
     excel->setProperty("EnableEvents",false); //没有这个 很容易报错  QAxBase: Error calling IDispatch member Open: Unknown error
 
     QAxObject *workbooks = excel->querySubObject("WorkBooks");//获取工作簿集合
     QAxObject *workbook = workbooks->querySubObject("Open(const QString&, QVariant)", xlsName, 0);
     QAxObject * worksheets = workbook->querySubObject("WorkSheets");// 获取打开的excel文件中所有的工作sheet
+    //—————————————————Excel文件中表的个数:——————————————————
     int intWorkSheet = worksheets->property("Count").toInt();
     qDebug() << QString("Excel文件中表的个数: %1").arg(QString::number(intWorkSheet));
     QAxObject* worksheet = nullptr;
@@ -88,6 +89,9 @@ void XlsxParserRunnable::processByOffice(QString key, QList<int> contentList)
     {
         QAxObject *currentWorkSheet = workbook->querySubObject("WorkSheets(int)", i);  //Sheets(int)也可换用Worksheets(int)
         QString currentWorkSheetName = currentWorkSheet->property("Name").toString();  //获取工作表名称
+        QString message = QString("sheet ")+QString::number(i, 10)+ QString(" name");
+        qDebug()<<message<<currentWorkSheetName;
+        qDebug() << "this->selectedSheetName:" <<this->selectedSheetName;
         if (currentWorkSheetName != this->selectedSheetName)
         {
             qDebug()<<"delete work_sheet:"<<currentWorkSheetName;
@@ -95,16 +99,16 @@ void XlsxParserRunnable::processByOffice(QString key, QList<int> contentList)
         }
         else
         {
-            qDebug()<<"current  work_sheet:"<<currentWorkSheetName;
             worksheet = currentWorkSheet;
         }
     }
 
     if (worksheet == nullptr)
     {
-        qDebug()<<"worksheet is null:";
+        qDebug()<<"worksheet is null";
         return;
     }
+
     QAxObject* usedrange = worksheet->querySubObject("UsedRange"); // sheet范围
     int intRowStart = usedrange->property("Row").toInt(); // 起始行数
     int intColStart = usedrange->property("Column").toInt();  // 起始列数
@@ -123,35 +127,47 @@ void XlsxParserRunnable::processByOffice(QString key, QList<int> contentList)
 
     qDebug() << " intRowStart:" <<intRowStart<< " intColStart:" <<intColStart<< " intRow:" <<intRow<< " intCol:" <<intCol << " alphabetColStart:" <<alphabetColStart << " alphabetCol:" << alphabetCol;
 
-    QString rangeFormat = "A%1:%2%3";
-//    for(int row= 1; row <= intRow;row++)
-//    {
-//        if (!contentList.contains(row))
-//        {
-//            QAxObject* range = worksheet->querySubObject("Range(QVariant)", rangeFormat.arg(row).arg(alphabetCol).arg(row)); //获取单元格
-//            range->dynamicCall("Delete()");
-//        }
-//        else
-//        {
-//            qDebug() << "left row:" << row;
-//        }
-//    }
+    //start
+    QList<QString> deleteRange;
+    int intContentList = contentList.size();
 
-    workbook->dynamicCall("SaveAs(const QString&)", xlsName);
-    workbook->dynamicCall("Save()");//保存
+    QString deleteRangeFormat = "A%1:%2%3";
+    int latestStart =intRowStart;
+    for (int i = 0; i <intContentList;i++ )
+    {
+        int max = contentList.takeAt(0);
+        if (latestStart == max)
+        {
+            latestStart = max+1;
+            continue;
+        }
+        else
+        {
+            deleteRange << deleteRangeFormat.arg(latestStart).arg(alphabetCol).arg(max-1);
+            latestStart = max+1;
+        }
+    }
+    if (latestStart < intRow)
+    {
+        deleteRange << deleteRangeFormat.arg(latestStart).arg(alphabetCol).arg(intRow);
+    }
+    for (int i = deleteRange.size() -1; i  >=0;i--)
+    {
+        QString deleteRangeContent = deleteRange.at(i);
+        qDebug() << " ddd["<< i <<"] = " << deleteRangeContent;
+        QAxObject* range = worksheet->querySubObject("Range(QVariant)", deleteRangeContent); //获取单元格
+        range->dynamicCall("Delete()");
+        qDebug() << " deleteRangeContent:" << deleteRangeContent;
+    }
+    //end
+
+    //workbook->dynamicCall("SaveAs(const QString&)", xlsName);//保存至filepath，注意一定要用QDir::toNativeSeparators将路径中的"/"转换为"\"，不然一定保存不了。
+    workbook->dynamicCall("Save()");
     workbook->dynamicCall("Close()");//关闭工作簿
     workbooks->dynamicCall("Close()");//关闭工作簿
     excel->dynamicCall("Quit()");//关闭excel
-
-
-    delete worksheets;
-    delete workbook;
-    delete workbooks;
     delete excel;
     excel=nullptr;
-    workbooks=nullptr;
-    workbook=nullptr;
-    worksheets=nullptr;
 }
 void XlsxParserRunnable::processByQxls(QString key, QList<int> contentList)
 {
