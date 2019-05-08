@@ -10,6 +10,7 @@ class ExcelBasePrivate;
 ///
 /// \brief win下excel快速读取类
 /// 参考天池项目源码，天池源码地址：https://github.com/qtcn/tianchi/blob/v0.0.2-build20130701/include/tianchi/file/tcmsexcel.h
+/// https://github.com/czyt1988/czyBlog/tree/master/tech/fastReadExcel
 ///
 class ExcelBase : public QObject
 {

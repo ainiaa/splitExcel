@@ -71,7 +71,8 @@ void ExcelBasePrivate::construct()
     excel = new QAxObject(q_ptr);
     excel->setControl("Excel.Application");
     excel->setProperty("Visible",false);
-   excel->setProperty("EnableEvents",false);//没有这个会报错
+   excel->setProperty("EnableEvents", false);//没有这个会报错
+    excel->setProperty("DisplayAlerts", false);//不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
     if (excel->isNull())
     {
         excel->setControl("ET.Application");

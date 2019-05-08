@@ -73,9 +73,74 @@ void XlsxParserRunnable::processByOffice(QString key, QList<int> contentList)
     xlsName.append(savePath).append(QDir::separator()).append(key).append(".xlsx");
     copyFileToPath(sourcePath,xlsName,true);
 
-    QAxObject excel("Excel.Application");
+    QAxObject *excel = new QAxObject("Excel.Application");//连接Excel控件
+    excel->dynamicCall("SetVisible (bool Visible)",false);//不显示窗体
+    excel->setProperty("DisplayAlerts", true);//不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
+    excel->setProperty("EnableEvents",false); //没有这个 很容易报错  QAxBase: Error calling IDispatch member Open: Unknown error
 
+    QAxObject *workbooks = excel->querySubObject("WorkBooks");//获取工作簿集合
+    QAxObject *workbook = workbooks->querySubObject("Open(const QString&, QVariant)", xlsName, 0);
+    QAxObject * worksheets = workbook->querySubObject("WorkSheets");// 获取打开的excel文件中所有的工作sheet
+    int intWorkSheet = worksheets->property("Count").toInt();
+    qDebug() << QString("Excel文件中表的个数: %1").arg(QString::number(intWorkSheet));
+    QAxObject* worksheet = nullptr;
+    for (int i = 1; i <= intWorkSheet;i++)
+    {
+        QAxObject *currentWorkSheet = workbook->querySubObject("WorkSheets(int)", i);  //Sheets(int)也可换用Worksheets(int)
+        QString currentWorkSheetName = currentWorkSheet->property("Name").toString();  //获取工作表名称
+        if (currentWorkSheetName != this->selectedSheetName)
+        {
+            qDebug()<<"delete work_sheet:"<<currentWorkSheetName;
+            currentWorkSheet->dynamicCall("Delete()");
+        }
+        else
+        {
+            worksheet = currentWorkSheet;
+        }
+    }
 
+    if (worksheet == nullptr)
+    {
+        qDebug()<<"worksheet is null:";
+        return;
+    }
+    QAxObject* usedrange = worksheet->querySubObject("UsedRange"); // sheet范围
+    int intRowStart = usedrange->property("Row").toInt(); // 起始行数
+    int intColStart = usedrange->property("Column").toInt();  // 起始列数
+
+    QAxObject *rows, *columns;
+    rows = usedrange->querySubObject("Rows");  // 行
+    columns = usedrange->querySubObject("Columns");  // 列
+
+    int intRow = rows->property("Count").toInt(); // 行数
+    int intCol = columns->property("Count").toInt();  // 列数
+
+    QString alphabetColStart;
+    QString alphabetCol;
+    ExcelBase::convertToColName(intRowStart,alphabetColStart);
+    ExcelBase::convertToColName(intCol,alphabetCol);
+
+    qDebug() << " intRowStart:" <<intRowStart<< " intColStart:" <<intColStart<< " intRow:" <<intRow<< " intCol:" <<intCol << " alphabetColStart:" <<alphabetColStart << " alphabetCol:" << alphabetCol;
+
+    QString rangeFormat = "A%1:%2%3";
+    for(int row= 1; row <= intRow;row++)
+    {
+        if (!contentList.contains(row))
+        {
+            QAxObject* range = worksheet->querySubObject("Range(QVariant)", rangeFormat.arg(row).arg(alphabetCol).arg(row)); //获取单元格
+            range->dynamicCall("Delete()");
+        }
+        else
+        {
+            qDebug() << "left row:" << row;
+        }
+    }
+
+    workbook->dynamicCall("Save()");//保存
+    workbook->dynamicCall("Close()");//关闭工作簿
+    excel->dynamicCall("Quit()");//关闭excel
+    delete excel;
+    excel=nullptr;
 }
 void XlsxParserRunnable::processByQxls(QString key, QList<int> contentList)
 {

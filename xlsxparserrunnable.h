@@ -6,6 +6,7 @@
 #include <QFileInfo>
 #include <QDir>
 #include <QDateTime>
+#include<QAxObject>
 
 #include "xlsxdocument.h"
 #include "xlsxworkbook.h"
@@ -14,7 +15,8 @@
 #include "xlsxcelllocation.h"
 #include "xlsxformat.h"
 #include "xlsxformat_p.h"
-#include<QAxObject>
+#include "excelbase.h"
+
 
 class XlsxParserRunnable : public QRunnable
 {

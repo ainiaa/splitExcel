@@ -133,13 +133,44 @@ void OfficeHelper::process()
     if(!filePath.isEmpty()){
         QAxObject *excel = new QAxObject("Excel.Application");//连接Excel控件
         excel->dynamicCall("SetVisible (bool Visible)",false);//不显示窗体
-        excel->setProperty("DisplayAlerts", true);//不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
+        excel->setProperty("DisplayAlerts",  false);//不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
         excel->setProperty("EnableEvents",false); //没有这个 很容易报错  QAxBase: Error calling IDispatch member Open: Unknown error
 
         QAxObject *workbooks = excel->querySubObject("WorkBooks");//获取工作簿集合
         QAxObject *workbook = workbooks->querySubObject("Open(const QString&, QVariant)", filePath, 0);
+        // 获取打开的excel文件中所有的工作sheet
+        QAxObject * worksheets = workbook->querySubObject("WorkSheets");
+        //—————————————————Excel文件中表的个数:——————————————————
+        int iWorkSheet = worksheets->property("Count").toInt();
+        qDebug() << QString("Excel文件中表的个数: %1").arg(QString::number(iWorkSheet));
+        QAxObject* worksheet = nullptr;
+        for (int i = 1; i <= iWorkSheet;i++)
+        {
+            QAxObject *work_sheet = workbook->querySubObject("WorkSheets(int)", i);  //Sheets(int)也可换用Worksheets(int)
+            QString work_sheet_name = work_sheet->property("Name").toString();  //获取工作表名称
+            QString message = QString("sheet ")+QString::number(i, 10)+ QString(" name");
+            qDebug()<<message<<work_sheet_name;
+            if (work_sheet_name != "data")
+            {
+                qDebug()<<"delete work_sheet:"<<work_sheet_name;
+                work_sheet->dynamicCall("Delete()");
+            }
+            else
+            {
+                worksheet = work_sheet;
+            }
+        }
+
+        // ————————————————获取第n个工作表 querySubObject("Item(int)", n);——————————
+       // QAxObject * worksheet = worksheets->querySubObject("Item(int)", 1);//本例获取第一个，最后参数填1
+
         // step3: 打开sheet
-        QAxObject* worksheet = workbook->querySubObject("WorkSheets(int)", 1); // 获取工作表集合的工作表1， 即sheet1
+        //QAxObject* worksheet = workbook->querySubObject("WorkSheets(int)", 1); // 获取工作表集合的工作表1， 即sheet1
+        if (worksheet == nullptr)
+        {
+            qDebug()<<"worksheet is null";
+            return;
+        }
 
         QAxObject* usedrange = worksheet->querySubObject("UsedRange"); // sheet范围
         int intRowStart = usedrange->property("Row").toInt(); // 起始行数
@@ -152,7 +183,12 @@ void OfficeHelper::process()
         int intRow = rows->property("Count").toInt(); // 行数
         int intCol = columns->property("Count").toInt();  // 列数
 
-        qDebug() << " intRowStart:" <<intRowStart<< " intColStart:" <<intColStart<< " intRow:" <<intRow<< " intCol:" <<intCol;
+        QString alphabetColStart;
+        QString alphabetCol;
+        ExcelBase::convertToColName(intRowStart,alphabetColStart);
+        ExcelBase::convertToColName(intCol,alphabetCol);
+
+        qDebug() << " intRowStart:" <<intRowStart<< " intColStart:" <<intColStart<< " intRow:" <<intRow<< " intCol:" <<intCol << " alphabetColStart:" <<alphabetColStart << " alphabetCol:" << alphabetCol;
 
         QString X = "A" + QString::number(10 + 1); //设置要操作的单元格，A1
         QString rangeFormat = "A%1:AM%2";
@@ -161,14 +197,16 @@ void OfficeHelper::process()
             if (row % 5 == 0)
             {
                 QAxObject* range = worksheet->querySubObject("Range(QVariant)", rangeFormat.arg(row).arg(row)); //获取单元格
-                qDebug() << " Delete row:" << row;
+                //qDebug() << " Delete row:" << row;
                 range->dynamicCall("Delete()");
             }
         }
 
         filePath = "D:\\www\\qt\\build-splitExcel-Desktop_Qt_5_12_0_MinGW_64_bit-Release\\补贴拆分测试-190506.test-dd.xlsx";
         workbook->dynamicCall("SaveAs(const QString&)",QDir::toNativeSeparators(filePath));//保存至filepath，注意一定要用QDir::toNativeSeparators将路径中的"/"转换为"\"，不然一定保存不了。
+        //workbook->dynamicCall("Save()");
         workbook->dynamicCall("Close()");//关闭工作簿
+        workbooks->dynamicCall("Close()");//关闭工作簿
         excel->dynamicCall("Quit()");//关闭excel
         delete excel;
         excel=nullptr;
