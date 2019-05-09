@@ -59,3 +59,49 @@ void SourceExcelData::setOpType(int opType) {
 int SourceExcelData::getOpType() {
     return this->opType;
 }
+
+void SourceExcelData::setSourceRowStart(int sourceRowStart) {
+    this->sourceRowStart = sourceRowStart;
+}
+
+int SourceExcelData::getSourceRowStart() {
+    return this->sourceRowStart;
+}
+void SourceExcelData::setSourceColStart(int sourceColStart) {
+    this->sourceColStart = sourceColStart;
+}
+int SourceExcelData::setSourceColStart() {
+    return this->sourceColStart;
+}
+void SourceExcelData::setSourceRowCnt(int sourceRowCnt) {
+    this->sourceRowCnt = sourceRowCnt;
+}
+int SourceExcelData::getSourceRowCnt() {
+    return this->sourceRowCnt;
+}
+void SourceExcelData::setSourceColCnt(int sourceColCnt) {
+    this->sourceColCnt = sourceColCnt;
+}
+int SourceExcelData::getSourceColCnt() {
+    return this->sourceColCnt;
+}
+void SourceExcelData::setSourceMinAlphabetCol(QString sourceMinAlphabetCol) {
+    this->sourceMinAlphabetCol = sourceMinAlphabetCol;
+}
+QString SourceExcelData::getSourceMinAlphabetCol() {
+    return this->sourceMinAlphabetCol;
+}
+void SourceExcelData::setSourceMaxAlphabetCol(QString sourceMaxAlphabetCol) {
+    this->sourceMaxAlphabetCol = sourceMaxAlphabetCol;
+}
+
+QString SourceExcelData::getSourceMaxAlphabetCol() {
+    return this->sourceMaxAlphabetCol;
+}
+void SourceExcelData::setTplXlsPath(QString tplXlsPath) {
+    this->tplXlsPath = tplXlsPath;
+}
+
+QString SourceExcelData::getTplXlsPath() {
+    return this->tplXlsPath;
+}

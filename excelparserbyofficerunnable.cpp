@@ -24,6 +24,7 @@ void ExcelParserByOfficeRunnable::setSplitData(SourceExcelData *sourceXmlData,
     this->m_total = m_total;
     this->selectedSheetName = selectedSheetName;
     this->fragmentDataQhash = fragmentDataQhash;
+    this->processSourceFile(); //处理源文件
 }
 
 void ExcelParserByOfficeRunnable::run() {
@@ -34,8 +35,6 @@ void ExcelParserByOfficeRunnable::run() {
     endMsg.append(QString::number(m_total));
     requestMsg(Common::MsgTypeInfo, startMsg.arg(QString::number(runnableID)));
     QHashIterator<QString, QList<int>> it(fragmentDataQhash);
-
-    this->processSourceFile(); //处理源文件
 
     while (it.hasNext()) {
         it.next();
