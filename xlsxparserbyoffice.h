@@ -11,7 +11,7 @@
 #include "common.h"
 #include "xlsxdocument.h"
 #include "config.h"
-#include "xlsxparserrunnable.h"
+#include "xlsxparserbyofficerunnable.h"
 class XlsxParserByOffice : public QObject
 {
 Q_OBJECT

@@ -79,6 +79,7 @@ void XlsxParserRunnable::processByOffice(QString key, QList<int> contentList)
     xlsName.append(savePath).append(QDir::separator()).append(key).append(".xlsx");
     copyFileToPath(tplXlsPath, xlsName, true);
 
+    HRESULT hres = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
     QAxObject *excel = new QAxObject("Excel.Application");//连接Excel控件
     excel->dynamicCall("SetVisible (bool Visible)",false);//不显示窗体
     excel->setProperty("DisplayAlerts",  false);//不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
@@ -129,6 +130,7 @@ void XlsxParserRunnable::processByOffice(QString key, QList<int> contentList)
     excel->dynamicCall("Quit()");//关闭excel
     delete excel;
     excel=nullptr;
+    CoUninitialize();
 }
 
 

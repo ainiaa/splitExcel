@@ -353,9 +353,8 @@ void XlsxParser::writeXls(QString selectedSheetName, QHash<QString, QList<int>> 
             runnable->setID(runnableId++);
             runnable->setSplitData(sourcePath, selectedSheetName, fragmentDataQhash, savePath, totalCnt);
             pool.start(runnable);
-            fragmentDataQhash.clear();
-            pool.waitForDone();
+            fragmentDataQhash.clear();   
         }
     }
-
+    pool.waitForDone();
 }

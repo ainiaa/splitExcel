@@ -16,7 +16,7 @@
 #include "xlsxformat.h"
 #include "xlsxformat_p.h"
 #include "excelbase.h"
-
+#include "qt_windows.h"
 
 class XlsxParserRunnable : public QRunnable
 {
