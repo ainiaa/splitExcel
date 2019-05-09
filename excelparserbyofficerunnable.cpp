@@ -13,18 +13,21 @@ void ExcelParserByOfficeRunnable::setID(const int &id) {
     runnableID = id;
 }
 
-void ExcelParserByOfficeRunnable::setSplitData(SourceExcelData *sourceXmlData,
+void ExcelParserByOfficeRunnable::setSplitData(SourceExcelData *sourceExcelData,
                                                QString selectedSheetName,
                                                QHash<QString, QList<int>> fragmentDataQhash,
                                                int m_total) {
     qDebug("XlsxParserByOfficeRunnable::setSplitData w ith SourceExcelData");
 
-    this->sourcePath = sourceXmlData->getSourcePath();
-    this->savePath = sourceXmlData->getSavePath();
+    this->sourcePath = sourceExcelData->getSourcePath();
+    this->savePath = sourceExcelData->getSavePath();
     this->m_total = m_total;
     this->selectedSheetName = selectedSheetName;
     this->fragmentDataQhash = fragmentDataQhash;
-    this->processSourceFile(); //处理源文件
+    this->tplXlsPath = sourceExcelData->getTplXlsPath();
+    this->sourceRowStart = sourceExcelData->getSourceRowStart();
+    this->sourceMaxAlphabetCol = sourceExcelData->getSourceMaxAlphabetCol();
+    this->sourceRowCnt = sourceExcelData->getSourceRowCnt();
 }
 
 void ExcelParserByOfficeRunnable::run() {
@@ -51,13 +54,18 @@ void ExcelParserByOfficeRunnable::run() {
 void ExcelParserByOfficeRunnable::processByOffice(QString key, QList<int> contentList) {
     QString xlsName;
     xlsName.append(savePath).append(QDir::separator()).append(key).append(".xlsx");
-    copyFileToPath(tplXlsPath, xlsName, true);
+    bool cpret = copyFileToPath(tplXlsPath, xlsName, true);
+    if (!cpret) {
+        qDebug() << " copyFileToPath failure."
+                 << "";
+    }
     HRESULT hres = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
     QAxObject *excel = new QAxObject("Excel.Application");  //连接Excel控件
     excel->dynamicCall("SetVisible (bool Visible)", false); //不显示窗体
     excel->setProperty("DisplayAlerts", false); //不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
     excel->setProperty("EnableEvents", false); //没有这个 很容易报错  QAxBase: Error calling IDispatch member Open: Unknown error
 
+    qDebug() << "ExcelParserByOfficeRunnable::processByOffice xlsName=" << xlsName;
     QAxObject *workbooks = excel->querySubObject("WorkBooks"); //获取工作簿集合
     QAxObject *workbook = workbooks->querySubObject("Open(const QString&, QVariant)", xlsName, 0);
     QAxObject *worksheet = workbook->querySubObject("WorkSheets(int)", 1);
@@ -179,6 +187,96 @@ void ExcelParserByOfficeRunnable::processSourceFile() {
              << " sourceMaxAlphabetCol:" << sourceMaxAlphabetCol;
     // CoUninitialize();
     this->generateTplXls(); //生成模板文件
+}
+
+void ExcelParserByOfficeRunnable::processSourceFile(SourceExcelData *sourceExcelData, QString selectedSheetName) {
+    HRESULT hres = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+    QAxObject *excel = new QAxObject("Excel.Application");  //连接Excel控件
+    excel->dynamicCall("SetVisible (bool Visible)", false); //不显示窗体
+    excel->setProperty("DisplayAlerts", false); //不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
+    excel->setProperty("EnableEvents", false); //没有这个 很容易报错  QAxBase: Error calling IDispatch member Open: Unknown error
+    qDebug() << "ExcelParserByOfficeRunnable::processSourceFile:: with SourceExcelData: " << sourceExcelData->getSourcePath();
+    qDebug() << " new source path"
+             << "";
+    QAxObject *workbooks = excel->querySubObject("WorkBooks"); //获取工作簿集合
+    QAxObject *workbook = workbooks->querySubObject("Open(const QString&, QVariant)", sourceExcelData->getSourcePath(), 0);
+    QAxObject *worksheets = workbook->querySubObject("WorkSheets"); // 获取打开的excel文件中所有的工作sheet
+    sourceExcelData->setSheetCnt(worksheets->property("Count").toInt());
+
+    qDebug() << QString("Excel文件中表的个数: %1").arg(QString::number(sourceExcelData->getSheetCnt()));
+    QAxObject *worksheet = nullptr;
+    int selectedSheetIndex = 0;
+    for (int i = 1; i <= sourceExcelData->getSheetCnt(); i++) {
+        QAxObject *currentWorkSheet = workbook->querySubObject("WorkSheets(int)", i); // Sheets(int)也可换用Worksheets(int)
+        QString currentWorkSheetName = currentWorkSheet->property("Name").toString(); //获取工作表名称
+        QString message = QString("sheet ") + QString::number(i, 10) + QString(" name");
+        qDebug() << message << currentWorkSheetName;
+        qDebug() << "this->selectedSheetName:" << selectedSheetName;
+        if (currentWorkSheetName == selectedSheetName) {
+            worksheet = currentWorkSheet;
+            selectedSheetIndex = i;
+            break;
+        }
+    }
+
+    if (worksheet == nullptr) {
+        qDebug() << "worksheet is null";
+        return;
+    }
+
+    QAxObject *usedRange = worksheet->querySubObject("UsedRange");             // sheet范围
+    sourceExcelData->setSourceRowStart(usedRange->property("Row").toInt());    // 起始行数
+    sourceExcelData->setSourceColStart(usedRange->property("Column").toInt()); // 起始列数
+    QAxObject *rows, *columns;
+    rows = usedRange->querySubObject("Rows");       // 行
+    columns = usedRange->querySubObject("Columns"); // 列
+
+    sourceExcelData->setSourceRowCnt(rows->property("Count").toInt());    // 行数
+    sourceExcelData->setSourceColCnt(columns->property("Count").toInt()); // 列数
+    QString sourceMinAlphabetCol;
+    QString sourceMaxAlphabetCol;
+    ExcelBase::convertToColName(sourceExcelData->getSourceRowStart(), sourceMinAlphabetCol);
+    ExcelBase::convertToColName(sourceExcelData->getSourceColCnt(), sourceMaxAlphabetCol);
+    sourceExcelData->setSourceMinAlphabetCol(sourceMinAlphabetCol);
+    sourceExcelData->setSourceMaxAlphabetCol(sourceMaxAlphabetCol);
+
+    qDebug() << " sourceRowStart:" << sourceExcelData->getSourceRowStart() << " sourceColStart:" << sourceExcelData->getSourceColCnt()
+             << " sourceRowCnt:" << sourceExcelData->getSourceRowCnt() << " sourceColCnt:" << sourceExcelData->getSourceColCnt()
+             << " sourceMinAlphabetCol:" << sourceMinAlphabetCol << " sourceMaxAlphabetCol:" << sourceMaxAlphabetCol;
+    // CoUninitialize();
+    ExcelParserByOfficeRunnable::generateTplXls(sourceExcelData, selectedSheetIndex); //生成模板文件
+}
+void ExcelParserByOfficeRunnable::generateTplXls(SourceExcelData *sourceExcelData, int selectedSheetIndex) {
+    QString xlsName;
+    xlsName.append(sourceExcelData->getSavePath()).append(QDir::separator()).append("sourceTplXlsx.xlsx");
+    copyFileToPath(sourceExcelData->getSourcePath(), xlsName, true);
+
+    HRESULT hres = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+    QAxObject *excel = new QAxObject("Excel.Application");  //连接Excel控件
+    excel->dynamicCall("SetVisible (bool Visible)", false); //不显示窗体
+    excel->setProperty("DisplayAlerts", false); //不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
+    excel->setProperty("EnableEvents", false); //没有这个 很容易报错  QAxBase: Error calling IDispatch member Open: Unknown error
+
+    qDebug() << "ExcelParserByOfficeRunnable::generateTplXls:: with SourceExcelData: xlsName=" << xlsName;
+
+    QAxObject *workbooks = excel->querySubObject("WorkBooks"); //获取工作簿集合
+    QAxObject *workbook = workbooks->querySubObject("Open(const QString&, QVariant)", xlsName, 0);
+    int sourceWorkSheetCnt = sourceExcelData->getSheetCnt();
+    for (int i = 1; i <= sourceWorkSheetCnt; i++) {
+        if (i != selectedSheetIndex) {                                                    //删除sheet
+            QAxObject *currentWorkSheet = workbook->querySubObject("WorkSheets(int)", i); // Sheets(int)也可换用Worksheets(int)
+            currentWorkSheet->dynamicCall("Delete()");
+        }
+    }
+
+    workbook->dynamicCall("Save()");
+    workbook->dynamicCall("Close()");  //关闭工作簿
+    workbooks->dynamicCall("Close()"); //关闭工作簿
+    excel->dynamicCall("Quit()");      //关闭excel
+    delete excel;
+    excel = nullptr;
+    // CoUninitialize();
+    sourceExcelData->setTplXlsPath(xlsName);
 }
 
 void ExcelParserByOfficeRunnable::generateTplXls() {

@@ -1,5 +1,5 @@
-#ifndef XLSXPARSERBYOFFICERUNNABLE_H
-#define XLSXPARSERBYOFFICERUNNABLE_H
+#ifndef PARSERBYOFFICER_H
+#define PARSERBYOFFICER_H
 
 #include <QAxObject>
 #include <QDateTime>
@@ -35,8 +35,11 @@ class ExcelParserByOfficeRunnable : public IExcelParserRunnable {
     void processByOffice(QString key, QList<int> contentList);
     void processSourceFile();
 
-    bool copyFileToPath(QString sourceDir, QString toDir, bool coverFileIfExist);
+    bool static copyFileToPath(QString sourceDir, QString toDir, bool coverFileIfExist);
     void generateTplXls();
+
+    void static processSourceFile(SourceExcelData *sourceExcelData, QString selectedSheetName);
+    void static generateTplXls(SourceExcelData *sourceExcelData, int selectedSheetIndex);
 
     private:
     //父对象
@@ -65,4 +68,4 @@ class ExcelParserByOfficeRunnable : public IExcelParserRunnable {
     SourceExcelData *sourceXmlData;
 };
 
-#endif // XLSXPARSERBYOFFICERUNNABLE_H
+#endif // PARSERBYOFFICER_H

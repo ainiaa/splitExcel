@@ -1,5 +1,5 @@
-#ifndef XLSXPARSERRUNNABLE_H
-#define XLSXPARSERRUNNABLE_H
+#ifndef EXCELPARSERRUNNABLE_H
+#define EXCELPARSERRUNNABLE_H
 #include <QAxObject>
 #include <QDateTime>
 #include <QDir>
@@ -71,4 +71,4 @@ class ExcelParserByLibRunnable : public IExcelParserRunnable {
     SourceExcelData *sourceExcelData;
 };
 
-#endif // XLSXPARSERRUNNABLE_H
+#endif // EXCELPARSERRUNNABLE_H

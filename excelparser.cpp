@@ -294,6 +294,9 @@ void ExcelParser::writeXls(QString selectedSheetName, QHash<QString, QList<int>>
     pool.setMaxThreadCount(maxThreadCnt);
     int totalCnt = qHash.size();
     int runnableId = 1;
+    if (this->isInstalledOffice) {
+        ExcelParserByOfficeRunnable::processSourceFile(this->sourceExcelData, selectedSheetName);
+    }
     while (it.hasNext()) {
         it.next();
         QString key = it.key();

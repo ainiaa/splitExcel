@@ -17,7 +17,7 @@ SplitOnlyWindow::~SplitOnlyWindow() {
 void SplitOnlyWindow::on_selectFilePushButton_clicked() {
     QString path = excelParser->openFile(this);
     if (path.length() > 0) { //选择了excel文件
-        this->sourcePath = path;
+        this->sourcePath = QDir::toNativeSeparators(path);
         ui->xlsObjLineEdit->setText(path);
 
         //获得所有的sheets
