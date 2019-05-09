@@ -12,6 +12,7 @@
 #include "common.h"
 #include "config.h"
 #include "excelbase.h"
+#include "officehelper.h"
 #include "sourcexmldata.h"
 #include "xlsxcelllocation.h"
 #include "xlsxdocument.h"
@@ -34,9 +35,6 @@ class ExcelParserByOfficeRunnable : public QRunnable {
     void requestMsg(const int msgType, const QString &result);
 
     void writeXls(QString selectedSheetName, QHash<QString, QList<int>> qHash, QString savePath);
-
-    void convertToColName(int data, QString &res);
-    QString to26AlphabetString(int data);
 
     void processByOffice(QString key, QList<int> contentList);
     void processSourceFile();
