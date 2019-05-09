@@ -6,31 +6,35 @@
 #include <QFileInfo>
 #include <QMetaObject>
 #include <QObject>
-#include <QRunnable>
 
 #include "common.h"
 #include "config.h"
 #include "excelbase.h"
+#include "excelparser.h"
+#include "iexcelparserrunnable.h"
 #include "officehelper.h"
+#if defined(Q_OS_WIN)
 #include "qt_windows.h"
+#endif
+#include "sourceExceldata.h"
 #include "xlsxcelllocation.h"
 #include "xlsxdocument.h"
 #include "xlsxformat.h"
 #include "xlsxformat_p.h"
 #include "xlsxworkbook.h"
 
-class ExcelParserByLibRunnable : public QRunnable {
+class ExcelParserByLibRunnable : public IExcelParserRunnable {
     public:
     ExcelParserByLibRunnable(QObject *mParent);
-    ~ExcelParserByLibRunnable();
+    ~ExcelParserByLibRunnable() override;
 
-    void run();
+    void run() override;
 
-    void setID(const int &id);
+    void setID(const int &id) override;
 
-    void setSplitData(QString sourcePath, QString selectedSheetName, QHash<QString, QList<int>> fragmentDataQhash, QString savePath, int m_total);
-
-    void requestMsg(const int msgType, const QString &result);
+    void setSplitData(QString sourcePath, QString selectedSheetName, QHash<QString, QList<int>> fragmentDataQhash, QString savePath, int m_total) override;
+    void setSplitData(SourceExcelData *sourceExcelData, QString selectedSheetName, QHash<QString, QList<int>> fragmentDataQhash, int m_total) override;
+    void requestMsg(const int msgType, const QString &result) override;
 
     void writeXls(QString selectedSheetName, QHash<QString, QList<int>> qHash, QString savePath);
     void writeXlsHeader(QXlsx::Document *currXls, QString selectedSheetName);
@@ -64,6 +68,7 @@ class ExcelParserByLibRunnable : public QRunnable {
     int selectedSheetIndex;       //选中索引
     QString tplXlsPath;
     QString deleteRangeFormat;
+    SourceExcelData *sourceExcelData;
 };
 
 #endif // XLSXPARSERRUNNABLE_H

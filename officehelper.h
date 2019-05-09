@@ -4,6 +4,9 @@
 #include "excelbase.h"
 #include "qdebug.h"
 #include "qstringutil.h"
+#if defined(Q_OS_WIN)
+#include "qt_windows.h"
+#endif
 #include "xlsxdocument.h"
 #include <QAxObject>
 #include <QDir>

@@ -5,8 +5,10 @@
 
 class SourceExcelData : public QObject {
     Q_OBJECT
+
     public:
     SourceExcelData(QObject *parent = nullptr);
+    enum OperateType { SplitAndEmailType = 1, SplitOnlyType };
 
     void setDataSheetIndex(int dataSheetIndex);
     int getDataSheetIndex();
@@ -24,6 +26,8 @@ class SourceExcelData : public QObject {
     QString getSavePath();
     void setSourcePath(QString sourcePath);
     QString getSourcePath();
+    void setOpType(int opType);
+    int getOpType();
 
     private:
     int dataSheetIndex = 0;           //数据sheet index
@@ -34,6 +38,8 @@ class SourceExcelData : public QObject {
     QString emailSheetName = nullptr; //数据sheet title
     QString savePath = nullptr;       // excel文件保存路径
     QString sourcePath = nullptr;     //源excel文件路径
+
+    int opType;
 };
 
 #endif // SOURCEXMLDATA_H

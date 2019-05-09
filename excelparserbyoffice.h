@@ -20,7 +20,7 @@ class ExcelParserByOffice : public QObject {
     ~ExcelParserByOffice();
     QString openFile(QWidget *dlgParent);
     void setSplitData(Config *cfg, QString groupByText, QString dataSheetName, QString emailSheetName, QString savePath);
-    void setSplitData(Config *cfg, const SourceExcelData *sourceXmlData);
+    void setSplitData(Config *cfg, SourceExcelData *sourceXmlData);
 
     QHash<QString, QList<QStringList>> readEmailXls(QString groupByText, QString selectedSheetName);
     QHash<QString, QList<int>> readDataXls(QString groupByText, QString selectedSheetName);

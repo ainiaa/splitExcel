@@ -10,6 +10,7 @@
 #include "common.h"
 #include "config.h"
 #include "excelparserbylibrunnable.h"
+#include "excelparserbyofficerunnable.h"
 #include "officehelper.h"
 #include "sourceexceldata.h"
 #include "xlsxdocument.h"

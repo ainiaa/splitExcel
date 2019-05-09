@@ -55,6 +55,7 @@ class SplitOnlyWindow : public QMainWindow {
     EmailSender *mailSender = nullptr;
     ProcessWindow *processWindow = nullptr;
     QString savePath;
+    QString sourcePath;
 };
 
 #endif // SPLITONLYWINDOW_H

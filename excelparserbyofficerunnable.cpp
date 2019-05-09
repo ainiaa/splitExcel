@@ -13,15 +13,17 @@ void ExcelParserByOfficeRunnable::setID(const int &id) {
     runnableID = id;
 }
 
-void ExcelParserByOfficeRunnable::setSplitData(SourceExcelData sourceXmlData) {
-    qDebug("XlsxParserByOfficeRunnable::setSplitData");
+void ExcelParserByOfficeRunnable::setSplitData(SourceExcelData *sourceXmlData,
+                                               QString selectedSheetName,
+                                               QHash<QString, QList<int>> fragmentDataQhash,
+                                               int m_total) {
+    qDebug("XlsxParserByOfficeRunnable::setSplitData w ith SourceExcelData");
 
-    this->xlsx = new QXlsx::Document(sourcePath);
-    this->sourcePath = sourceXmlData.getSourcePath();
-    // this->selectedSheetName = sourceXmlData.gets;
-    // this->fragmentDataQhash = sourceXmlData.g;
-    this->savePath = sourceXmlData.getSavePath();
-    this->m_total = 0;
+    this->sourcePath = sourceXmlData->getSourcePath();
+    this->savePath = sourceXmlData->getSavePath();
+    this->m_total = m_total;
+    this->selectedSheetName = selectedSheetName;
+    this->fragmentDataQhash = fragmentDataQhash;
 }
 
 void ExcelParserByOfficeRunnable::run() {
@@ -51,7 +53,7 @@ void ExcelParserByOfficeRunnable::processByOffice(QString key, QList<int> conten
     QString xlsName;
     xlsName.append(savePath).append(QDir::separator()).append(key).append(".xlsx");
     copyFileToPath(tplXlsPath, xlsName, true);
-
+    HRESULT hres = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
     QAxObject *excel = new QAxObject("Excel.Application");  //连接Excel控件
     excel->dynamicCall("SetVisible (bool Visible)", false); //不显示窗体
     excel->setProperty("DisplayAlerts", false); //不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
@@ -96,10 +98,11 @@ void ExcelParserByOfficeRunnable::processByOffice(QString key, QList<int> conten
     excel->dynamicCall("Quit()");      //关闭excel
     delete excel;
     excel = nullptr;
+    // CoUninitialize();
 }
 
 void ExcelParserByOfficeRunnable::requestMsg(const int msgType, const QString &msg) {
-    qobject_cast<ExcelParserByOffice *>(mParent)->receiveMessage(msgType, msg.arg(msgType));
+    qobject_cast<ExcelParser *>(mParent)->receiveMessage(msgType, msg.arg(msgType));
     // QMetaObject::invokeMethod(mParent, "receiveMessage", Qt::QueuedConnection, Q_ARG(int,msgType),Q_ARG(QString, msg));//不能及时返回信息
 }
 
@@ -128,11 +131,12 @@ bool ExcelParserByOfficeRunnable::copyFileToPath(QString sourceDir, QString toDi
 }
 
 void ExcelParserByOfficeRunnable::processSourceFile() {
+    HRESULT hres = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
     QAxObject *excel = new QAxObject("Excel.Application");  //连接Excel控件
     excel->dynamicCall("SetVisible (bool Visible)", false); //不显示窗体
     excel->setProperty("DisplayAlerts", false); //不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
     excel->setProperty("EnableEvents", false); //没有这个 很容易报错  QAxBase: Error calling IDispatch member Open: Unknown error
-
+    qDebug() << "this->sourcePath" << this->sourcePath;
     QAxObject *workbooks = excel->querySubObject("WorkBooks"); //获取工作簿集合
     QAxObject *workbook = workbooks->querySubObject("Open(const QString&, QVariant)", this->sourcePath, 0);
     QAxObject *worksheets = workbook->querySubObject("WorkSheets"); // 获取打开的excel文件中所有的工作sheet
@@ -174,7 +178,7 @@ void ExcelParserByOfficeRunnable::processSourceFile() {
     qDebug() << " sourceRowStart:" << sourceRowStart << " sourceColStart:" << sourceColStart << " sourceRowCnt:" << sourceRowCnt
              << " sourceColCnt:" << sourceColCnt << " sourceMinAlphabetCol:" << sourceMinAlphabetCol
              << " sourceMaxAlphabetCol:" << sourceMaxAlphabetCol;
-
+    // CoUninitialize();
     this->generateTplXls(); //生成模板文件
 }
 
@@ -183,6 +187,7 @@ void ExcelParserByOfficeRunnable::generateTplXls() {
     xlsName.append(savePath).append(QDir::separator()).append("sourceTplXlsx.xlsx");
     copyFileToPath(sourcePath, xlsName, true);
 
+    HRESULT hres = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
     QAxObject *excel = new QAxObject("Excel.Application");  //连接Excel控件
     excel->dynamicCall("SetVisible (bool Visible)", false); //不显示窗体
     excel->setProperty("DisplayAlerts", false); //不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
@@ -203,7 +208,7 @@ void ExcelParserByOfficeRunnable::generateTplXls() {
     excel->dynamicCall("Quit()");      //关闭excel
     delete excel;
     excel = nullptr;
-
+    // CoUninitialize();
     this->tplXlsPath = xlsName;
 }
 
@@ -212,4 +217,9 @@ void ExcelParserByOfficeRunnable::setSplitData(QString sourcePath,
                                                QHash<QString, QList<int>> fragmentDataQhash,
                                                QString savePath,
                                                int m_total) {
+    this->sourcePath = sourcePath;
+    this->selectedSheetName = selectedSheetName;
+    this->fragmentDataQhash = fragmentDataQhash;
+    this->savePath = savePath;
+    this->m_total = m_total;
 }

@@ -27,6 +27,21 @@ void ExcelParserByLibRunnable::setSplitData(QString sourcePath,
     this->m_total = total;
 }
 
+void ExcelParserByLibRunnable::setSplitData(SourceExcelData *sourceExcelData,
+                                            QString selectedSheetName,
+                                            QHash<QString, QList<int>> fragmentDataQhash,
+                                            int m_total) {
+    qDebug("XlsxParserByOfficeRunnable::setSplitData w ith SourceExcelData");
+
+    this->xlsx = new QXlsx::Document(sourcePath);
+    this->sourcePath = sourceExcelData->getSourcePath();
+    this->savePath = sourceExcelData->getSavePath();
+    this->m_total = m_total;
+    this->selectedSheetName = selectedSheetName;
+    this->fragmentDataQhash = fragmentDataQhash;
+    this->sourceExcelData = sourceExcelData;
+}
+
 void ExcelParserByLibRunnable::run() {
     qDebug("XlsxParserRunnable::run start");
     QString startMsg("开始拆分excel并生成新的excel文件: %1/");

@@ -21,9 +21,13 @@ void ExcelParserByOffice::setSplitData(Config *cfg, QString groupByText, QString
     this->savePath = savePath;
 }
 
-void ExcelParserByOffice::setSplitData(Config *cfg, const SourceExcelData *sourceXmlData) {
+void ExcelParserByOffice::setSplitData(Config *cfg, SourceExcelData *sourceXmlData) {
     this->cfg = cfg;
     this->sourceXmlData = sourceXmlData;
+    this->groupByText = sourceXmlData->getGroupByText();
+    this->dataSheetName = sourceXmlData->getDataSheetName();
+    this->emailSheetName = sourceXmlData->getEmailSheetName();
+    this->savePath = sourceXmlData->getSavePath();
 }
 
 QStringList ExcelParserByOffice::getSheetNames() {

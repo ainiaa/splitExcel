@@ -17,6 +17,7 @@ SplitOnlyWindow::~SplitOnlyWindow() {
 void SplitOnlyWindow::on_selectFilePushButton_clicked() {
     QString path = excelParser->openFile(this);
     if (path.length() > 0) { //选择了excel文件
+        this->sourcePath = path;
         ui->xlsObjLineEdit->setText(path);
 
         //获得所有的sheets
@@ -84,7 +85,9 @@ void SplitOnlyWindow::doSplitXls(QString dataSheetName, QString savePath) {
     sourceExcelData->setDataSheetName(dataSheetName);
     sourceExcelData->setSheetCnt(sheetCnt);
     sourceExcelData->setDataSheetIndex(dataSheetIndex);
-
+    sourceExcelData->setOpType(SourceExcelData::OperateType::SplitOnlyType);
+    sourceExcelData->setGroupByText(groupByText);
+    sourceExcelData->setSourcePath(this->sourcePath);
     excelParserThread = new QThread();
     excelParser->setSplitData(cfg, sourceExcelData);
     excelParser->moveToThread(excelParserThread);

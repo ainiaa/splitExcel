@@ -101,7 +101,7 @@ void ExcelParser::receiveMessage(const int msgType, const QString &result) {
 //拆分excel文件
 void ExcelParser::doSplit() {
     qDebug() << "doSplit";
-    if (nullptr != emailSheetName) {
+    if (this->sourceExcelData->getOpType() == SourceExcelData::OperateType::SplitAndEmailType) {
         qDebug() << "doSplit readEmailXls";
         //读取email
         emailQhash = readEmailXls(groupByText, emailSheetName);
@@ -301,9 +301,14 @@ void ExcelParser::writeXls(QString selectedSheetName, QHash<QString, QList<int>>
         fragmentDataQhash.insert(key, content);
         int mod = m_process_cnt % maxProcessCntPreThread;
         if (mod == 0 || !it.hasNext()) {
-            ExcelParserByLibRunnable *runnable = new ExcelParserByLibRunnable(this);
+            IExcelParserRunnable *runnable;
+            if (this->isInstalledOffice) {
+                runnable = new ExcelParserByOfficeRunnable(this);
+            } else {
+                runnable = new ExcelParserByLibRunnable(this);
+            }
             runnable->setID(runnableId++);
-            runnable->setSplitData(sourcePath, selectedSheetName, fragmentDataQhash, savePath, totalCnt);
+            runnable->setSplitData(this->sourceExcelData, selectedSheetName, fragmentDataQhash, totalCnt);
             pool.start(runnable);
             fragmentDataQhash.clear();
         }

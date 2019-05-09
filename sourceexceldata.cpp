@@ -52,3 +52,10 @@ void SourceExcelData::setSourcePath(QString sourcePath) {
 QString SourceExcelData::getSourcePath() {
     return this->sourcePath;
 }
+
+void SourceExcelData::setOpType(int opType) {
+    this->opType = opType;
+}
+int SourceExcelData::getOpType() {
+    return this->opType;
+}

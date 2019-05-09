@@ -66,7 +66,8 @@ HEADERS += \
     excelparserbyoffice.h \
     excelparserbyofficerunnable.h \
     excelparserbylibrunnable.h \
-    sourceexceldata.h
+    sourceexceldata.h \
+    iexcelparserrunnable.h
 
 FORMS += \
         mainwindow.ui \
