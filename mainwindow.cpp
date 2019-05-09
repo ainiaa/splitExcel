@@ -225,5 +225,4 @@ void MainWindow::showSplitOnly() {
 
 void MainWindow::on_cancelPushButton_2_clicked() {
     OfficeHelper *office = new OfficeHelper();
-    office->process();
 }

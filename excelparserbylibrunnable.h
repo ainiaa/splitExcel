@@ -11,6 +11,7 @@
 #include "common.h"
 #include "config.h"
 #include "excelbase.h"
+#include "officehelper.h"
 #include "qt_windows.h"
 #include "xlsxcelllocation.h"
 #include "xlsxdocument.h"
@@ -33,14 +34,9 @@ class ExcelParserByLibRunnable : public QRunnable {
 
     void writeXls(QString selectedSheetName, QHash<QString, QList<int>> qHash, QString savePath);
     void writeXlsHeader(QXlsx::Document *currXls, QString selectedSheetName);
-
     QXlsx::Format copyFormat(QXlsx::Format sourceCellFormat);
-    void convertToColName(int data, QString &res);
-    QString to26AlphabetString(int data);
 
-    void processByOffice(QString key, QList<int> contentList);
     void processByQxls(QString key, QList<int> contentList);
-    bool isInstalledExcelApp();
     void processSourceFile();
 
     bool copyFileToPath(QString sourceDir, QString toDir, bool coverFileIfExist);
@@ -57,7 +53,6 @@ class ExcelParserByLibRunnable : public QRunnable {
     QString selectedSheetName;
     QHash<QString, QList<int>> fragmentDataQhash;
     QXlsx::Document *xlsx;
-    bool installedExcelApp;
 
     int sourceRowStart;           // 起始行数
     int sourceColStart;           // 起始列数

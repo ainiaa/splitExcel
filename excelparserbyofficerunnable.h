@@ -29,6 +29,7 @@ class ExcelParserByOfficeRunnable : public QRunnable {
     void setID(const int &id);
 
     void setSplitData(SourceXmlData sourceXmlData);
+    void setSplitData(QString sourcePath, QString selectedSheetName, QHash<QString, QList<int>> fragmentDataQhash, QString savePath, int m_total);
 
     void requestMsg(const int msgType, const QString &result);
 

@@ -11,8 +11,9 @@
 class OfficeHelper {
     public:
     OfficeHelper();
-    void process();
     bool static isInstalledExcelApp();
+    void static convertToColName(int data, QString &res);
+    QString static to26AlphabetString(int data);
 };
 
 #endif // OFFICEHELPER_H

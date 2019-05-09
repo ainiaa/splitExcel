@@ -18,10 +18,10 @@ void ExcelParserByOfficeRunnable::setSplitData(SourceXmlData sourceXmlData) {
 
     this->xlsx = new QXlsx::Document(sourcePath);
     this->sourcePath = sourceXmlData.getSourcePath();
-    this->selectedSheetName = sourceXmlData.gets;
-    this->fragmentDataQhash = sourceXmlData.g;
+    // this->selectedSheetName = sourceXmlData.gets;
+    // this->fragmentDataQhash = sourceXmlData.g;
     this->savePath = sourceXmlData.getSavePath();
-    this->m_total = total;
+    this->m_total = 0;
 }
 
 void ExcelParserByOfficeRunnable::run() {
@@ -232,4 +232,11 @@ void ExcelParserByOfficeRunnable::generateTplXls() {
     excel = nullptr;
 
     this->tplXlsPath = xlsName;
+}
+
+void ExcelParserByOfficeRunnable::setSplitData(QString sourcePath,
+                                               QString selectedSheetName,
+                                               QHash<QString, QList<int>> fragmentDataQhash,
+                                               QString savePath,
+                                               int m_total) {
 }

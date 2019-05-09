@@ -3,7 +3,6 @@
 
 ExcelParserByLibRunnable::ExcelParserByLibRunnable(QObject *parent) {
     this->mParent = parent;
-    this->installedExcelApp = isInstalledExcelApp();
 }
 
 ExcelParserByLibRunnable::~ExcelParserByLibRunnable() {
@@ -37,32 +36,16 @@ void ExcelParserByLibRunnable::run() {
     requestMsg(Common::MsgTypeInfo, startMsg.arg(QString::number(runnableID)));
     QHashIterator<QString, QList<int>> it(fragmentDataQhash);
 
-    if (this->installedExcelApp) { //安装了 offcie
-        this->processSourceFile(); //处理源文件
-    }
-
     while (it.hasNext()) {
         it.next();
         QString key = it.key();
         QList<int> contentList = it.value();
         contentList.insert(0, 1);
 
-        if (this->installedExcelApp) { //安装了 offcie
-            this->processByOffice(key, contentList);
-        } else {
-            this->processByQxls(key, contentList);
-        }
+        this->processByQxls(key, contentList);
     }
     requestMsg(Common::MsgTypeSucc, endMsg.arg(QString::number(runnableID)));
     qDebug("XlsxParserRunnable::run end");
-}
-
-bool ExcelParserByLibRunnable::isInstalledExcelApp() {
-    QAxObject excel("Excel.Application");
-    if (excel.isNull()) {
-        return false;
-    }
-    return true;
 }
 
 void ExcelParserByLibRunnable::processByQxls(QString key, QList<int> contentList) {
@@ -96,102 +79,6 @@ void ExcelParserByLibRunnable::processByQxls(QString key, QList<int> contentList
 
     currXls->save();
     delete currXls;
-}
-
-// old  start
-
-/*
-void XlsxParserRunnable::run()
-{
-    qDebug("XlsxParserRunnable::run start") ;
-    requestMsg(Common::MsgTypeInfo, "XlsxParserRunnable::run");
-
-    QXlsx::CellRange range;
-    xlsx->selectSheet(selectedSheetName);
-    range = xlsx->dimension();
-    int colCount = range.columnCount();
-
-    QString startMsg("开始拆分excel并生成新的excel文件: %1/");
-    QString endMsg("完成拆分excel并生成新的excel文件: %1/");
-    startMsg.append(QString::number(m_total));
-    endMsg.append(QString::number(m_total));
-    requestMsg(Common::MsgTypeInfo, startMsg.arg(QString::number(runnableID)));
-
-    QHashIterator<QString,QList<int>> it(fragmentDataQhash);
-    while (it.hasNext()) {
-        it.next();
-        QString key = it.key();
-        QList<int> contentList = it.value();
-        QXlsx::Document currXls;
-
-        //写表头
-        writeXlsHeader(&currXls, selectedSheetName);
-        QString xlsName;
-        int rows =  contentList.size();
-        xlsName.append(savePath).append("\\").append(key).append(".xlsx");
-        qDebug() << "xlsName:" << xlsName;
-
-        for(int row = 0; row < rows;row++)
-        {
-            int dataRow = contentList.at(row);
-            int newRow = row + 2;
-            QXlsx::CellReference cellReference = "";
-            QVariant value = xlsx->read(cellReference);
-
-            for (int column=1; column<=colCount; ++column)
-            {
-                QXlsx::Cell *sourceCell =xlsx->cellAt(dataRow, column);
-                if (sourceCell)
-                {
-                    QString columnName;
-                    convertToColName(column,columnName) ;
-                    QString cell;
-                    QXlsx::Format newFormat = copyFormat(sourceCell->format());
-                    cell.append(columnName).append(QString::number(newRow));
-                    if (sourceCell->isDateTime() && !sourceCell->value().isNull())
-                    {
-                        currXls.write(cell,sourceCell->dateTime(), newFormat);
-                    }
-                    else
-                    {
-                        currXls.write(cell,sourceCell->value(), newFormat);
-                    }
-                    currXls.setColumnFormat(column, xlsx->columnFormat(column));
-                    currXls.setColumnWidth(column, xlsx->columnWidth(column));
-                }
-            }
-            currXls.setRowFormat(newRow, xlsx->rowFormat(newRow));
-            currXls.setRowHeight(newRow, xlsx->rowHeight(newRow));
-        }
-        currXls.saveAs(xlsName);
-        requestMsg(Common::MsgTypeSucc, endMsg.arg(QString::number(runnableID)));
-    }
-
-    qDebug("EmailSenderRunnable::run end") ;
-}
-*/
-
-void ExcelParserByLibRunnable::writeXlsHeader(QXlsx::Document *xls, QString selectedSheetName) {
-    QXlsx::CellRange range;
-    xlsx->selectSheet(selectedSheetName);
-    range = xlsx->dimension();
-    int colCount = range.columnCount();
-
-    for (int column = 1; column <= colCount; ++column) {
-        QXlsx::Cell *sourceCell = xlsx->cellAt(1, column);
-        if (sourceCell) {
-            QString columnName;
-            convertToColName(column, columnName);
-            QString cell;
-            QXlsx::Format newFormat = copyFormat(sourceCell->format());
-            cell.append(columnName).append(QString::number(1));
-            xls->write(cell, sourceCell->value(), newFormat);
-            xls->setColumnFormat(column, xlsx->columnFormat(column));
-            xls->setColumnWidth(column, xlsx->columnWidth(column));
-        }
-    }
-    xls->setRowFormat(1, xlsx->rowFormat(1));
-    xls->setRowHeight(1, xlsx->rowHeight(1));
 }
 
 QXlsx::Format ExcelParserByLibRunnable::copyFormat(QXlsx::Format format) {
@@ -242,38 +129,34 @@ QXlsx::Format ExcelParserByLibRunnable::copyFormat(QXlsx::Format format) {
     return newFomat;
 }
 
+void ExcelParserByLibRunnable::writeXlsHeader(QXlsx::Document *xls, QString selectedSheetName) {
+    QXlsx::CellRange range;
+    xlsx->selectSheet(selectedSheetName);
+    range = xlsx->dimension();
+    int colCount = range.columnCount();
+
+    for (int column = 1; column <= colCount; ++column) {
+        QXlsx::Cell *sourceCell = xlsx->cellAt(1, column);
+        if (sourceCell) {
+            QString columnName;
+            OfficeHelper::convertToColName(column, columnName);
+            QString cell;
+            QXlsx::Format newFormat = copyFormat(sourceCell->format());
+            cell.append(columnName).append(QString::number(1));
+            xls->write(cell, sourceCell->value(), newFormat);
+            xls->setColumnFormat(column, xlsx->columnFormat(column));
+            xls->setColumnWidth(column, xlsx->columnWidth(column));
+        }
+    }
+    xls->setRowFormat(1, xlsx->rowFormat(1));
+    xls->setRowHeight(1, xlsx->rowHeight(1));
+}
+
 // old end
 
 void ExcelParserByLibRunnable::requestMsg(const int msgType, const QString &msg) {
     qobject_cast<ExcelParser *>(mParent)->receiveMessage(msgType, msg.arg(msgType));
     // QMetaObject::invokeMethod(mParent, "receiveMessage", Qt::QueuedConnection, Q_ARG(int,msgType),Q_ARG(QString, msg));//不能及时返回信息
-}
-
-///
-/// \brief 把列数转换为excel的字母列号
-/// \param data 大于0的数
-/// \return 字母列号，如1->A 26->Z 27 AA
-///
-void ExcelParserByLibRunnable::convertToColName(int data, QString &res) {
-    int tempData = data / 26;
-    int mode = data % 26;
-    if (tempData > 0 && mode > 0) {
-        convertToColName(mode, res);
-        convertToColName(tempData, res);
-    } else {
-        res = (to26AlphabetString(data) + res);
-    }
-}
-///
-/// \brief 数字转换为26字母
-///
-/// 1->A 26->Z
-/// \param data
-/// \return
-///
-QString ExcelParserByLibRunnable::to26AlphabetString(int data) {
-    QChar ch = data + 0x40; // A对应0x41
-    return QString(ch);
 }
 
 bool ExcelParserByLibRunnable::copyFileToPath(QString sourceDir, QString toDir, bool coverFileIfExist) {
@@ -301,81 +184,6 @@ bool ExcelParserByLibRunnable::copyFileToPath(QString sourceDir, QString toDir, 
 }
 
 void ExcelParserByLibRunnable::processSourceFile() {
-    QAxObject *excel = new QAxObject("Excel.Application");  //连接Excel控件
-    excel->dynamicCall("SetVisible (bool Visible)", false); //不显示窗体
-    excel->setProperty("DisplayAlerts", false); //不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
-    excel->setProperty("EnableEvents", false); //没有这个 很容易报错  QAxBase: Error calling IDispatch member Open: Unknown error
-
-    QAxObject *workbooks = excel->querySubObject("WorkBooks"); //获取工作簿集合
-    QAxObject *workbook = workbooks->querySubObject("Open(const QString&, QVariant)", this->sourcePath, 0);
-    QAxObject *worksheets = workbook->querySubObject("WorkSheets"); // 获取打开的excel文件中所有的工作sheet
-    this->sourceWorkSheetCnt = worksheets->property("Count").toInt();
-
-    qDebug() << QString("Excel文件中表的个数: %1").arg(QString::number(sourceWorkSheetCnt));
-    QAxObject *worksheet = nullptr;
-    for (int i = 1; i <= sourceWorkSheetCnt; i++) {
-        QAxObject *currentWorkSheet = workbook->querySubObject("WorkSheets(int)", i); // Sheets(int)也可换用Worksheets(int)
-        QString currentWorkSheetName = currentWorkSheet->property("Name").toString(); //获取工作表名称
-        QString message = QString("sheet ") + QString::number(i, 10) + QString(" name");
-        qDebug() << message << currentWorkSheetName;
-        qDebug() << "this->selectedSheetName:" << this->selectedSheetName;
-        if (currentWorkSheetName == this->selectedSheetName) {
-            worksheet = currentWorkSheet;
-            this->selectedSheetIndex = i;
-            break;
-        }
-    }
-
-    if (worksheet == nullptr) {
-        qDebug() << "worksheet is null";
-        return;
-    }
-
-    QAxObject *usedRange = worksheet->querySubObject("UsedRange"); // sheet范围
-    this->sourceRowStart = usedRange->property("Row").toInt();     // 起始行数
-    this->sourceColStart = usedRange->property("Column").toInt();  // 起始列数
-    QAxObject *rows, *columns;
-    rows = usedRange->querySubObject("Rows");       // 行
-    columns = usedRange->querySubObject("Columns"); // 列
-
-    this->sourceRowCnt = rows->property("Count").toInt();    // 行数
-    this->sourceColCnt = columns->property("Count").toInt(); // 列数
-
-    ExcelBase::convertToColName(sourceRowStart, sourceMinAlphabetCol);
-    ExcelBase::convertToColName(sourceColCnt, sourceMaxAlphabetCol);
-
-    qDebug() << " sourceRowStart:" << sourceRowStart << " sourceColStart:" << sourceColStart << " sourceRowCnt:" << sourceRowCnt
-             << " sourceColCnt:" << sourceColCnt << " sourceMinAlphabetCol:" << sourceMinAlphabetCol
-             << " sourceMaxAlphabetCol:" << sourceMaxAlphabetCol;
-
-    this->generateTplXls(); //生成模板文件
 }
-
 void ExcelParserByLibRunnable::generateTplXls() {
-    QString xlsName;
-    xlsName.append(savePath).append(QDir::separator()).append("sourceTplXlsx.xlsx");
-    copyFileToPath(sourcePath, xlsName, true);
-
-    QAxObject *excel = new QAxObject("Excel.Application");  //连接Excel控件
-    excel->dynamicCall("SetVisible (bool Visible)", false); //不显示窗体
-    excel->setProperty("DisplayAlerts", false); //不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
-    excel->setProperty("EnableEvents", false); //没有这个 很容易报错  QAxBase: Error calling IDispatch member Open: Unknown error
-
-    QAxObject *workbooks = excel->querySubObject("WorkBooks"); //获取工作簿集合
-    QAxObject *workbook = workbooks->querySubObject("Open(const QString&, QVariant)", xlsName, 0);
-    for (int i = 1; i <= sourceWorkSheetCnt; i++) {
-        if (i != selectedSheetIndex) {                                                    //删除sheet
-            QAxObject *currentWorkSheet = workbook->querySubObject("WorkSheets(int)", i); // Sheets(int)也可换用Worksheets(int)
-            currentWorkSheet->dynamicCall("Delete()");
-        }
-    }
-
-    workbook->dynamicCall("Save()");
-    workbook->dynamicCall("Close()");  //关闭工作簿
-    workbooks->dynamicCall("Close()"); //关闭工作簿
-    excel->dynamicCall("Quit()");      //关闭excel
-    delete excel;
-    excel = nullptr;
-
-    this->tplXlsPath = xlsName;
 }
