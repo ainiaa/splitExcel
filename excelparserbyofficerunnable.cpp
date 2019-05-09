@@ -13,7 +13,7 @@ void ExcelParserByOfficeRunnable::setID(const int &id) {
     runnableID = id;
 }
 
-void ExcelParserByOfficeRunnable::setSplitData(SourceXmlData sourceXmlData) {
+void ExcelParserByOfficeRunnable::setSplitData(SourceExcelData sourceXmlData) {
     qDebug("XlsxParserByOfficeRunnable::setSplitData");
 
     this->xlsx = new QXlsx::Document(sourcePath);

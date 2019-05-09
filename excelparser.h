@@ -11,6 +11,7 @@
 #include "config.h"
 #include "excelparserbylibrunnable.h"
 #include "officehelper.h"
+#include "sourceexceldata.h"
 #include "xlsxdocument.h"
 
 class ExcelParser : public QObject {
@@ -20,6 +21,7 @@ class ExcelParser : public QObject {
     ~ExcelParser();
     QString openFile(QWidget *dlgParent);
     void setSplitData(Config *cfg, QString groupByText, QString dataSheetName, QString emailSheetName, QString savePath);
+    void setSplitData(Config *cfg, SourceExcelData *sourceExcelData);
 
     QHash<QString, QList<QStringList>> readEmailXls(QString groupByText, QString selectedSheetName);
     QHash<QString, QList<int>> readDataXls(QString groupByText, QString selectedSheetName);
@@ -44,10 +46,10 @@ class ExcelParser : public QObject {
     QString sourcePath;
     QXlsx::Document *xlsx;
     QStringList *header = new QStringList();
-    QString groupByText;
-    QString dataSheetName;
-    QString emailSheetName;
-    QString savePath;
+    QString groupByText = nullptr;
+    QString dataSheetName = nullptr;
+    QString emailSheetName = nullptr;
+    QString savePath = nullptr;
     QHash<QString, QList<QStringList>> emailQhash;
 
     QString msg;
@@ -58,5 +60,6 @@ class ExcelParser : public QObject {
     int m_receive_msg_cnt;
 
     bool isInstalledOffice;
+    SourceExcelData *sourceExcelData = nullptr;
 };
 #endif // XLSPARSER_H

@@ -6,9 +6,9 @@
 #include "configsetting.h"
 #include "emailsender.h"
 #include "excelparser.h"
+#include "officehelper.h"
 #include "processwindow.h"
 #include "xlsxdocument.h"
-
 #include <QMainWindow>
 
 namespace Ui {

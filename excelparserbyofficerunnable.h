@@ -13,7 +13,7 @@
 #include "config.h"
 #include "excelbase.h"
 #include "officehelper.h"
-#include "sourcexmldata.h"
+#include "sourceexceldata.h"
 #include "xlsxcelllocation.h"
 #include "xlsxdocument.h"
 #include "xlsxformat.h"
@@ -29,7 +29,7 @@ class ExcelParserByOfficeRunnable : public QRunnable {
 
     void setID(const int &id);
 
-    void setSplitData(SourceXmlData sourceXmlData);
+    void setSplitData(SourceExcelData sourceXmlData);
     void setSplitData(QString sourcePath, QString selectedSheetName, QHash<QString, QList<int>> fragmentDataQhash, QString savePath, int m_total);
 
     void requestMsg(const int msgType, const QString &result);
@@ -66,7 +66,7 @@ class ExcelParserByOfficeRunnable : public QRunnable {
     QString tplXlsPath;
     QString deleteRangeFormat;
 
-    SourceXmlData sourceXmlData;
+    SourceExcelData sourceXmlData;
 };
 
 #endif // XLSXPARSERBYOFFICERUNNABLE_H

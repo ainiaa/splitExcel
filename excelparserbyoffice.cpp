@@ -21,7 +21,7 @@ void ExcelParserByOffice::setSplitData(Config *cfg, QString groupByText, QString
     this->savePath = savePath;
 }
 
-void ExcelParserByOffice::setSplitData(Config *cfg, const SourceXmlData *sourceXmlData) {
+void ExcelParserByOffice::setSplitData(Config *cfg, const SourceExcelData *sourceXmlData) {
     this->cfg = cfg;
     this->sourceXmlData = sourceXmlData;
 }

@@ -79,8 +79,14 @@ void SplitOnlyWindow::doSplitXls(QString dataSheetName, QString savePath) {
     QString groupByText = ui->groupByComboBox->currentText();
     int dataSheetIndex = ui->dataComboBox->currentIndex();
     int sheetCnt = ui->dataComboBox->count();
+    SourceExcelData *sourceExcelData = new SourceExcelData();
+    sourceExcelData->setSavePath(savePath);
+    sourceExcelData->setDataSheetName(dataSheetName);
+    sourceExcelData->setSheetCnt(sheetCnt);
+    sourceExcelData->setDataSheetIndex(dataSheetIndex);
+
     excelParserThread = new QThread();
-    excelParser->setSplitData(cfg, groupByText, dataSheetName, nullptr, savePath);
+    excelParser->setSplitData(cfg, sourceExcelData);
     excelParser->moveToThread(excelParserThread);
     connect(excelParserThread, &QThread::finished, excelParserThread, &QObject::deleteLater);
     connect(excelParserThread, &QThread::finished, excelParser, &QObject::deleteLater);

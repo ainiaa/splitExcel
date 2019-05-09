@@ -3,10 +3,10 @@
 
 #include <QObject>
 
-class SourceXmlData : public QObject {
+class SourceExcelData : public QObject {
     Q_OBJECT
     public:
-    SourceXmlData(QObject *parent = nullptr);
+    SourceExcelData(QObject *parent = nullptr);
 
     void setDataSheetIndex(int dataSheetIndex);
     int getDataSheetIndex();
@@ -26,14 +26,14 @@ class SourceXmlData : public QObject {
     QString getSourcePath();
 
     private:
-    int dataSheetIndex;
-    int emailSheetIndex;
-    int sheetCnt;
-    QString groupByText;
-    QString dataSheetName;
-    QString emailSheetName;
-    QString savePath;
-    QString sourcePath;
+    int dataSheetIndex = 0;           //数据sheet index
+    int emailSheetIndex = 0;          // email sheet index
+    int sheetCnt = 0;                 // sheet 总数
+    QString groupByText = nullptr;    //分组名
+    QString dataSheetName = nullptr;  //数据sheet title
+    QString emailSheetName = nullptr; //数据sheet title
+    QString savePath = nullptr;       // excel文件保存路径
+    QString sourcePath = nullptr;     //源excel文件路径
 };
 
 #endif // SOURCEXMLDATA_H

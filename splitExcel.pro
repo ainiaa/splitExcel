@@ -39,12 +39,12 @@ SOURCES += \
     officehelper.cpp \
     qstringutil.cpp \
     excelbase.cpp \
-    sourcexmldata.cpp \
     excelparser.cpp \
     excelparserbylib.cpp \
     excelparserbyoffice.cpp \
     excelparserbyofficerunnable.cpp \
-    excelparserbylibrunnable.cpp
+    excelparserbylibrunnable.cpp \
+    sourceexceldata.cpp
 
 
 HEADERS += \
@@ -61,12 +61,12 @@ HEADERS += \
         officehelper.h \
         qstringutil.h \
         excelbase.h \
-        sourcexmldata.h \
         excelparser.h \
     excelparserbylib.h \
     excelparserbyoffice.h \
     excelparserbyofficerunnable.h \
-    excelparserbylibrunnable.h
+    excelparserbylibrunnable.h \
+    sourceexceldata.h
 
 FORMS += \
         mainwindow.ui \
