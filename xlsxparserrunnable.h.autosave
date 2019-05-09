@@ -18,11 +18,11 @@
 #include "excelbase.h"
 #include "qt_windows.h"
 
-class XlsxParserRunnable : public QRunnable
+class XlsxParserByLibRunnable : public QRunnable
 {
 public:
-    XlsxParserRunnable(QObject *mParent);
-    ~XlsxParserRunnable();
+    XlsxParserByLibRunnable(QObject *mParent);
+    ~XlsxParserByLibRunnable();
 
     void run();
 

@@ -1,19 +1,19 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include <QVariant>
 #include <QSettings>
+#include <QVariant>
 
-class Config
-{
-public:
+class Config {
+    public:
     Config(QString qstrfilename = "");
     virtual ~Config(void);
-    void set(QString,QString,QVariant);
+    void set(QString, QString, QVariant);
     QString getConfigPath();
-    QVariant get(QString,QString);
+    QVariant get(QString, QString);
     void clear();
-private:
+
+    private:
     QString fileName;
     QSettings *cfg;
 };

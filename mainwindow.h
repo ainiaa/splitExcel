@@ -1,38 +1,37 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QMainWindow>
-#include <QFileDialog>
-#include <QMessageBox>
-#include<QHashIterator>
 #include <QDateTime>
-#include<QErrorMessage>
-#include<QThread>
 #include <QDir>
+#include <QErrorMessage>
+#include <QFileDialog>
 #include <QHash>
+#include <QHashIterator>
+#include <QMainWindow>
+#include <QMessageBox>
+#include <QThread>
 
 #include <QException>
 
-#include "xlsxdocument.h"
-#include "configsetting.h"
-#include "splitonlywindow.h"
-#include "config.h"
-#include "emailsender.h"
 #include "common.h"
-#include "processwindow.h"
-#include "xlsxparser.h"
-#include "testtimeer.h"
+#include "config.h"
+#include "configsetting.h"
+#include "emailsender.h"
+#include "excelparser.h"
 #include "officehelper.h"
+#include "processwindow.h"
+#include "splitonlywindow.h"
+#include "testtimeer.h"
+#include "xlsxdocument.h"
 
 namespace Ui {
 class MainWindow;
 }
 
-class MainWindow : public QMainWindow
-{
+class MainWindow : public QMainWindow {
     Q_OBJECT
 
-public:
+    public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
@@ -40,11 +39,11 @@ public:
     void sendemail();
     void loadConfig();
 
-signals:
+    signals:
     void doSend();
     void doSplit();
 
-private slots:
+    private slots:
     void on_selectFilePushButton_clicked();
 
     void on_savePathPushButton_clicked();
@@ -63,17 +62,17 @@ private slots:
 
     void on_cancelPushButton_2_clicked();
 
-private:
+    private:
     Ui::MainWindow *ui;
     QXlsx::Document *xlsx = nullptr;
     QStringList *header = new QStringList();
-    ConfigSetting *configSetting = new ConfigSetting(nullptr,this);
-    SplitOnlyWindow *splitOnlyWindow = new SplitOnlyWindow(nullptr,this);
-    TestTimeer * testTimeer = new TestTimeer(nullptr, this);
+    ConfigSetting *configSetting = new ConfigSetting(nullptr, this);
+    SplitOnlyWindow *splitOnlyWindow = new SplitOnlyWindow(nullptr, this);
+    TestTimeer *testTimeer = new TestTimeer(nullptr, this);
 
     Config *cfg = new Config();
     QThread *xlsxParserThread = nullptr;
-    XlsxParser * xlsxParser = nullptr;
+    ExcelParser *xlsxParser = nullptr;
     QThread *mailSenderThread = nullptr;
     EmailSender *mailSender = nullptr;
     ProcessWindow *processWindow = nullptr;

@@ -1,32 +1,26 @@
 #include "splitonlywindow.h"
 #include "ui_splitonlywindow.h"
 
-SplitOnlyWindow::SplitOnlyWindow(QWidget *parent,QMainWindow *mainWindow) :
-    QMainWindow(parent),
-    ui(new Ui::SplitOnlyWindow)
-{
+SplitOnlyWindow::SplitOnlyWindow(QWidget *parent, QMainWindow *mainWindow) : QMainWindow(parent), ui(new Ui::SplitOnlyWindow) {
     this->mainWindow = mainWindow;
     ui->setupUi(this);
 
     setFixedSize(this->width(), this->height());
 
-    xlsxParser = new XlsxParser();
+    excelParser = new ExcelParser();
 }
 
-SplitOnlyWindow::~SplitOnlyWindow()
-{
+SplitOnlyWindow::~SplitOnlyWindow() {
     delete ui;
 }
 
-void SplitOnlyWindow::on_selectFilePushButton_clicked()
-{
-    QString path = xlsxParser->openFile(this);
-    if (path.length() > 0)
-    {//选择了excel文件
+void SplitOnlyWindow::on_selectFilePushButton_clicked() {
+    QString path = excelParser->openFile(this);
+    if (path.length() > 0) { //选择了excel文件
         ui->xlsObjLineEdit->setText(path);
 
         //获得所有的sheets
-        QStringList sheetNames = xlsxParser->getSheetNames();
+        QStringList sheetNames = excelParser->getSheetNames();
         ui->dataComboBox->addItems(sheetNames);
         ui->dataComboBox->setCurrentIndex(0);
 
@@ -36,47 +30,38 @@ void SplitOnlyWindow::on_selectFilePushButton_clicked()
 }
 
 //修改分组下拉选择框的选项
-void SplitOnlyWindow::changeGroupby(QString selectedSheetName)
-{
+void SplitOnlyWindow::changeGroupby(QString selectedSheetName) {
     header->clear();
     ui->groupByComboBox->clear();
-    header = xlsxParser->getSheetHeader(selectedSheetName);
+    header = excelParser->getSheetHeader(selectedSheetName);
     ui->groupByComboBox->addItems(*header);
 }
 
-void SplitOnlyWindow::on_savePathPushButton_clicked()
-{
+void SplitOnlyWindow::on_savePathPushButton_clicked() {
     QString path = QFileDialog::getExistingDirectory(this, tr("Save New Excels"), ".");
-    if(path.length() > 0)
-    {
+    if (path.length() > 0) {
         ui->savePathLineEdit->setText(path);
         savePath = QDir::toNativeSeparators(path);
     }
 }
 
-void SplitOnlyWindow::on_submitPushButton_clicked()
-{
+void SplitOnlyWindow::on_submitPushButton_clicked() {
     ui->submitPushButton->setDisabled(true);
 
-    if (ui->xlsObjLineEdit->text().isEmpty())
-    {
+    if (ui->xlsObjLineEdit->text().isEmpty()) {
         QMessageBox::information(this, "Save Path Error", "请选择待拆分的excel");
         ui->submitPushButton->setDisabled(false);
         return;
     }
-    if (savePath.length() == 0)
-    {
+    if (savePath.length() == 0) {
         QMessageBox::information(this, "Save Path Error", "请选择保存路径");
         ui->submitPushButton->setDisabled(false);
         return;
     }
 
-    if (processWindow == nullptr)
-    {
+    if (processWindow == nullptr) {
         processWindow = new ProcessWindow();
-    }
-    else
-    {
+    } else {
         processWindow->clearProcessText();
     }
     processWindow->setWindowModality(Qt::WindowModality::ApplicationModal);
@@ -87,60 +72,57 @@ void SplitOnlyWindow::on_submitPushButton_clicked()
 }
 
 //拆分
-void SplitOnlyWindow::doSplitXls(QString dataSheetName, QString savePath)
-{
-    if(xlsxParserThread != nullptr)
-    {
+void SplitOnlyWindow::doSplitXls(QString dataSheetName, QString savePath) {
+    if (excelParserThread != nullptr) {
         return;
     }
     QString groupByText = ui->groupByComboBox->currentText();
-    xlsxParserThread= new QThread();
-    xlsxParser->setSplitData(cfg, groupByText, dataSheetName, nullptr, savePath);
-    xlsxParser->moveToThread(xlsxParserThread);
-    connect(xlsxParserThread, &QThread::finished, xlsxParserThread, &QObject::deleteLater);
-    connect(xlsxParserThread, &QThread::finished, xlsxParser, &QObject::deleteLater);
-    connect(this, &SplitOnlyWindow::doSplit, xlsxParser, &XlsxParser::doSplit);
-    connect(xlsxParser, &XlsxParser::requestMsg, this, &SplitOnlyWindow::receiveMessage);
-    xlsxParserThread->start();
+    int dataSheetIndex = ui->dataComboBox->currentIndex();
+    int sheetCnt = ui->dataComboBox->count();
+    excelParserThread = new QThread();
+    excelParser->setSplitData(cfg, groupByText, dataSheetName, nullptr, savePath);
+    excelParser->moveToThread(excelParserThread);
+    connect(excelParserThread, &QThread::finished, excelParserThread, &QObject::deleteLater);
+    connect(excelParserThread, &QThread::finished, excelParser, &QObject::deleteLater);
+    connect(this, &SplitOnlyWindow::doSplit, excelParser, &ExcelParser::doSplit);
+    connect(excelParser, &ExcelParser::requestMsg, this, &SplitOnlyWindow::receiveMessage);
+    excelParserThread->start();
 
     emit doSplit(); //主线程通过信号换起子线程的槽函数
 }
 
 //接受子线程的消息
-void SplitOnlyWindow::receiveMessage(const int msgType, const QString &msg)
-{
-    qDebug() << "SplitOnlyWindow::receiveMessage msgType:" << QString::number(msgType).toUtf8() <<" msg:"<<msg;
-    switch (msgType)
-    {
-    case Common::MsgTypeError:
-        ui->submitPushButton->setDisabled(false);
+void SplitOnlyWindow::receiveMessage(const int msgType, const QString &msg) {
+    qDebug() << "SplitOnlyWindow::receiveMessage msgType:" << QString::number(msgType).toUtf8() << " msg:" << msg;
+    switch (msgType) {
+        case Common::MsgTypeError:
+            ui->submitPushButton->setDisabled(false);
 
-        processWindow->setProcessText(msg);
+            processWindow->setProcessText(msg);
 
-        QMessageBox::critical(this, "Error", msg);
-        //errorMessage(msg);
-        break;
-    case Common::MsgTypeWriteXlsxFinish:
-        processWindow->setProcessText(msg);
-        ui->submitPushButton->setDisabled(false);
-        break;
-    case Common::MsgTypeEmailSendFinish:
-        ui->submitPushButton->setDisabled(false);
-        processWindow->setProcessText(msg);
-        mailSenderThread = nullptr;
+            QMessageBox::critical(this, "Error", msg);
+            // errorMessage(msg);
+            break;
+        case Common::MsgTypeWriteXlsxFinish:
+            processWindow->setProcessText(msg);
+            ui->submitPushButton->setDisabled(false);
+            break;
+        case Common::MsgTypeEmailSendFinish:
+            ui->submitPushButton->setDisabled(false);
+            processWindow->setProcessText(msg);
+            mailSenderThread = nullptr;
 
-        break;
-    case Common::MsgTypeSucc:
-    case Common::MsgTypeInfo:
-    case Common::MsgTypeWarn:
-    default:
-        processWindow->setProcessText(msg);
-        break;
+            break;
+        case Common::MsgTypeSucc:
+        case Common::MsgTypeInfo:
+        case Common::MsgTypeWarn:
+        default:
+            processWindow->setProcessText(msg);
+            break;
     }
 }
 
-void SplitOnlyWindow::on_gobackPushButton_clicked()
-{
+void SplitOnlyWindow::on_gobackPushButton_clicked() {
     this->hide();
     mainWindow->show();
 }

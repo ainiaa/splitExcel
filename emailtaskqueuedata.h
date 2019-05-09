@@ -1,13 +1,11 @@
 #ifndef EMAILTASKQUEUEDATA_H
 #define EMAILTASKQUEUEDATA_H
-#include <QString>
 #include <QHash>
+#include <QString>
 
-class EmailTaskQueueData
-{
-public:
+class EmailTaskQueueData {
+    public:
     EmailTaskQueueData();
-
 
     void setMsg(QString msg);
     QString getMsg();
@@ -17,7 +15,8 @@ public:
     QString getSavePath();
     void setTotal(int total);
     int getTotal();
-private:
+
+    private:
     QString msg;
     QHash<QString, QList<QStringList>> emailQhash;
     QString savePath;

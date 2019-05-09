@@ -33,16 +33,18 @@ SOURCES += \
         processwindow.cpp \
         emailsender.cpp \
         emailsenderrunnable.cpp \
-        xlsxparser.cpp \
-        xlsxparserrunnable.cpp \
     splitonlywindow.cpp \
     testtimeer.cpp \
     emailtaskqueuedata.cpp \
     officehelper.cpp \
     qstringutil.cpp \
     excelbase.cpp \
-    xlsxparserbyoffice.cpp \
-    xlsxparserbyofficerunnable.cpp
+    sourcexmldata.cpp \
+    excelparser.cpp \
+    excelparserbylib.cpp \
+    excelparserbyoffice.cpp \
+    excelparserbyofficerunnable.cpp \
+    excelparserbylibrunnable.cpp
 
 
 HEADERS += \
@@ -53,16 +55,18 @@ HEADERS += \
         processwindow.h \
         emailsender.h \
         emailsenderrunnable.h \
-        xlsxparser.h \
-        xlsxparserrunnable.h \
-    splitonlywindow.h \
-    testtimeer.h \
-    emailtaskqueuedata.h \
-    officehelper.h \
-    qstringutil.h \
-    excelbase.h \
-    xlsxparserbyoffice.h \
-    xlsxparserbyofficerunnable.h
+        splitonlywindow.h \
+        testtimeer.h \
+        emailtaskqueuedata.h \
+        officehelper.h \
+        qstringutil.h \
+        excelbase.h \
+        sourcexmldata.h \
+        excelparser.h \
+    excelparserbylib.h \
+    excelparserbyoffice.h \
+    excelparserbyofficerunnable.h \
+    excelparserbylibrunnable.h
 
 FORMS += \
         mainwindow.ui \

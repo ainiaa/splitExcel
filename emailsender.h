@@ -1,35 +1,34 @@
 #ifndef EMAILSENDER_H
 #define EMAILSENDER_H
 
-#include <QObject>
-#include <QHash>
-#include <QList>
-#include <QString>
-#include <QMessageBox>
-#include <QFileInfo>
-#include <QThreadPool>
-#include <QtCore/qmath.h>
-#include <QCoreApplication>
-#include<QElapsedTimer>
-#include<QTimer>
-#include <QQueue>
-#include "smtpclient/src/SmtpMime"
-#include "config.h"
 #include "common.h"
+#include "config.h"
 #include "emailsenderrunnable.h"
 #include "emailtaskqueuedata.h"
+#include "smtpclient/src/SmtpMime"
+#include <QCoreApplication>
+#include <QElapsedTimer>
+#include <QFileInfo>
+#include <QHash>
+#include <QList>
+#include <QMessageBox>
+#include <QObject>
+#include <QQueue>
+#include <QString>
+#include <QThreadPool>
+#include <QTimer>
+#include <QtCore/qmath.h>
 
-class EmailSender: public QObject
-{
+class EmailSender : public QObject {
     Q_OBJECT
-public:
-    EmailSender(QObject* parent = nullptr);
+    public:
+    EmailSender(QObject *parent = nullptr);
     ~EmailSender();
 
     void setSendData(Config *cfg, QHash<QString, QList<QStringList>> emailQhash, QString savePath, int total);
     void initTimer();
     void initIdleTimer();
-public slots:
+    public slots:
     void doSend();
     void doSendWithoutQueue();
     void doSendWithQueue();
@@ -38,9 +37,10 @@ public slots:
     void showIdleMsg();
     void receiveMessage(const int msgType, const QString &result);
 
- signals:
+    signals:
     void requestMsg(const int msgType, const QString &result);
-private:
+
+    private:
     Config *cfg;
     QHash<QString, QList<QStringList>> emailQhash;
     QHash<QString, QList<QStringList>> currentEmailQhash;
@@ -61,7 +61,7 @@ private:
     bool use_queue = false;
     int periodTime;
 
-    //idle msg 相关配置
+    // idle msg 相关配置
     int idleLeftTime;
     QElapsedTimer idleTimer;
     int idleMsgShowPeriod;

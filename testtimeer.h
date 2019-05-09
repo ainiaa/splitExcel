@@ -1,32 +1,31 @@
 #ifndef TESTTIMEER_H
 #define TESTTIMEER_H
 
-#include <QMainWindow>
-#include <QElapsedTimer>
-#include<QTimer>
-#include "processwindow.h"
 #include "common.h"
+#include "processwindow.h"
+#include <QElapsedTimer>
+#include <QMainWindow>
+#include <QTimer>
 
 namespace Ui {
 class TestTimeer;
 }
 
-class TestTimeer : public QMainWindow
-{
+class TestTimeer : public QMainWindow {
     Q_OBJECT
 
-public:
+    public:
     explicit TestTimeer(QWidget *parent = nullptr, QMainWindow *mainWindow = nullptr);
     ~TestTimeer();
     void receiveMessage(const int msgType, const QString &result);
 
-public slots:
+    public slots:
     void showIdleMsg();
 
-private slots:
+    private slots:
     void on_pushButton_clicked();
 
-private:
+    private:
     Ui::TestTimeer *ui;
     ProcessWindow *processWindow = nullptr;
     QMainWindow *mainWindow;
