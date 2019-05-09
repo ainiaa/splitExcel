@@ -32,22 +32,23 @@ void ExcelParserByOfficeRunnable::setSplitData(SourceExcelData *sourceExcelData,
 
 void ExcelParserByOfficeRunnable::run() {
     qDebug("XlsxParserByOfficeRunnable::run start");
-    QString startMsg("开始拆分excel并生成新的excel文件: %1/");
-    QString endMsg("完成拆分excel并生成新的excel文件: %1/");
-    startMsg.append(QString::number(m_total));
-    endMsg.append(QString::number(m_total));
-    requestMsg(Common::MsgTypeInfo, startMsg.arg(QString::number(runnableID)));
-    QHashIterator<QString, QList<int>> it(fragmentDataQhash);
+    QString startMsg("【*_*开始】拆分excel : %1/%2  分组【%3】");
+    QString endMsg("【完成^_^】拆分excel: %1/%2  分组【%3】");
 
+    QHashIterator<QString, QList<int>> it(fragmentDataQhash);
+    HRESULT hres = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
     while (it.hasNext()) {
         it.next();
         QString key = it.key();
+        requestMsg(Common::MsgTypeInfo, startMsg.arg(QString::number(runnableID)).arg(QString::number(m_total)).arg(key));
         QList<int> contentList = it.value();
         contentList.insert(0, 1);
 
         this->processByOffice(key, contentList);
+        requestMsg(Common::MsgTypeSucc, endMsg.arg(QString::number(runnableID)).arg(QString::number(m_total)).arg(key));
     }
-    requestMsg(Common::MsgTypeSucc, endMsg.arg(QString::number(runnableID)));
+    CoUninitialize();
+
     qDebug("XlsxParserRunnable::run end");
 }
 
@@ -57,9 +58,9 @@ void ExcelParserByOfficeRunnable::processByOffice(QString key, QList<int> conten
     bool cpret = copyFileToPath(tplXlsPath, xlsName, true);
     if (!cpret) {
         qDebug() << " copyFileToPath failure."
-                 << "";
+                 << "source:" << savePath << " dist:" << tplXlsPath;
     }
-    HRESULT hres = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+    //    HRESULT hres = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
     QAxObject *excel = new QAxObject("Excel.Application");  //连接Excel控件
     excel->dynamicCall("SetVisible (bool Visible)", false); //不显示窗体
     excel->setProperty("DisplayAlerts", false); //不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
@@ -102,10 +103,8 @@ void ExcelParserByOfficeRunnable::processByOffice(QString key, QList<int> conten
     workbook->dynamicCall("Save()");
     workbook->dynamicCall("Close()");  //关闭工作簿
     workbooks->dynamicCall("Close()"); //关闭工作簿
-    excel->dynamicCall("Quit()");      //关闭excel
-    delete excel;
-    excel = nullptr;
-    // CoUninitialize();
+    //    CoUninitialize();
+    ExcelParserByOfficeRunnable::freeExcel(excel);
 }
 
 void ExcelParserByOfficeRunnable::requestMsg(const int msgType, const QString &msg) {
@@ -186,6 +185,7 @@ void ExcelParserByOfficeRunnable::processSourceFile() {
              << " sourceColCnt:" << sourceColCnt << " sourceMinAlphabetCol:" << sourceMinAlphabetCol
              << " sourceMaxAlphabetCol:" << sourceMaxAlphabetCol;
     // CoUninitialize();
+    ExcelParserByOfficeRunnable::freeExcel(excel);
     this->generateTplXls(); //生成模板文件
 }
 
@@ -244,8 +244,17 @@ void ExcelParserByOfficeRunnable::processSourceFile(SourceExcelData *sourceExcel
              << " sourceRowCnt:" << sourceExcelData->getSourceRowCnt() << " sourceColCnt:" << sourceExcelData->getSourceColCnt()
              << " sourceMinAlphabetCol:" << sourceMinAlphabetCol << " sourceMaxAlphabetCol:" << sourceMaxAlphabetCol;
     // CoUninitialize();
+    ExcelParserByOfficeRunnable::freeExcel(excel);
     ExcelParserByOfficeRunnable::generateTplXls(sourceExcelData, selectedSheetIndex); //生成模板文件
 }
+void ExcelParserByOfficeRunnable::freeExcel(QAxObject *excel) {
+    if (!excel->isNull()) {
+        excel->dynamicCall("Quit()");
+        delete excel;
+        excel = nullptr;
+    }
+}
+
 void ExcelParserByOfficeRunnable::generateTplXls(SourceExcelData *sourceExcelData, int selectedSheetIndex) {
     QString xlsName;
     xlsName.append(sourceExcelData->getSavePath()).append(QDir::separator()).append("sourceTplXlsx.xlsx");
@@ -272,10 +281,8 @@ void ExcelParserByOfficeRunnable::generateTplXls(SourceExcelData *sourceExcelDat
     workbook->dynamicCall("Save()");
     workbook->dynamicCall("Close()");  //关闭工作簿
     workbooks->dynamicCall("Close()"); //关闭工作簿
-    excel->dynamicCall("Quit()");      //关闭excel
-    delete excel;
-    excel = nullptr;
     // CoUninitialize();
+    ExcelParserByOfficeRunnable::freeExcel(excel);
     sourceExcelData->setTplXlsPath(xlsName);
 }
 
@@ -302,10 +309,8 @@ void ExcelParserByOfficeRunnable::generateTplXls() {
     workbook->dynamicCall("Save()");
     workbook->dynamicCall("Close()");  //关闭工作簿
     workbooks->dynamicCall("Close()"); //关闭工作簿
-    excel->dynamicCall("Quit()");      //关闭excel
-    delete excel;
-    excel = nullptr;
     // CoUninitialize();
+    ExcelParserByOfficeRunnable::freeExcel(excel);
     this->tplXlsPath = xlsName;
 }
 

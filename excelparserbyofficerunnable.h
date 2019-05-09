@@ -41,6 +41,8 @@ class ExcelParserByOfficeRunnable : public IExcelParserRunnable {
     void static processSourceFile(SourceExcelData *sourceExcelData, QString selectedSheetName);
     void static generateTplXls(SourceExcelData *sourceExcelData, int selectedSheetIndex);
 
+    void static freeExcel(QAxObject *excel);
+
     private:
     //父对象
     QString sourcePath;
