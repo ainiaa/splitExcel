@@ -28,7 +28,8 @@ class ExcelParser : public QObject {
     QHash<QString, QList<int>> readDataXls(QString groupByText, QString selectedSheetName);
     QHash<QString, QList<QStringList>> readXlsData(QString groupByText, QString selectedSheetName);
     QHash<QString, QList<QStringList>> getEmailData();
-    void writeXls(QString selectedSheetName, QHash<QString, QList<int>> qHash, QString savePath);
+    void writeXlsByOffice(QString selectedSheetName, QHash<QString, QList<int>> qHash);
+    void writeXlsByLib(QString selectedSheetName, QHash<QString, QList<int>> qHash);
 
     QStringList *getSheetHeader(QString selectedSheetName);
 

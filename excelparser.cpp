@@ -124,7 +124,11 @@ void ExcelParser::doSplit() {
     emit requestMsg(Common::MsgTypeInfo, "开始拆分excel并生成新的excel文件");
     m_total_cnt = dataQhash.size();
     qDebug() << "doSplit writeXls";
-    writeXls(dataSheetName, dataQhash, savePath);
+    if (this->isInstalledOffice) {
+        writeXlsByOffice(dataSheetName, dataQhash);
+    } else {
+        writeXlsByLib(dataSheetName, dataQhash);
+    }
 }
 
 QHash<QString, QList<QStringList>> ExcelParser::getEmailData() {
@@ -278,14 +282,13 @@ QHash<QString, QList<QStringList>> ExcelParser::readEmailXls(QString groupByText
 }
 
 //写xls
-void ExcelParser::writeXls(QString selectedSheetName, QHash<QString, QList<int>> qHash, QString savePath) {
+void ExcelParser::writeXlsByOffice(QString selectedSheetName, QHash<QString, QList<int>> qHash) {
     QHashIterator<QString, QList<int>> it(qHash);
     QThreadPool pool;
     int maxThreadCnt = cfg->get("email", "maxThreadCnt").toInt();
     if (maxThreadCnt < 1) {
-        maxThreadCnt = 2;
+        maxThreadCnt = 4;
     }
-    maxThreadCnt = 5; //多线程处理xlsx会出现段错误 ???
 
     int maxProcessCntPreThread = qCeil(qHash.size() * 1.0 / maxThreadCnt);
     qDebug() << "qHash.size() :" << qHash.size() << " maxThreadCnt:" << maxThreadCnt << " maxProcessCntPreThread:" << maxProcessCntPreThread;
@@ -294,9 +297,7 @@ void ExcelParser::writeXls(QString selectedSheetName, QHash<QString, QList<int>>
     pool.setMaxThreadCount(maxThreadCnt);
     int totalCnt = qHash.size();
     int runnableId = 1;
-    if (this->isInstalledOffice) {
-        ExcelParserByOfficeRunnable::processSourceFile(this->sourceExcelData, selectedSheetName);
-    }
+    ExcelParserByOfficeRunnable::processSourceFile(this->sourceExcelData, selectedSheetName);
     while (it.hasNext()) {
         it.next();
         QString key = it.key();
@@ -304,12 +305,7 @@ void ExcelParser::writeXls(QString selectedSheetName, QHash<QString, QList<int>>
         fragmentDataQhash.insert(key, content);
         int mod = m_process_cnt % maxProcessCntPreThread;
         if (mod == 0 || !it.hasNext()) {
-            IExcelParserRunnable *runnable;
-            if (this->isInstalledOffice) {
-                runnable = new ExcelParserByOfficeRunnable(this);
-            } else {
-                runnable = new ExcelParserByLibRunnable(this);
-            }
+            IExcelParserRunnable *runnable = new ExcelParserByOfficeRunnable(this);
             runnable->setID(runnableId++);
             runnable->setSplitData(this->sourceExcelData, selectedSheetName, fragmentDataQhash, totalCnt);
             pool.start(runnable);
@@ -317,4 +313,37 @@ void ExcelParser::writeXls(QString selectedSheetName, QHash<QString, QList<int>>
         }
     }
     pool.waitForDone();
+}
+
+void ExcelParser::writeXlsByLib(QString selectedSheetName, QHash<QString, QList<int>> qHash) {
+    QHashIterator<QString, QList<int>> it(qHash);
+    QThreadPool pool;
+    int maxThreadCnt = cfg->get("email", "maxThreadCnt").toInt();
+    if (maxThreadCnt < 1) {
+        maxThreadCnt = 2;
+    }
+    maxThreadCnt = 1; //多线程处理xlsx会出现段错误 ???
+
+    int maxProcessCntPreThread = qCeil(qHash.size() * 1.0 / maxThreadCnt);
+    qDebug() << "qHash.size() :" << qHash.size() << " maxThreadCnt:" << maxThreadCnt << " maxProcessCntPreThread:" << maxProcessCntPreThread;
+    QHash<QString, QList<int>> fragmentDataQhash;
+
+    pool.setMaxThreadCount(maxThreadCnt);
+    int totalCnt = qHash.size();
+    int runnableId = 1;
+    while (it.hasNext()) {
+        it.next();
+        QString key = it.key();
+        QList<int> content = it.value();
+        fragmentDataQhash.insert(key, content);
+        int mod = m_process_cnt % maxProcessCntPreThread;
+        if (mod == 0 || !it.hasNext()) {
+            IExcelParserRunnable *runnable = new ExcelParserByLibRunnable(this);
+            runnable->setID(runnableId++);
+            runnable->setSplitData(this->sourceExcelData, selectedSheetName, fragmentDataQhash, totalCnt);
+            pool.start(runnable);
+            fragmentDataQhash.clear();
+            pool.waitForDone();
+        }
+    }
 }
