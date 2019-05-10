@@ -32,8 +32,8 @@ void ExcelParserByOfficeRunnable::setSplitData(SourceExcelData *sourceExcelData,
 
 void ExcelParserByOfficeRunnable::run() {
     qDebug("XlsxParserByOfficeRunnable::run start");
-    QString startMsg("【*_*开始】拆分excel : %1/%2  分组【%3】");
-    QString endMsg("【完成^_^】拆分excel: %1/%2  分组【%3】");
+    QString startMsg("【*_*开始 ==】拆分excel : %1/%2  分组项【%3】");
+    QString endMsg("【==完成^_^】拆分excel: %1/%2  分组项【%3】");
 
     QHashIterator<QString, QList<int>> it(fragmentDataQhash);
     HRESULT hres = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
@@ -108,7 +108,7 @@ void ExcelParserByOfficeRunnable::processByOffice(QString key, QList<int> conten
 }
 
 void ExcelParserByOfficeRunnable::requestMsg(const int msgType, const QString &msg) {
-    qobject_cast<ExcelParser *>(mParent)->receiveMessage(msgType, msg.arg(msgType));
+    qobject_cast<ExcelParser *>(mParent)->receiveMessage(msgType, msg);
     // QMetaObject::invokeMethod(mParent, "receiveMessage", Qt::QueuedConnection, Q_ARG(int,msgType),Q_ARG(QString, msg));//不能及时返回信息
 }
 

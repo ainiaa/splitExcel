@@ -59,7 +59,7 @@ void MainWindow::on_selectFilePushButton_clicked() {
     QString path = xlsxParser->openFile(this);
     if (path.length() > 0) { //选择了excel文件
         ui->xlsObjLineEdit->setText(path);
-
+        this->sourcePath = QDir::toNativeSeparators(path);
         //获得所有的sheets
         QStringList sheetNames = xlsxParser->getSheetNames();
         ui->dataComboBox->addItems(sheetNames);
@@ -166,7 +166,22 @@ void MainWindow::doSplitXls(QString dataSheetName, QString emailSheetName, QStri
     }
     QString groupByText = ui->groupByComboBox->currentText();
     xlsxParserThread = new QThread();
-    xlsxParser->setSplitData(cfg, groupByText, dataSheetName, emailSheetName, savePath);
+
+    int dataSheetIndex = ui->dataComboBox->currentIndex();
+    int emailSheetIndex = ui->emailComboBox->currentIndex();
+    int sheetCnt = ui->dataComboBox->count();
+    SourceExcelData *sourceExcelData = new SourceExcelData();
+    sourceExcelData->setSavePath(savePath);
+    sourceExcelData->setDataSheetName(dataSheetName);
+    sourceExcelData->setSheetCnt(sheetCnt);
+    sourceExcelData->setDataSheetIndex(dataSheetIndex);
+    sourceExcelData->setEmailSheetName(emailSheetName);
+    sourceExcelData->setEmailSheetIndex(emailSheetIndex);
+    sourceExcelData->setOpType(SourceExcelData::OperateType::SplitOnlyType);
+    sourceExcelData->setGroupByText(groupByText);
+    sourceExcelData->setSourcePath(this->sourcePath);
+    xlsxParser->setSplitData(cfg, sourceExcelData);
+
     xlsxParser->moveToThread(xlsxParserThread);
     connect(xlsxParserThread, &QThread::finished, xlsxParserThread, &QObject::deleteLater);
     connect(xlsxParserThread, &QThread::finished, xlsxParser, &QObject::deleteLater);

@@ -20,6 +20,7 @@
 #include "excelparser.h"
 #include "officehelper.h"
 #include "processwindow.h"
+#include "sourceexceldata.h"
 #include "splitonlywindow.h"
 #include "testtimeer.h"
 #include "xlsxdocument.h"
@@ -77,6 +78,7 @@ class MainWindow : public QMainWindow {
     EmailSender *mailSender = nullptr;
     ProcessWindow *processWindow = nullptr;
     QString savePath;
+    QString sourcePath;
 
     void errorMessage(const QString &message);
 };

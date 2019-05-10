@@ -16,7 +16,7 @@
 #if defined(Q_OS_WIN)
 #include "qt_windows.h"
 #endif
-#include "sourceExceldata.h"
+#include "sourceexceldata.h"
 #include "xlsxcelllocation.h"
 #include "xlsxdocument.h"
 #include "xlsxformat.h"

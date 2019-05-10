@@ -170,7 +170,7 @@ void ExcelParserByLibRunnable::writeXlsHeader(QXlsx::Document *xls, QString sele
 // old end
 
 void ExcelParserByLibRunnable::requestMsg(const int msgType, const QString &msg) {
-    qobject_cast<ExcelParser *>(mParent)->receiveMessage(msgType, msg.arg(msgType));
+    qobject_cast<ExcelParser *>(mParent)->receiveMessage(msgType, msg);
     // QMetaObject::invokeMethod(mParent, "receiveMessage", Qt::QueuedConnection, Q_ARG(int,msgType),Q_ARG(QString, msg));//不能及时返回信息
 }
 
