@@ -18,13 +18,13 @@
 #include "configsetting.h"
 #include "emailsender.h"
 #include "excelparser.h"
+#include "excelparserbyado.h"
 #include "officehelper.h"
 #include "processwindow.h"
 #include "sourceexceldata.h"
 #include "splitonlywindow.h"
 #include "testtimeer.h"
 #include "xlsxdocument.h"
-
 namespace Ui {
 class MainWindow;
 }

@@ -44,7 +44,8 @@ SOURCES += \
     excelparserbyoffice.cpp \
     excelparserbyofficerunnable.cpp \
     excelparserbylibrunnable.cpp \
-    sourceexceldata.cpp
+    sourceexceldata.cpp \
+    excelparserbyado.cpp
 
 
 HEADERS += \
@@ -67,7 +68,8 @@ HEADERS += \
     excelparserbyofficerunnable.h \
     excelparserbylibrunnable.h \
     sourceexceldata.h \
-    iexcelparserrunnable.h
+    iexcelparserrunnable.h \
+    excelparserbyado.h
 
 FORMS += \
         mainwindow.ui \
