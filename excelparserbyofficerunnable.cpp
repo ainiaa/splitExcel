@@ -17,7 +17,7 @@ void ExcelParserByOfficeRunnable::setSplitData(SourceExcelData *sourceExcelData,
                                                QString selectedSheetName,
                                                QHash<QString, QList<int>> fragmentDataQhash,
                                                int m_total) {
-    qDebug("XlsxParserByOfficeRunnable::setSplitData w ith SourceExcelData");
+    qDebug("XlsxParserByOfficeRunnable::setSplitData with SourceExcelData");
 
     this->sourcePath = sourceExcelData->getSourcePath();
     this->savePath = sourceExcelData->getSavePath();

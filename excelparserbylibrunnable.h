@@ -37,8 +37,6 @@ class ExcelParserByLibRunnable : public IExcelParserRunnable {
     void requestMsg(const int msgType, const QString &result) override;
 
     void writeXls(QString selectedSheetName, QHash<QString, QList<int>> qHash, QString savePath);
-    void writeXlsHeader(QXlsx::Document *currXls, QString selectedSheetName);
-    QXlsx::Format copyFormat(QXlsx::Format sourceCellFormat);
 
     void processByQxls(QString key, QList<int> contentList);
     void processSourceFile();

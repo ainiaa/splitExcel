@@ -31,7 +31,7 @@ void ExcelParserByLibRunnable::setSplitData(SourceExcelData *sourceExcelData,
                                             QString selectedSheetName,
                                             QHash<QString, QList<int>> fragmentDataQhash,
                                             int m_total) {
-    qDebug("XlsxParserByOfficeRunnable::setSplitData w ith SourceExcelData");
+    qDebug("ExcelParserByLibRunnable::setSplitData with SourceExcelData");
 
     this->xlsx = new QXlsx::Document(sourcePath);
     this->sourcePath = sourceExcelData->getSourcePath();
@@ -94,77 +94,6 @@ void ExcelParserByLibRunnable::processByQxls(QString key, QList<int> contentList
 
     currXls->save();
     delete currXls;
-}
-
-QXlsx::Format ExcelParserByLibRunnable::copyFormat(QXlsx::Format format) {
-    QXlsx::Format newFomat = format;
-    newFomat.setFont(format.font());
-    newFomat.setFontBold(format.fontBold());
-    newFomat.setFontName(format.fontName());
-    newFomat.setFontSize(format.fontSize());
-    newFomat.setFontColor(format.fontColor());
-    newFomat.setFontItalic(format.fontItalic());
-    newFomat.setFontUnderline(format.fontUnderline());
-    newFomat.setFontScript(format.fontScript());
-    newFomat.setFontOutline(format.fontOutline());
-
-    newFomat.setTextWarp(format.textWrap());
-
-    newFomat.setHidden(format.hidden());
-
-    newFomat.setIndent(format.indent());
-    newFomat.setLocked(format.locked());
-    newFomat.setXfIndex(format.xfIndex());
-    newFomat.setDxfIndex(format.dxfIndex());
-    newFomat.setRotation(format.rotation());
-    newFomat.setFillIndex(format.fillIndex());
-    newFomat.setFillPattern(format.fillPattern());
-    newFomat.setBorderIndex(format.borderIndex());
-    newFomat.setShrinkToFit(format.shrinkToFit());
-    newFomat.setNumberFormat(format.numberFormat());
-    newFomat.setRightBorderColor(format.rightBorderColor());
-    newFomat.setRightBorderStyle(format.rightBorderStyle());
-    newFomat.setTopBorderColor(format.topBorderColor());
-    newFomat.setTopBorderStyle(format.topBorderStyle());
-    newFomat.setLeftBorderColor(format.leftBorderColor());
-    newFomat.setLeftBorderStyle(format.leftBorderStyle());
-    newFomat.setBottomBorderColor(format.bottomBorderColor());
-    newFomat.setBottomBorderStyle(format.bottomBorderStyle());
-    newFomat.setNumberFormatIndex(format.numberFormatIndex());
-    newFomat.setDiagonalBorderType(format.diagonalBorderType());
-    newFomat.setDiagonalBorderColor(format.diagonalBorderColor());
-    newFomat.setDiagonalBorderStyle(format.diagonalBorderStyle());
-
-    newFomat.setVerticalAlignment(format.verticalAlignment());
-    newFomat.setHorizontalAlignment(format.horizontalAlignment());
-
-    newFomat.setPatternBackgroundColor(format.patternBackgroundColor());
-    newFomat.setPatternForegroundColor(format.patternForegroundColor());
-
-    return newFomat;
-}
-
-void ExcelParserByLibRunnable::writeXlsHeader(QXlsx::Document *xls, QString selectedSheetName) {
-    QXlsx::CellRange range;
-    xlsx->selectSheet(selectedSheetName);
-    range = xlsx->dimension();
-    int colCount = range.columnCount();
-
-    for (int column = 1; column <= colCount; ++column) {
-        QXlsx::Cell *sourceCell = xlsx->cellAt(1, column);
-        if (sourceCell) {
-            QString columnName;
-            OfficeHelper::convertToColName(column, columnName);
-            QString cell;
-            QXlsx::Format newFormat = copyFormat(sourceCell->format());
-            cell.append(columnName).append(QString::number(1));
-            xls->write(cell, sourceCell->value(), newFormat);
-            xls->setColumnFormat(column, xlsx->columnFormat(column));
-            xls->setColumnWidth(column, xlsx->columnWidth(column));
-        }
-    }
-    xls->setRowFormat(1, xlsx->rowFormat(1));
-    xls->setRowHeight(1, xlsx->rowHeight(1));
 }
 
 // old end
