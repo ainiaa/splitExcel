@@ -44,7 +44,9 @@ SOURCES += \
         excelparserbyoffice.cpp \
         excelparserbyofficerunnable.cpp \
         excelparserbylibrunnable.cpp \
-        sourceexceldata.cpp
+        sourceexceldata.cpp \
+    splitandemailwindow.cpp \
+    emailonlywindow.cpp
 
 
 HEADERS += \
@@ -67,14 +69,18 @@ HEADERS += \
         excelparserbyofficerunnable.h \
         excelparserbylibrunnable.h \
         sourceexceldata.h \
-        iexcelparserrunnable.h
+        iexcelparserrunnable.h \
+    splitandemailwindow.h \
+    emailonlywindow.h
 
 FORMS += \
         mainwindow.ui \
         configsetting.ui \
         processwindow.ui \
     splitonlywindow.ui \
-    testtimeer.ui
+    testtimeer.ui \
+    splitandemailwindow.ui \
+    emailonlywindow.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

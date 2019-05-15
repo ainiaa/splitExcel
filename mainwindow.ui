@@ -14,195 +14,13 @@
    <string>拆分Excel并发送email</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QLabel" name="selectFileLabel">
-    <property name="geometry">
-     <rect>
-      <x>69</x>
-      <y>77</y>
-      <width>91</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>请选择 excel 文件</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="xlsObjLineEdit">
-    <property name="geometry">
-     <rect>
-      <x>170</x>
-      <y>77</y>
-      <width>311</width>
-      <height>31</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLabel" name="groupFieldLabel">
-    <property name="geometry">
-     <rect>
-      <x>69</x>
-      <y>227</y>
-      <width>91</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>分组列</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-    </property>
-   </widget>
-   <widget class="QLabel" name="savePathLabel">
-    <property name="geometry">
-     <rect>
-      <x>69</x>
-      <y>277</y>
-      <width>91</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>保存路径</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="savePathLineEdit">
-    <property name="geometry">
-     <rect>
-      <x>170</x>
-      <y>277</y>
-      <width>311</width>
-      <height>31</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="submitPushButton">
-    <property name="geometry">
-     <rect>
-      <x>210</x>
-      <y>327</y>
-      <width>75</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>确定</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="cancelPushButton">
-    <property name="geometry">
-     <rect>
-      <x>310</x>
-      <y>327</y>
-      <width>75</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>取消</string>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="groupByComboBox">
-    <property name="geometry">
-     <rect>
-      <x>170</x>
-      <y>227</y>
-      <width>311</width>
-      <height>31</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="selectFilePushButton">
-    <property name="geometry">
-     <rect>
-      <x>490</x>
-      <y>77</y>
-      <width>91</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>选择文件...</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="savePathPushButton">
-    <property name="geometry">
-     <rect>
-      <x>490</x>
-      <y>277</y>
-      <width>91</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>选择保存目录</string>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="dataComboBox">
-    <property name="geometry">
-     <rect>
-      <x>169</x>
-      <y>127</y>
-      <width>311</width>
-      <height>31</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLabel" name="dataSheetLabel">
-    <property name="geometry">
-     <rect>
-      <x>68</x>
-      <y>127</y>
-      <width>91</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>数据 Sheet</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-    </property>
-   </widget>
-   <widget class="QLabel" name="emailSheetLabel">
-    <property name="geometry">
-     <rect>
-      <x>69</x>
-      <y>177</y>
-      <width>91</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>email Sheet</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="emailComboBox">
-    <property name="geometry">
-     <rect>
-      <x>170</x>
-      <y>177</y>
-      <width>311</width>
-      <height>31</height>
-     </rect>
-    </property>
-   </widget>
    <widget class="QLabel" name="logoLabel">
     <property name="geometry">
      <rect>
-      <x>80</x>
+      <x>0</x>
       <y>20</y>
-      <width>81</width>
-      <height>41</height>
+      <width>701</width>
+      <height>81</height>
      </rect>
     </property>
     <property name="styleSheet">
@@ -212,42 +30,43 @@
      <string/>
     </property>
    </widget>
-   <widget class="QLabel" name="titleLabel">
+   <widget class="QPushButton" name="splitOnlyPushButton">
     <property name="geometry">
      <rect>
-      <x>170</x>
-      <y>30</y>
-      <width>311</width>
-      <height>41</height>
+      <x>230</x>
+      <y>117</y>
+      <width>241</width>
+      <height>71</height>
      </rect>
     </property>
-    <property name="font">
-     <font>
-      <family>Microsoft YaHei</family>
-      <pointsize>15</pointsize>
-      <weight>50</weight>
-      <italic>false</italic>
-      <bold>false</bold>
-     </font>
-    </property>
     <property name="text">
-     <string>拆分Excel并发送email</string>
-    </property>
-    <property name="alignment">
-     <set>Qt::AlignCenter</set>
+     <string>拆分Excel</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="cancelPushButton_2">
+   <widget class="QPushButton" name="EmailOnlyPushButton">
     <property name="geometry">
      <rect>
-      <x>409</x>
-      <y>327</y>
-      <width>75</width>
-      <height>31</height>
+      <x>230</x>
+      <y>217</y>
+      <width>241</width>
+      <height>71</height>
      </rect>
     </property>
     <property name="text">
-     <string>test</string>
+     <string>发送Email</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="SplitAndEmailPushButton">
+    <property name="geometry">
+     <rect>
+      <x>230</x>
+      <y>317</y>
+      <width>241</width>
+      <height>71</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>拆分 &amp;&amp; email</string>
     </property>
    </widget>
   </widget>

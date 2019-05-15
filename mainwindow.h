@@ -16,11 +16,13 @@
 #include "common.h"
 #include "config.h"
 #include "configsetting.h"
+#include "emailonlywindow.h"
 #include "emailsender.h"
 #include "excelparser.h"
 #include "officehelper.h"
 #include "processwindow.h"
 #include "sourceexceldata.h"
+#include "splitandemailwindow.h"
 #include "splitonlywindow.h"
 #include "testtimeer.h"
 #include "xlsxdocument.h"
@@ -35,50 +37,21 @@ class MainWindow : public QMainWindow {
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    void doSplitXls(QString dataSheetName, QString emailSheetName, QString savePath);
-    void sendemail();
-    void loadConfig();
-
     signals:
-    void doSend();
-    void doSplit();
 
     private slots:
-    void on_selectFilePushButton_clicked();
 
-    void on_savePathPushButton_clicked();
+    void on_splitOnlyPushButton_clicked();
 
-    void on_submitPushButton_clicked();
+    void on_EmailOnlyPushButton_clicked();
 
-    void changeGroupby(QString selectedSheetName);
-
-    void on_dataComboBox_currentTextChanged(const QString &arg1);
-
-    void showConfigSetting();
-
-    void showSplitOnly();
-
-    void receiveMessage(const int msgType, const QString &result);
-
-    void on_cancelPushButton_2_clicked();
+    void on_SplitAndEmailPushButton_clicked();
 
     private:
     Ui::MainWindow *ui;
-    QXlsx::Document *xlsx = nullptr;
-    QStringList *header = new QStringList();
-    ConfigSetting *configSetting = new ConfigSetting(nullptr, this);
-    SplitOnlyWindow *splitOnlyWindow = new SplitOnlyWindow(nullptr, this);
-    TestTimeer *testTimeer = new TestTimeer(nullptr, this);
-
-    Config *cfg = new Config();
-    QThread *xlsxParserThread = nullptr;
-    ExcelParser *xlsxParser = nullptr;
-    QThread *mailSenderThread = nullptr;
-    EmailSender *mailSender = nullptr;
-    ProcessWindow *processWindow = nullptr;
-    QString savePath;
-    QString sourcePath;
-
+    SplitOnlyWindow *splitOnlyWindow = nullptr;
+    SplitAndEmailWindow *splitAndEmailWindow = nullptr;
+    EmailOnlyWindow *emailOnlyWindow = nullptr;
     void errorMessage(const QString &message);
 };
 
