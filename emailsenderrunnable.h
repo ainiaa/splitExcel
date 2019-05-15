@@ -6,7 +6,7 @@
 #include <QMetaObject>
 #include <QObject>
 #include <QRunnable>
-class EmailSenderRunnable : public QRunnable {
+class EmailSenderRunnable : public QObject, public QRunnable {
     public:
     EmailSenderRunnable(QObject *mParent);
     ~EmailSenderRunnable();
@@ -18,6 +18,9 @@ class EmailSenderRunnable : public QRunnable {
     void setSendData(QString userName, QString password, QString server, QString defaultSender, QString savePath, QHash<QString, QList<QStringList>> fragmentEmailData);
 
     void requestMsg(const int msgType, const QString &result);
+
+    public slots:
+    void getSmtpError(SmtpClient::SmtpError e);
 
     private:
     //父对象

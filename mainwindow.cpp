@@ -177,7 +177,7 @@ void MainWindow::doSplitXls(QString dataSheetName, QString emailSheetName, QStri
     sourceExcelData->setDataSheetIndex(dataSheetIndex);
     sourceExcelData->setEmailSheetName(emailSheetName);
     sourceExcelData->setEmailSheetIndex(emailSheetIndex);
-    sourceExcelData->setOpType(SourceExcelData::OperateType::SplitOnlyType);
+    sourceExcelData->setOpType(SourceExcelData::OperateType::SplitAndEmailType);
     sourceExcelData->setGroupByText(groupByText);
     sourceExcelData->setSourcePath(this->sourcePath);
     xlsxParser->setSplitData(cfg, sourceExcelData);
@@ -240,4 +240,6 @@ void MainWindow::showSplitOnly() {
 
 void MainWindow::on_cancelPushButton_2_clicked() {
     OfficeHelper *office = new OfficeHelper();
+    ExcelParserByADO *ado = new ExcelParserByADO();
+    ado->parse();
 }

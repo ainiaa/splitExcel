@@ -32,6 +32,9 @@ void EmailSenderRunnable::run() {
     qDebug("EmailSenderRunnable::run start");
     requestMsg(Common::MsgTypeInfo, "准备发送邮件（线程" + QString::number(runnableID) + ")");
     SmtpClient *smtpClient = new SmtpClient(server);
+
+    // connect(smtpClient, SIGNAL(smtpError()), this, SLOT(getSmtpError()));
+
     smtpClient->setUser(userName);
     smtpClient->setPassword(password);
 
@@ -81,11 +84,14 @@ void EmailSenderRunnable::run() {
             return;
         }
         // email的数据顺序为  （站，email,title,content）
-        mineMsg.addRecipient(new EmailAddress(emailData.at(1), emailData.at(1)));
-        mineMsg.setSubject(emailData.at(2));
+        QString emailAddr = emailData.at(1);
+        QString emailTitle = emailData.at(2);
+        QString emailContent = emailData.at(3);
+        mineMsg.addRecipient(new EmailAddress(emailAddr, emailAddr));
+        mineMsg.setSubject(emailTitle);
 
         MimeText text;
-        text.setText(emailData.at(3));
+        text.setText(emailContent);
         mineMsg.addPart(&text);
 
         if (emailData.size() == 5) { //包含cc 添加抄送 多个抄送之间使用逗号分隔
@@ -98,13 +104,19 @@ void EmailSenderRunnable::run() {
         if (smtpClient->sendMail(mineMsg)) { // success
             requestMsg(Common::MsgTypeSucc, "邮件发送成功(" + key + ")");
         } else { // failure
-            requestMsg(Common::MsgTypeFail, "邮件发送失败(" + key + ")");
+            requestMsg(Common::MsgTypeFail, "邮件发送失败(" + key + "," + emailAddr + ")" + "  失败原因 :" + smtpClient->getError());
         }
     }
 
     smtpClient->quit();
     qDebug("EmailSenderRunnable::run end");
 }
+
+void EmailSenderRunnable::getSmtpError(SmtpClient::SmtpError e) {
+    QString msg("邮件发送失败 错误代码:%1");
+    requestMsg(Common::MsgTypeWarn, msg.arg(e));
+}
+
 void EmailSenderRunnable::requestMsg(const int msgType, const QString &msg) {
     qobject_cast<EmailSender *>(mParent)->receiveMessage(msgType, msg.arg(msgType));
     // QMetaObject::invokeMethod(mParent, "receiveMessage", Qt::QueuedConnection, Q_ARG(int,msgType),Q_ARG(QString, msg));//不能及时返回信息

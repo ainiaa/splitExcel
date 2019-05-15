@@ -32,20 +32,22 @@ void ExcelParserByOfficeRunnable::setSplitData(SourceExcelData *sourceExcelData,
 
 void ExcelParserByOfficeRunnable::run() {
     qDebug("XlsxParserByOfficeRunnable::run start");
-    QString startMsg("【*_*开始 ==】拆分excel : %1/%2  分组项【%3】");
-    QString endMsg("【==完成^_^】拆分excel: %1/%2  分组项【%3】");
+    QString startMsg("【*__* 开始 ===】拆分excel : %1/%2  分组项 【%3】");
+    QString endMsg("【=== 完成  ^_^】拆分excel : %1/%2  分组项 【%3】");
 
     QHashIterator<QString, QList<int>> it(fragmentDataQhash);
     HRESULT hres = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
     while (it.hasNext()) {
         it.next();
         QString key = it.key();
-        requestMsg(Common::MsgTypeInfo, startMsg.arg(QString::number(runnableID)).arg(QString::number(m_total)).arg(key));
+        requestMsg(Common::MsgTypeInfo,
+                   startMsg.arg(QString().sprintf("%04d", runnableID)).arg(QString().sprintf("%04d", m_total)).arg(key));
         QList<int> contentList = it.value();
         contentList.insert(0, 1);
 
         this->processByOffice(key, contentList);
-        requestMsg(Common::MsgTypeSucc, endMsg.arg(QString::number(runnableID)).arg(QString::number(m_total)).arg(key));
+        requestMsg(Common::MsgTypeSucc,
+                   endMsg.arg(QString().sprintf("%04d", runnableID)).arg(QString().sprintf("%04d", m_total)).arg(key));
     }
     CoUninitialize();
 
