@@ -8,18 +8,17 @@
 #include "excelparser.h"
 #include "officehelper.h"
 #include "processwindow.h"
+#include "splitsubwindow.h"
 #include "xlsxdocument.h"
-#include <QMainWindow>
-
 namespace Ui {
 class SplitOnlyWindow;
 }
 
-class SplitOnlyWindow : public QMainWindow {
+class SplitOnlyWindow : public SplitSubWindow {
     Q_OBJECT
 
     public:
-    explicit SplitOnlyWindow(QWidget *parent = nullptr, QMainWindow *mainWindow = nullptr);
+    explicit SplitOnlyWindow(QMainWindow *mainWindow = nullptr);
     ~SplitOnlyWindow();
 
     void doSplitXls(QString dataSheetName, QString savePath);
@@ -42,8 +41,6 @@ class SplitOnlyWindow : public QMainWindow {
 
     private:
     Ui::SplitOnlyWindow *ui;
-    QMainWindow *mainWindow;
-
     QXlsx::Document *xlsx = nullptr;
     QStringList *header = new QStringList();
     ConfigSetting *configSetting = new ConfigSetting(nullptr, this);

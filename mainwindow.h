@@ -48,7 +48,7 @@ class MainWindow : public QMainWindow {
     void on_SplitAndEmailPushButton_clicked();
 
     private:
-    Ui::MainWindow *ui;
+    Ui::MainWindow *ui = nullptr;
     SplitOnlyWindow *splitOnlyWindow = nullptr;
     SplitAndEmailWindow *splitAndEmailWindow = nullptr;
     EmailOnlyWindow *emailOnlyWindow = nullptr;

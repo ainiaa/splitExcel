@@ -46,7 +46,8 @@ SOURCES += \
         excelparserbylibrunnable.cpp \
         sourceexceldata.cpp \
     splitandemailwindow.cpp \
-    emailonlywindow.cpp
+    emailonlywindow.cpp \
+    splitsubwindow.cpp
 
 
 HEADERS += \
@@ -71,7 +72,8 @@ HEADERS += \
         sourceexceldata.h \
         iexcelparserrunnable.h \
     splitandemailwindow.h \
-    emailonlywindow.h
+    emailonlywindow.h \
+    splitsubwindow.h
 
 FORMS += \
         mainwindow.ui \

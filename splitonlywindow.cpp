@@ -1,8 +1,7 @@
 #include "splitonlywindow.h"
 #include "ui_splitonlywindow.h"
 
-SplitOnlyWindow::SplitOnlyWindow(QWidget *parent, QMainWindow *mainWindow) : QMainWindow(parent), ui(new Ui::SplitOnlyWindow) {
-    this->mainWindow = mainWindow;
+SplitOnlyWindow::SplitOnlyWindow(QMainWindow *parent) : SplitSubWindow(parent), ui(new Ui::SplitOnlyWindow) {
     ui->setupUi(this);
 
     setFixedSize(this->width(), this->height());
@@ -133,5 +132,5 @@ void SplitOnlyWindow::receiveMessage(const int msgType, const QString &msg) {
 
 void SplitOnlyWindow::on_gobackPushButton_clicked() {
     this->hide();
-    mainWindow->show();
+    this->getMainWindow()->show();
 }

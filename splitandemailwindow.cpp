@@ -1,8 +1,8 @@
 #include "splitandemailwindow.h"
 #include "ui_splitandemailwindow.h"
 
-SplitAndEmailWindow::SplitAndEmailWindow(QWidget *parent)
-: QMainWindow(parent), ui(new Ui::SplitAndEmailWindow), xlsx(nullptr) {
+SplitAndEmailWindow::SplitAndEmailWindow(QMainWindow *parent)
+: SplitSubWindow(parent), ui(new Ui::SplitAndEmailWindow), xlsx(nullptr) {
     ui->setupUi(this);
     setWindowFlags(windowFlags() & ~Qt::WindowMaximizeButtonHint);
     setFixedSize(this->width(), this->height());
@@ -231,10 +231,4 @@ void SplitAndEmailWindow::on_dataComboBox_currentTextChanged(const QString &arg1
 void SplitAndEmailWindow::showConfigSetting() {
     this->hide();
     configSetting->show();
-}
-
-//显示配置UI
-void SplitAndEmailWindow::showSplitOnly() {
-    this->hide();
-    splitOnlyWindow->show();
 }

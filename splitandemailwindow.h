@@ -21,7 +21,7 @@
 #include "officehelper.h"
 #include "processwindow.h"
 #include "sourceexceldata.h"
-#include "splitonlywindow.h"
+#include "splitsubwindow.h"
 #include "testtimeer.h"
 #include "xlsxdocument.h"
 
@@ -29,11 +29,11 @@ namespace Ui {
 class SplitAndEmailWindow;
 }
 
-class SplitAndEmailWindow : public QMainWindow {
+class SplitAndEmailWindow : public SplitSubWindow {
     Q_OBJECT
 
     public:
-    SplitAndEmailWindow(QWidget *parent = nullptr);
+    SplitAndEmailWindow(QMainWindow *parent = nullptr);
     ~SplitAndEmailWindow();
     void doSplitXls(QString dataSheetName, QString emailSheetName, QString savePath);
     void sendemail();
@@ -56,8 +56,6 @@ class SplitAndEmailWindow : public QMainWindow {
 
     void showConfigSetting();
 
-    void showSplitOnly();
-
     void receiveMessage(const int msgType, const QString &result);
 
     private:
@@ -65,7 +63,6 @@ class SplitAndEmailWindow : public QMainWindow {
     QXlsx::Document *xlsx = nullptr;
     QStringList *header = new QStringList();
     ConfigSetting *configSetting = new ConfigSetting(nullptr, this);
-    SplitOnlyWindow *splitOnlyWindow = new SplitOnlyWindow(nullptr, this);
     TestTimeer *testTimeer = new TestTimeer(nullptr, this);
 
     Config *cfg = new Config();
