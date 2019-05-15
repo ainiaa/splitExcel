@@ -240,6 +240,4 @@ void MainWindow::showSplitOnly() {
 
 void MainWindow::on_cancelPushButton_2_clicked() {
     OfficeHelper *office = new OfficeHelper();
-    ExcelParserByADO *ado = new ExcelParserByADO();
-    ado->parse();
 }

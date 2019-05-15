@@ -18,7 +18,6 @@
 #include "configsetting.h"
 #include "emailsender.h"
 #include "excelparser.h"
-#include "excelparserbyado.h"
 #include "officehelper.h"
 #include "processwindow.h"
 #include "sourceexceldata.h"

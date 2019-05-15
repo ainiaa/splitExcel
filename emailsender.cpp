@@ -87,6 +87,7 @@ void EmailSender::doSendWithoutQueue() {
             fragmentEmailQhash.clear();
         }
     }
+    pool.waitForDone();
     qDebug("处理完毕！");
 }
 
@@ -165,8 +166,6 @@ void EmailSender::doSendWithQueue() {
     }
     this->use_queue = true;
 
-    // this->initTimer();
-
     EmailTaskQueueData emailTaskQueueData = emailTaskQueue.dequeue();
     QHash<QString, QList<QStringList>> currentEmailQhash = emailTaskQueueData.getEmailQhash();
     QHashIterator<QString, QList<QStringList>> it(currentEmailQhash);
@@ -191,7 +190,7 @@ void EmailSender::doSendWithQueue() {
     if (maxThreadCnt < 1) {
         maxThreadCnt = 2;
     }
-    maxThreadCnt = 1; //禁用多线程
+    maxThreadCnt = 5; //禁用多线程
 
     pool.setMaxThreadCount(maxThreadCnt);
 
@@ -217,6 +216,7 @@ void EmailSender::doSendWithQueue() {
             fragmentEmailQhash.clear();
         }
     }
+    pool.waitForDone();
     qDebug() << emailTaskQueueData.getMsg() << "处理完毕！";
 }
 
