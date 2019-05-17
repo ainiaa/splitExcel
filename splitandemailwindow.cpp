@@ -232,3 +232,8 @@ void SplitAndEmailWindow::showConfigSetting() {
     this->hide();
     configSetting->show();
 }
+
+void SplitAndEmailWindow::on_gobackButton_clicked() {
+    this->hide();
+    this->getMainWindow()->show();
+}

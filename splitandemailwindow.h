@@ -58,6 +58,8 @@ class SplitAndEmailWindow : public SplitSubWindow {
 
     void receiveMessage(const int msgType, const QString &result);
 
+    void on_gobackButton_clicked();
+
     private:
     Ui::SplitAndEmailWindow *ui;
     QXlsx::Document *xlsx = nullptr;

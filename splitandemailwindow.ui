@@ -85,7 +85,7 @@
    <widget class="QPushButton" name="submitPushButton">
     <property name="geometry">
      <rect>
-      <x>210</x>
+      <x>193</x>
       <y>327</y>
       <width>75</width>
       <height>31</height>
@@ -98,7 +98,7 @@
    <widget class="QPushButton" name="cancelPushButton">
     <property name="geometry">
      <rect>
-      <x>310</x>
+      <x>293</x>
       <y>327</y>
       <width>75</width>
       <height>31</height>
@@ -235,6 +235,19 @@
     </property>
     <property name="alignment">
      <set>Qt::AlignCenter</set>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="gobackButton">
+    <property name="geometry">
+     <rect>
+      <x>394</x>
+      <y>328</y>
+      <width>75</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>返回</string>
     </property>
    </widget>
   </widget>

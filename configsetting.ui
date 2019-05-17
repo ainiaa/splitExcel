@@ -17,8 +17,8 @@
    <widget class="QPushButton" name="submitPushButton">
     <property name="geometry">
      <rect>
-      <x>169</x>
-      <y>322</y>
+      <x>205</x>
+      <y>332</y>
       <width>75</width>
       <height>31</height>
      </rect>
@@ -31,7 +31,7 @@
     <property name="geometry">
      <rect>
       <x>170</x>
-      <y>30</y>
+      <y>40</y>
       <width>311</width>
       <height>41</height>
      </rect>
@@ -46,7 +46,7 @@
      </font>
     </property>
     <property name="text">
-     <string>拆分Excel并发送email</string>
+     <string>配置管理</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignCenter</set>
@@ -56,7 +56,7 @@
     <property name="geometry">
      <rect>
       <x>80</x>
-      <y>20</y>
+      <y>30</y>
       <width>81</width>
       <height>41</height>
      </rect>
@@ -72,7 +72,7 @@
     <property name="geometry">
      <rect>
       <x>39</x>
-      <y>77</y>
+      <y>87</y>
       <width>121</width>
       <height>31</height>
      </rect>
@@ -88,7 +88,7 @@
     <property name="geometry">
      <rect>
       <x>170</x>
-      <y>77</y>
+      <y>87</y>
       <width>341</width>
       <height>31</height>
      </rect>
@@ -97,24 +97,11 @@
      <string>smtp.exmail.qq.com</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="cancelPushButton">
-    <property name="geometry">
-     <rect>
-      <x>348</x>
-      <y>322</y>
-      <width>75</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>取消</string>
-    </property>
-   </widget>
    <widget class="QLineEdit" name="userNameLineEdit">
     <property name="geometry">
      <rect>
       <x>170</x>
-      <y>124</y>
+      <y>134</y>
       <width>341</width>
       <height>31</height>
      </rect>
@@ -124,7 +111,7 @@
     <property name="geometry">
      <rect>
       <x>69</x>
-      <y>124</y>
+      <y>134</y>
       <width>91</width>
       <height>31</height>
      </rect>
@@ -140,7 +127,7 @@
     <property name="geometry">
      <rect>
       <x>170</x>
-      <y>173</y>
+      <y>183</y>
       <width>341</width>
       <height>31</height>
      </rect>
@@ -153,7 +140,7 @@
     <property name="geometry">
      <rect>
       <x>69</x>
-      <y>173</y>
+      <y>183</y>
       <width>91</width>
       <height>31</height>
      </rect>
@@ -169,7 +156,7 @@
     <property name="geometry">
      <rect>
       <x>69</x>
-      <y>273</y>
+      <y>283</y>
       <width>91</width>
       <height>31</height>
      </rect>
@@ -181,11 +168,11 @@
      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
     </property>
    </widget>
-   <widget class="QPushButton" name="gobackPushButton">
+   <widget class="QPushButton" name="gobackButton">
     <property name="geometry">
      <rect>
-      <x>438</x>
-      <y>323</y>
+      <x>385</x>
+      <y>332</y>
       <width>75</width>
       <height>31</height>
      </rect>
@@ -197,8 +184,8 @@
    <widget class="QPushButton" name="testPushButton">
     <property name="geometry">
      <rect>
-      <x>258</x>
-      <y>322</y>
+      <x>294</x>
+      <y>332</y>
       <width>75</width>
       <height>31</height>
      </rect>
@@ -211,7 +198,7 @@
     <property name="geometry">
      <rect>
       <x>170</x>
-      <y>273</y>
+      <y>283</y>
       <width>341</width>
       <height>31</height>
      </rect>
@@ -261,7 +248,7 @@
     <property name="geometry">
      <rect>
       <x>49</x>
-      <y>222</y>
+      <y>232</y>
       <width>111</width>
       <height>31</height>
      </rect>
@@ -277,7 +264,7 @@
     <property name="geometry">
      <rect>
       <x>170</x>
-      <y>222</y>
+      <y>232</y>
       <width>341</width>
       <height>31</height>
      </rect>
