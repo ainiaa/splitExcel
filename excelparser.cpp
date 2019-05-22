@@ -95,6 +95,10 @@ void ExcelParser::receiveMessage(const int msgType, const QString &result) {
     }
     if (m_total_cnt > 0 && m_receive_msg_cnt == m_total_cnt) { //全部处理完毕
         emit requestMsg(Common::MsgTypeWriteXlsxFinish, "excel文件拆分完毕！");
+        if (this->sourceExcelData->getOpType() == SourceExcelData::OperateType::EmailOnlyType ||
+            this->sourceExcelData->getOpType() == SourceExcelData::OperateType::SplitAndEmailType) {
+            emit requestMsg(Common::MsgTypeStartSendEmail, "开始发送email");
+        }
     }
 }
 
@@ -108,6 +112,10 @@ void ExcelParser::doParse() {
         emailQhash = readEmailXls(groupByText, emailSheetName);
         if (emailQhash.size() < 1) {
             emit requestMsg(Common::MsgTypeFail, "没有email数据");
+            return;
+        }
+        if (this->sourceExcelData->getOpType() == SourceExcelData::OperateType::EmailOnlyType) {
+            emit requestMsg(Common::MsgTypeStartSendEmail, "开始发送email");
             return;
         }
     }
