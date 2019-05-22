@@ -8,7 +8,7 @@ class SourceExcelData : public QObject {
 
     public:
     SourceExcelData(QObject *parent = nullptr);
-    enum OperateType { SplitAndEmailType = 1, SplitOnlyType };
+    enum OperateType { SplitAndEmailType = 1, SplitOnlyType, EmailOnlyType };
 
     void setDataSheetIndex(int dataSheetIndex);
     int getDataSheetIndex();

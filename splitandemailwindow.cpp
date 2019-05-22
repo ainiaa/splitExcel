@@ -7,7 +7,7 @@ SplitAndEmailWindow::SplitAndEmailWindow(QMainWindow *parent)
     setWindowFlags(windowFlags() & ~Qt::WindowMaximizeButtonHint);
     setFixedSize(this->width(), this->height());
 
-    xlsxParser = new ExcelParser();
+    excelParser = new ExcelParser();
     connect(ui->actionConfig_Setting, SIGNAL(triggered()), this, SLOT(showConfigSetting()));
     connect(ui->actionSplit_Only, SIGNAL(triggered()), this, SLOT(showSplitOnly()));
 }
@@ -25,8 +25,8 @@ SplitAndEmailWindow::~SplitAndEmailWindow() {
         delete mailSenderThread;
     }
 
-    if (xlsxParser) {
-        delete xlsxParser;
+    if (excelParser) {
+        delete excelParser;
     }
     if (xlsxParserThread) {
         xlsxParserThread->quit();
@@ -57,12 +57,12 @@ SplitAndEmailWindow::~SplitAndEmailWindow() {
 
 //选择xlsx文件
 void SplitAndEmailWindow::on_selectFilePushButton_clicked() {
-    QString path = xlsxParser->openFile(this);
+    QString path = excelParser->openFile(this);
     if (path.length() > 0) { //选择了excel文件
         ui->xlsObjLineEdit->setText(path);
         this->sourcePath = QDir::toNativeSeparators(path);
         //获得所有的sheets
-        QStringList sheetNames = xlsxParser->getSheetNames();
+        QStringList sheetNames = excelParser->getSheetNames();
         ui->dataComboBox->addItems(sheetNames);
         ui->dataComboBox->setCurrentIndex(0);
         ui->emailComboBox->addItems(sheetNames);
@@ -77,7 +77,7 @@ void SplitAndEmailWindow::on_selectFilePushButton_clicked() {
 void SplitAndEmailWindow::changeGroupby(QString selectedSheetName) {
     header->clear();
     ui->groupByComboBox->clear();
-    header = xlsxParser->getSheetHeader(selectedSheetName);
+    header = excelParser->getSheetHeader(selectedSheetName);
     ui->groupByComboBox->addItems(*header);
 }
 
@@ -97,6 +97,8 @@ void SplitAndEmailWindow::receiveMessage(const int msgType, const QString &msg) 
         case Common::MsgTypeWriteXlsxFinish:
             processWindow->setProcessText(msg);
             ui->statusBar->showMessage(msg);
+            break;
+        case Common::MsgTypeStartSendEmail:
             //发送email
             sendemail();
             break;
@@ -181,13 +183,13 @@ void SplitAndEmailWindow::doSplitXls(QString dataSheetName, QString emailSheetNa
     sourceExcelData->setOpType(SourceExcelData::OperateType::SplitAndEmailType);
     sourceExcelData->setGroupByText(groupByText);
     sourceExcelData->setSourcePath(this->sourcePath);
-    xlsxParser->setSplitData(cfg, sourceExcelData);
+    excelParser->setSplitData(cfg, sourceExcelData);
 
-    xlsxParser->moveToThread(xlsxParserThread);
+    excelParser->moveToThread(xlsxParserThread);
     connect(xlsxParserThread, &QThread::finished, xlsxParserThread, &QObject::deleteLater);
-    connect(xlsxParserThread, &QThread::finished, xlsxParser, &QObject::deleteLater);
-    connect(this, &SplitAndEmailWindow::doSplit, xlsxParser, &ExcelParser::doSplit);
-    connect(xlsxParser, &ExcelParser::requestMsg, this, &SplitAndEmailWindow::receiveMessage);
+    connect(xlsxParserThread, &QThread::finished, excelParser, &QObject::deleteLater);
+    connect(this, &SplitAndEmailWindow::doSplit, excelParser, &ExcelParser::doSplit);
+    connect(excelParser, &ExcelParser::requestMsg, this, &SplitAndEmailWindow::receiveMessage);
     xlsxParserThread->start();
 
     emit doSplit(); //主线程通过信号换起子线程的槽函数
@@ -196,7 +198,7 @@ void SplitAndEmailWindow::doSplitXls(QString dataSheetName, QString emailSheetNa
 //发送邮件
 //@see https://blog.csdn.net/czyt1988/article/details/71194457
 void SplitAndEmailWindow::sendemail() {
-    QHash<QString, QList<QStringList>> emailQhash = xlsxParser->getEmailData();
+    QHash<QString, QList<QStringList>> emailQhash = excelParser->getEmailData();
     int total = emailQhash.size();
     if (mailSenderThread != nullptr) {
         return;

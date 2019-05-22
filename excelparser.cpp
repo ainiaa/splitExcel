@@ -101,7 +101,8 @@ void ExcelParser::receiveMessage(const int msgType, const QString &result) {
 //拆分excel文件
 void ExcelParser::doSplit() {
     qDebug() << "doSplit";
-    if (this->sourceExcelData->getOpType() == SourceExcelData::OperateType::SplitAndEmailType) {
+    if (this->sourceExcelData->getOpType() == SourceExcelData::OperateType::SplitAndEmailType ||
+        this->sourceExcelData->getOpType() == SourceExcelData::OperateType::EmailOnlyType) {
         qDebug() << "doSplit readEmailXls";
         //读取email
         emailQhash = readEmailXls(groupByText, emailSheetName);
@@ -111,23 +112,25 @@ void ExcelParser::doSplit() {
         }
     }
 
-    qDebug() << "doSplit readDataXls";
-    //读取excel数据
-    emit requestMsg(Common::MsgTypeInfo, "开始读取excel文件信息");
-    QHash<QString, QList<int>> dataQhash = readDataXls(groupByText, dataSheetName);
-    if (dataQhash.size() < 1) {
-        emit requestMsg(Common::MsgTypeFail, "没有data数据！！");
-        return;
-    }
-
-    //写excel
-    emit requestMsg(Common::MsgTypeInfo, "开始拆分excel并生成新的excel文件");
-    m_total_cnt = dataQhash.size();
-    qDebug() << "doSplit writeXls";
-    if (this->isInstalledOffice) {
-        writeXlsByOffice(dataSheetName, dataQhash);
-    } else {
-        writeXlsByLib(dataSheetName, dataQhash);
+    if (this->sourceExcelData->getOpType() == SourceExcelData::OperateType::SplitAndEmailType ||
+        this->sourceExcelData->getOpType() == SourceExcelData::OperateType::SplitOnlyType) {
+        qDebug() << "doSplit readDataXls";
+        //读取excel数据
+        emit requestMsg(Common::MsgTypeInfo, "开始读取excel文件信息");
+        QHash<QString, QList<int>> dataQhash = readDataXls(groupByText, dataSheetName);
+        if (dataQhash.size() < 1) {
+            emit requestMsg(Common::MsgTypeFail, "没有data数据！！");
+            return;
+        }
+        //写excel
+        emit requestMsg(Common::MsgTypeInfo, "开始拆分excel并生成新的excel文件");
+        m_total_cnt = dataQhash.size();
+        qDebug() << "doSplit writeXls";
+        if (this->isInstalledOffice) {
+            writeXlsByOffice(dataSheetName, dataQhash);
+        } else {
+            writeXlsByLib(dataSheetName, dataQhash);
+        }
     }
 }
 

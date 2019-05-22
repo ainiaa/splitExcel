@@ -105,11 +105,8 @@ void SplitOnlyWindow::receiveMessage(const int msgType, const QString &msg) {
     switch (msgType) {
         case Common::MsgTypeError:
             ui->submitPushButton->setDisabled(false);
-
             processWindow->setProcessText(msg);
-
             QMessageBox::critical(this, "Error", msg);
-            // errorMessage(msg);
             break;
         case Common::MsgTypeWriteXlsxFinish:
             processWindow->setProcessText(msg);
@@ -119,7 +116,6 @@ void SplitOnlyWindow::receiveMessage(const int msgType, const QString &msg) {
             ui->submitPushButton->setDisabled(false);
             processWindow->setProcessText(msg);
             mailSenderThread = nullptr;
-
             break;
         case Common::MsgTypeSucc:
         case Common::MsgTypeInfo:
