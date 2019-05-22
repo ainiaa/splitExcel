@@ -24,7 +24,7 @@ class EmailOnlyWindow : public SplitSubWindow {
     void doSendEmail(QString dataSheetName, QString savePath);
 
     signals:
-    void doSend();
+    void doProcess();
 
     private slots:
     void on_selectFilePushButton_clicked();

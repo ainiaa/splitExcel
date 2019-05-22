@@ -92,11 +92,11 @@ void EmailOnlyWindow::doSendEmail(QString emailSheetName, QString savePath) {
     excelParser->moveToThread(excelParserThread);
     connect(excelParserThread, &QThread::finished, excelParserThread, &QObject::deleteLater);
     connect(excelParserThread, &QThread::finished, excelParser, &QObject::deleteLater);
-    connect(this, &EmailOnlyWindow::doSend, excelParser, &ExcelParser::doParse);
+    connect(this, &EmailOnlyWindow::doProcess, excelParser, &ExcelParser::doParse);
     connect(excelParser, &ExcelParser::requestMsg, this, &EmailOnlyWindow::receiveMessage);
     excelParserThread->start();
 
-    emit doSend(); //主线程通过信号换起子线程的槽函数
+    emit doProcess(); //主线程通过信号换起子线程的槽函数
 }
 
 //接受子线程的消息
