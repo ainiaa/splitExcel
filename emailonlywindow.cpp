@@ -81,9 +81,9 @@ void EmailOnlyWindow::doSendEmail(QString emailSheetName, QString savePath) {
     int sheetCnt = ui->dataComboBox->count();
     SourceExcelData *sourceExcelData = new SourceExcelData();
     sourceExcelData->setSavePath(savePath);
-    sourceExcelData->setDataSheetName(emailSheetName);
+    sourceExcelData->setEmailSheetName(emailSheetName);
     sourceExcelData->setSheetCnt(sheetCnt);
-    sourceExcelData->setDataSheetIndex(dataSheetIndex);
+    sourceExcelData->setEmailSheetIndex(dataSheetIndex);
     sourceExcelData->setOpType(SourceExcelData::OperateType::EmailOnlyType);
     sourceExcelData->setGroupByText(groupByText);
     sourceExcelData->setSourcePath(this->sourcePath);
