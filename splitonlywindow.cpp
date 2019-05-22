@@ -92,11 +92,11 @@ void SplitOnlyWindow::doSplitXls(QString dataSheetName, QString savePath) {
     excelParser->moveToThread(excelParserThread);
     connect(excelParserThread, &QThread::finished, excelParserThread, &QObject::deleteLater);
     connect(excelParserThread, &QThread::finished, excelParser, &QObject::deleteLater);
-    connect(this, &SplitOnlyWindow::doSplit, excelParser, &ExcelParser::doSplit);
+    connect(this, &SplitOnlyWindow::doProcess, excelParser, &ExcelParser::doParse);
     connect(excelParser, &ExcelParser::requestMsg, this, &SplitOnlyWindow::receiveMessage);
     excelParserThread->start();
 
-    emit doSplit(); //主线程通过信号换起子线程的槽函数
+    emit doProcess(); //主线程通过信号换起子线程的槽函数
 }
 
 //接受子线程的消息

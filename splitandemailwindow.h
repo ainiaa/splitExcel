@@ -41,7 +41,7 @@ class SplitAndEmailWindow : public SplitSubWindow {
 
     signals:
     void doSend();
-    void doSplit();
+    void doProcess();
 
     private slots:
     void on_selectFilePushButton_clicked();

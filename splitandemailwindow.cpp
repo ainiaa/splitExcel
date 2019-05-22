@@ -188,11 +188,11 @@ void SplitAndEmailWindow::doSplitXls(QString dataSheetName, QString emailSheetNa
     excelParser->moveToThread(xlsxParserThread);
     connect(xlsxParserThread, &QThread::finished, xlsxParserThread, &QObject::deleteLater);
     connect(xlsxParserThread, &QThread::finished, excelParser, &QObject::deleteLater);
-    connect(this, &SplitAndEmailWindow::doSplit, excelParser, &ExcelParser::doSplit);
+    connect(this, &SplitAndEmailWindow::doProcess, excelParser, &ExcelParser::doParse);
     connect(excelParser, &ExcelParser::requestMsg, this, &SplitAndEmailWindow::receiveMessage);
     xlsxParserThread->start();
 
-    emit doSplit(); //主线程通过信号换起子线程的槽函数
+    emit doProcess(); //主线程通过信号换起子线程的槽函数
 }
 
 //发送邮件

@@ -24,7 +24,7 @@ class SplitOnlyWindow : public SplitSubWindow {
     void doSplitXls(QString dataSheetName, QString savePath);
 
     signals:
-    void doSplit();
+    void doProcess();
 
     private slots:
     void on_selectFilePushButton_clicked();

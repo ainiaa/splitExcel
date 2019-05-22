@@ -39,7 +39,7 @@ class ExcelParser : public QObject {
 
     public slots:
     void receiveMessage(const int msgType, const QString &result);
-    void doSplit();
+    void doParse();
     signals:
     void requestMsg(const int msgType, const QString &result);
 
