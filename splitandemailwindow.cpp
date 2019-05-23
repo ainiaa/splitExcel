@@ -9,7 +9,6 @@ SplitAndEmailWindow::SplitAndEmailWindow(QMainWindow *parent)
 
     excelParser = new ExcelParser();
     connect(ui->actionConfig_Setting, SIGNAL(triggered()), this, SLOT(showConfigSetting()));
-    connect(ui->actionSplit_Only, SIGNAL(triggered()), this, SLOT(showSplitOnly()));
 }
 
 SplitAndEmailWindow::~SplitAndEmailWindow() {

@@ -41,6 +41,7 @@ class MainWindow : public QMainWindow {
 
     private slots:
 
+    void showConfigSetting();
     void on_splitOnlyPushButton_clicked();
 
     void on_EmailOnlyPushButton_clicked();
@@ -52,6 +53,7 @@ class MainWindow : public QMainWindow {
     SplitOnlyWindow *splitOnlyWindow = nullptr;
     SplitAndEmailWindow *splitAndEmailWindow = nullptr;
     EmailOnlyWindow *emailOnlyWindow = nullptr;
+    ConfigSetting *configSetting = new ConfigSetting(nullptr, this);
     void errorMessage(const QString &message);
 };
 

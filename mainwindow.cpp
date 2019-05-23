@@ -7,7 +7,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     setFixedSize(this->width(), this->height());
 
     connect(ui->actionConfig_Setting, SIGNAL(triggered()), this, SLOT(showConfigSetting()));
-    connect(ui->actionSplit_Only, SIGNAL(triggered()), this, SLOT(showSplitOnly()));
 }
 
 MainWindow::~MainWindow() {
@@ -24,6 +23,10 @@ MainWindow::~MainWindow() {
     if (this->splitAndEmailWindow != nullptr) {
         delete this->splitAndEmailWindow;
         this->splitAndEmailWindow = nullptr;
+    }
+    if (this->configSetting != nullptr) {
+        delete this->configSetting;
+        this->configSetting = nullptr;
     }
     qDebug() << "MainWindow::~MainWindow end";
 }
@@ -51,4 +54,9 @@ void MainWindow::on_SplitAndEmailPushButton_clicked() {
         this->splitAndEmailWindow = new SplitAndEmailWindow(this);
     }
     this->splitAndEmailWindow->show();
+}
+
+void MainWindow::showConfigSetting() {
+    this->hide();
+    configSetting->show();
 }
