@@ -1,8 +1,7 @@
 #include "configsetting.h"
 #include "ui_configsetting.h"
 
-ConfigSetting::ConfigSetting(QWidget *parent, QMainWindow *mainWindow) : QMainWindow(parent), ui(new Ui::ConfigSetting) {
-    this->mainWindow = mainWindow;
+ConfigSetting::ConfigSetting(QMainWindow *parent) : SplitSubWindow(parent), ui(new Ui::ConfigSetting) {
     ui->setupUi(this);
     loadConfig();
 }
@@ -43,11 +42,6 @@ void ConfigSetting::on_submitPushButton_clicked() {
     QMessageBox::information(this, "配置项保存成功", "配置项保存成功");
 }
 
-void ConfigSetting::on_gobackPushButton_clicked() {
-    this->hide();
-    mainWindow->show();
-}
-
 //测试
 void ConfigSetting::on_testPushButton_clicked() {
     QString server = ui->serverLineEdit->text();
@@ -80,4 +74,9 @@ void ConfigSetting::on_testPushButton_clicked() {
         return;
     }
     QMessageBox::information(this, "配置项正确", "配置正确!!");
+}
+
+void ConfigSetting::on_gobackButton_clicked() {
+    this->hide();
+    this->getMainWindow()->show();
 }

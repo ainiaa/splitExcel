@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>拆分 Excel</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QComboBox" name="groupByComboBox">
@@ -79,19 +79,6 @@
      </rect>
     </property>
    </widget>
-   <widget class="QPushButton" name="cancelPushButton">
-    <property name="geometry">
-     <rect>
-      <x>298</x>
-      <y>277</y>
-      <width>75</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>取消</string>
-    </property>
-   </widget>
    <widget class="QLabel" name="selectFileLabel">
     <property name="geometry">
      <rect>
@@ -127,7 +114,7 @@
      </font>
     </property>
     <property name="text">
-     <string>拆分Excel</string>
+     <string>拆分 Excel</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignCenter</set>
@@ -169,19 +156,6 @@
      <string/>
     </property>
    </widget>
-   <widget class="QPushButton" name="submitPushButton">
-    <property name="geometry">
-     <rect>
-      <x>198</x>
-      <y>277</y>
-      <width>75</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>确定</string>
-    </property>
-   </widget>
    <widget class="QLabel" name="groupFieldLabel">
     <property name="geometry">
      <rect>
@@ -214,14 +188,27 @@
    <widget class="QPushButton" name="gobackPushButton">
     <property name="geometry">
      <rect>
-      <x>398</x>
-      <y>278</y>
+      <x>330</x>
+      <y>277</y>
       <width>75</width>
       <height>31</height>
      </rect>
     </property>
     <property name="text">
      <string>返回</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="submitPushButton">
+    <property name="geometry">
+     <rect>
+      <x>236</x>
+      <y>278</y>
+      <width>75</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>确定</string>
     </property>
    </widget>
   </widget>

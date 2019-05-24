@@ -11,9 +11,9 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>拆分Excel并发送email</string>
+   <string>拆分 Excel 并发送 email</string>
   </property>
-  <widget class="QWidget" name="centralWidget">
+  <widget class="QWidget" name="centralwidget">
    <widget class="QLabel" name="selectFileLabel">
     <property name="geometry">
      <rect>
@@ -82,10 +82,10 @@
      </rect>
     </property>
    </widget>
-   <widget class="QPushButton" name="submitPushButton">
+   <widget class="QPushButton" name="submit2PushButton">
     <property name="geometry">
      <rect>
-      <x>193</x>
+      <x>237</x>
       <y>327</y>
       <width>75</width>
       <height>31</height>
@@ -93,19 +93,6 @@
     </property>
     <property name="text">
      <string>确定</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="cancelPushButton">
-    <property name="geometry">
-     <rect>
-      <x>293</x>
-      <y>327</y>
-      <width>75</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>取消</string>
     </property>
    </widget>
    <widget class="QComboBox" name="groupByComboBox">
@@ -231,16 +218,16 @@
      </font>
     </property>
     <property name="text">
-     <string>拆分Excel并发送email</string>
+     <string>拆分 Excel 并发送 email</string>
     </property>
     <property name="alignment">
      <set>Qt::AlignCenter</set>
     </property>
    </widget>
-   <widget class="QPushButton" name="gobackButton">
+   <widget class="QPushButton" name="gobackPushButton">
     <property name="geometry">
      <rect>
-      <x>394</x>
+      <x>333</x>
       <y>328</y>
       <width>75</width>
       <height>31</height>

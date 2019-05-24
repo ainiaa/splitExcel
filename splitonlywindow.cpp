@@ -7,6 +7,7 @@ SplitOnlyWindow::SplitOnlyWindow(QMainWindow *parent) : SplitSubWindow(parent), 
     setFixedSize(this->width(), this->height());
 
     excelParser = new ExcelParser();
+    connect(ui->actionConfig_Setting, SIGNAL(triggered()), this, SLOT(showConfigSetting()));
 }
 
 SplitOnlyWindow::~SplitOnlyWindow() {
@@ -127,6 +128,12 @@ void SplitOnlyWindow::receiveMessage(const int msgType, const QString &msg) {
 }
 
 void SplitOnlyWindow::on_gobackPushButton_clicked() {
-    this->hide();
     this->getMainWindow()->show();
+    this->hide();
+}
+
+//显示配置UI
+void SplitOnlyWindow::showConfigSetting() {
+    this->hide();
+    configSetting->show();
 }

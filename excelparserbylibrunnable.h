@@ -29,18 +29,13 @@ class ExcelParserByLibRunnable : public IExcelParserRunnable {
     ~ExcelParserByLibRunnable() override;
 
     void run() override;
-
     void setID(const int &id) override;
-
     void setSplitData(QString sourcePath, QString selectedSheetName, QHash<QString, QList<int>> fragmentDataQhash, QString savePath, int m_total) override;
     void setSplitData(SourceExcelData *sourceExcelData, QString selectedSheetName, QHash<QString, QList<int>> fragmentDataQhash, int m_total) override;
     void requestMsg(const int msgType, const QString &result) override;
-
     void writeXls(QString selectedSheetName, QHash<QString, QList<int>> qHash, QString savePath);
-
     void processByQxls(QString key, QList<int> contentList);
     void processSourceFile();
-
     bool copyFileToPath(QString sourceDir, QString toDir, bool coverFileIfExist);
     void generateTplXls();
 

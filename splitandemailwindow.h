@@ -45,26 +45,19 @@ class SplitAndEmailWindow : public SplitSubWindow {
 
     private slots:
     void on_selectFilePushButton_clicked();
-
     void on_savePathPushButton_clicked();
-
-    void on_submitPushButton_clicked();
-
     void changeGroupby(QString selectedSheetName);
-
     void on_dataComboBox_currentTextChanged(const QString &arg1);
-
     void showConfigSetting();
-
     void receiveMessage(const int msgType, const QString &result);
-
-    void on_gobackButton_clicked();
+    void on_gobackPushButton_clicked();
+    void on_submit2PushButton_clicked();
 
     private:
     Ui::SplitAndEmailWindow *ui;
     QXlsx::Document *xlsx = nullptr;
     QStringList *header = new QStringList();
-    ConfigSetting *configSetting = new ConfigSetting(nullptr, this);
+    ConfigSetting *configSetting = new ConfigSetting(this);
     TestTimeer *testTimeer = new TestTimeer(nullptr, this);
 
     Config *cfg = new Config();

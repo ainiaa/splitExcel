@@ -3,17 +3,18 @@
 
 #include "config.h"
 #include "smtpclient/src/SmtpMime"
+#include "splitsubwindow.h"
 #include <QMainWindow>
 #include <QMessageBox>
 namespace Ui {
 class ConfigSetting;
 }
 
-class ConfigSetting : public QMainWindow {
+class ConfigSetting : public SplitSubWindow {
     Q_OBJECT
 
     public:
-    explicit ConfigSetting(QWidget *parent = nullptr, QMainWindow *mainWindow = nullptr);
+    explicit ConfigSetting(QMainWindow *parent = nullptr);
     ~ConfigSetting();
 
     void loadConfig();
@@ -21,15 +22,12 @@ class ConfigSetting : public QMainWindow {
 
     private slots:
     void on_submitPushButton_clicked();
-
-    void on_gobackPushButton_clicked();
-
     void on_testPushButton_clicked();
+    void on_gobackButton_clicked();
 
     private:
     Ui::ConfigSetting *ui;
     Config *cfg = new Config();
-    QMainWindow *mainWindow;
 };
 
 #endif // CONFIGSETTING_H

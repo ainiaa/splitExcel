@@ -22,25 +22,17 @@ class ExcelParserByOfficeRunnable : public IExcelParserRunnable {
     ~ExcelParserByOfficeRunnable() override;
 
     void run() override;
-
     void setID(const int &id) override;
-
     void setSplitData(SourceExcelData *sourceXmlData, QString selectedSheetName, QHash<QString, QList<int>> fragmentDataQhash, int m_total) override;
     void setSplitData(QString sourcePath, QString selectedSheetName, QHash<QString, QList<int>> fragmentDataQhash, QString savePath, int m_total) override;
-
     void requestMsg(const int msgType, const QString &result) override;
-
     void writeXls(QString selectedSheetName, QHash<QString, QList<int>> qHash, QString savePath);
-
     void processByOffice(QString key, QList<int> contentList);
     void processSourceFile();
-
     bool static copyFileToPath(QString sourceDir, QString toDir, bool coverFileIfExist);
     void generateTplXls();
-
     void static processSourceFile(SourceExcelData *sourceExcelData, QString selectedSheetName);
     void static generateTplXls(SourceExcelData *sourceExcelData, int selectedSheetIndex);
-
     void static freeExcel(QAxObject *excel);
 
     private:

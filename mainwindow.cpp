@@ -32,31 +32,33 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::on_splitOnlyPushButton_clicked() {
-    this->hide();
     if (this->splitOnlyWindow == nullptr) {
         this->splitOnlyWindow = new SplitOnlyWindow(this);
     }
 
     this->splitOnlyWindow->show();
+    this->hide();
 }
 
 void MainWindow::on_EmailOnlyPushButton_clicked() {
-    this->hide();
+
     if (this->emailOnlyWindow == nullptr) {
         this->emailOnlyWindow = new EmailOnlyWindow(this);
     }
     this->emailOnlyWindow->show();
+    this->hide();
 }
 
 void MainWindow::on_SplitAndEmailPushButton_clicked() {
-    this->hide();
+
     if (this->splitAndEmailWindow == nullptr) {
         this->splitAndEmailWindow = new SplitAndEmailWindow(this);
     }
     this->splitAndEmailWindow->show();
+    this->hide();
 }
 
 void MainWindow::showConfigSetting() {
-    this->hide();
     configSetting->show();
+    this->hide();
 }

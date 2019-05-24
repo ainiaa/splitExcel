@@ -12,11 +12,8 @@ class EmailSenderRunnable : public QObject, public QRunnable {
     ~EmailSenderRunnable();
 
     void run();
-
     void setID(const int &id);
-
     void setSendData(QString userName, QString password, QString server, QString defaultSender, QString savePath, QHash<QString, QList<QStringList>> fragmentEmailData);
-
     void requestMsg(const int msgType, const QString &result);
 
     public slots:

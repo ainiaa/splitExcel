@@ -53,7 +53,7 @@ class MainWindow : public QMainWindow {
     SplitOnlyWindow *splitOnlyWindow = nullptr;
     SplitAndEmailWindow *splitAndEmailWindow = nullptr;
     EmailOnlyWindow *emailOnlyWindow = nullptr;
-    ConfigSetting *configSetting = new ConfigSetting(nullptr, this);
+    ConfigSetting *configSetting = new ConfigSetting(this);
     void errorMessage(const QString &message);
 };
 

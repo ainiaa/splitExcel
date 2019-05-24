@@ -85,7 +85,7 @@ void SplitAndEmailWindow::receiveMessage(const int msgType, const QString &msg) 
     qDebug() << "SplitAndEmailWindow::receiveMessage msgType:" << QString::number(msgType).toUtf8() << " msg:" << msg;
     switch (msgType) {
         case Common::MsgTypeError:
-            ui->submitPushButton->setDisabled(false);
+            ui->submit2PushButton->setDisabled(false);
 
             processWindow->setProcessText(msg);
             ui->statusBar->showMessage(msg);
@@ -102,7 +102,7 @@ void SplitAndEmailWindow::receiveMessage(const int msgType, const QString &msg) 
             sendemail();
             break;
         case Common::MsgTypeEmailSendFinish:
-            ui->submitPushButton->setDisabled(false);
+            ui->submit2PushButton->setDisabled(false);
             ui->statusBar->showMessage(msg);
             processWindow->setProcessText(msg);
             mailSenderThread = nullptr;
@@ -124,41 +124,6 @@ void SplitAndEmailWindow::on_savePathPushButton_clicked() {
         ui->savePathLineEdit->setText(path);
         savePath = QDir::toNativeSeparators(path);
     }
-}
-
-//确定拆分
-void SplitAndEmailWindow::on_submitPushButton_clicked() {
-    ui->submitPushButton->setDisabled(true);
-
-    QString server = cfg->get("email", "server").toString();
-    if (server.isEmpty()) {
-        QMessageBox::information(this, "Setting Error", "请先配置邮件相关配置");
-        ui->submitPushButton->setDisabled(false);
-        return;
-    }
-
-    if (ui->xlsObjLineEdit->text().isEmpty()) {
-        QMessageBox::information(this, "Save Path Error", "请选择待拆分的excel");
-        ui->submitPushButton->setDisabled(false);
-        return;
-    }
-    if (savePath.length() == 0) {
-        QMessageBox::information(this, "Save Path Error", "请选择保存路径");
-        ui->submitPushButton->setDisabled(false);
-        return;
-    }
-
-    if (processWindow == nullptr) {
-        processWindow = new ProcessWindow();
-    } else {
-        processWindow->clearProcessText();
-    }
-    processWindow->setWindowModality(Qt::WindowModality::ApplicationModal);
-    processWindow->show();
-
-    qDebug() << "拆分 && 后续操作(发送email)";
-    //拆分 && 后续操作(发送email)
-    doSplitXls(ui->dataComboBox->currentText(), ui->emailComboBox->currentText(), savePath);
 }
 
 //拆分 && 后续操作(发送email)
@@ -234,7 +199,41 @@ void SplitAndEmailWindow::showConfigSetting() {
     configSetting->show();
 }
 
-void SplitAndEmailWindow::on_gobackButton_clicked() {
-    this->hide();
+void SplitAndEmailWindow::on_gobackPushButton_clicked() {
     this->getMainWindow()->show();
+    this->hide();
+}
+
+void SplitAndEmailWindow::on_submit2PushButton_clicked() {
+    ui->submit2PushButton->setDisabled(true);
+
+    QString server = cfg->get("email", "server").toString();
+    if (server.isEmpty()) {
+        QMessageBox::information(this, "Setting Error", "请先配置邮件相关配置");
+        ui->submit2PushButton->setDisabled(false);
+        return;
+    }
+
+    if (ui->xlsObjLineEdit->text().isEmpty()) {
+        QMessageBox::information(this, "Save Path Error", "请选择待拆分的excel");
+        ui->submit2PushButton->setDisabled(false);
+        return;
+    }
+    if (savePath.length() == 0) {
+        QMessageBox::information(this, "Save Path Error", "请选择保存路径");
+        ui->submit2PushButton->setDisabled(false);
+        return;
+    }
+
+    if (processWindow == nullptr) {
+        processWindow = new ProcessWindow(this);
+    } else {
+        processWindow->clearProcessText();
+    }
+    processWindow->setWindowModality(Qt::WindowModality::ApplicationModal);
+    processWindow->show();
+
+    qDebug() << "拆分 && 后续操作(发送email)";
+    //拆分 && 后续操作(发送email)
+    doSplitXls(ui->dataComboBox->currentText(), ui->emailComboBox->currentText(), savePath);
 }

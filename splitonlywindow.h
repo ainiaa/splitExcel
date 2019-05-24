@@ -28,22 +28,18 @@ class SplitOnlyWindow : public SplitSubWindow {
 
     private slots:
     void on_selectFilePushButton_clicked();
-
     void changeGroupby(QString selectedSheetName);
-
     void on_savePathPushButton_clicked();
-
     void on_submitPushButton_clicked();
-
     void receiveMessage(const int msgType, const QString &result);
-
     void on_gobackPushButton_clicked();
+    void showConfigSetting();
 
     private:
     Ui::SplitOnlyWindow *ui;
     QXlsx::Document *xlsx = nullptr;
     QStringList *header = new QStringList();
-    ConfigSetting *configSetting = new ConfigSetting(nullptr, this);
+    ConfigSetting *configSetting = new ConfigSetting(this);
 
     Config *cfg = new Config();
     QThread *excelParserThread = nullptr;

@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>拆分Excel并发送email</string>
+   <string>Excel操作工具</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <widget class="QLabel" name="logoLabel">

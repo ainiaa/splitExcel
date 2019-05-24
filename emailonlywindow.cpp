@@ -7,6 +7,7 @@ EmailOnlyWindow::EmailOnlyWindow(QMainWindow *parent) : SplitSubWindow(parent), 
     setFixedSize(this->width(), this->height());
 
     excelParser = new ExcelParser();
+    connect(ui->actionConfig_Setting, SIGNAL(triggered()), this, SLOT(showConfigSetting()));
 }
 
 EmailOnlyWindow::~EmailOnlyWindow() {
@@ -129,4 +130,10 @@ void EmailOnlyWindow::receiveMessage(const int msgType, const QString &msg) {
 void EmailOnlyWindow::on_gobackPushButton_clicked() {
     this->hide();
     this->getMainWindow()->show();
+}
+
+//显示配置UI
+void EmailOnlyWindow::showConfigSetting() {
+    this->hide();
+    configSetting->show();
 }
