@@ -46,17 +46,17 @@ void EmailOnlyWindow::on_savePathPushButton_clicked() {
     }
 }
 
-void EmailOnlyWindow::on_submitPushButton_clicked() {
-    ui->submitPushButton->setDisabled(true);
+void EmailOnlyWindow::on_emailOnlySubmitPushButton_clicked() {
+    ui->emailOnlySubmitPushButton->setDisabled(true);
 
     if (ui->xlsObjLineEdit->text().isEmpty()) {
         QMessageBox::information(this, "Save Path Error", "请选择待拆分的excel");
-        ui->submitPushButton->setDisabled(false);
+        ui->emailOnlySubmitPushButton->setDisabled(false);
         return;
     }
     if (savePath.length() == 0) {
         QMessageBox::information(this, "Save Path Error", "请选择附件路径");
-        ui->submitPushButton->setDisabled(false);
+        ui->emailOnlySubmitPushButton->setDisabled(false);
         return;
     }
 
@@ -105,16 +105,16 @@ void EmailOnlyWindow::receiveMessage(const int msgType, const QString &msg) {
     qDebug() << "EmailOnlyWindow::receiveMessage msgType:" << QString::number(msgType).toUtf8() << " msg:" << msg;
     switch (msgType) {
         case Common::MsgTypeError:
-            ui->submitPushButton->setDisabled(false);
+            ui->emailOnlySubmitPushButton->setDisabled(false);
             processWindow->setProcessText(msg);
             QMessageBox::critical(this, "Error", msg);
             break;
         case Common::MsgTypeWriteXlsxFinish:
             processWindow->setProcessText(msg);
-            ui->submitPushButton->setDisabled(false);
+            ui->emailOnlySubmitPushButton->setDisabled(false);
             break;
         case Common::MsgTypeEmailSendFinish:
-            ui->submitPushButton->setDisabled(false);
+            ui->emailOnlySubmitPushButton->setDisabled(false);
             processWindow->setProcessText(msg);
             mailSenderThread = nullptr;
             break;

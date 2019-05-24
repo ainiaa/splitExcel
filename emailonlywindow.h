@@ -30,7 +30,7 @@ class EmailOnlyWindow : public SplitSubWindow {
     void on_selectFilePushButton_clicked();
     void changeGroupby(QString selectedSheetName);
     void on_savePathPushButton_clicked();
-    void on_submitPushButton_clicked();
+    void on_emailOnlySubmitPushButton_clicked();
     void receiveMessage(const int msgType, const QString &result);
     void on_gobackPushButton_clicked();
     void showConfigSetting();

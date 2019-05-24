@@ -198,7 +198,7 @@
      <string>返回</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="submitPushButton">
+   <widget class="QPushButton" name="splitOnlySubmitPushButton">
     <property name="geometry">
      <rect>
       <x>236</x>
