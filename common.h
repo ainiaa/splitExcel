@@ -2,6 +2,7 @@
 #define COMMON_H
 class Common {
     public:
+    static const int MsgTypeStart = 0;
     static const int MsgTypeError = 1;
     static const int MsgTypeWarn = 2;
     static const int MsgTypeInfo = 3;

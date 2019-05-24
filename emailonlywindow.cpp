@@ -104,21 +104,28 @@ void EmailOnlyWindow::doSendEmail(QString emailSheetName, QString savePath) {
 void EmailOnlyWindow::receiveMessage(const int msgType, const QString &msg) {
     qDebug() << "EmailOnlyWindow::receiveMessage msgType:" << QString::number(msgType).toUtf8() << " msg:" << msg;
     switch (msgType) {
+        case Common::MsgTypeStart:
+            qDebug() << "Common::MsgTypeStart total_cnt: " << msg;
+            this->setTotalCnt(msg.toInt());
+            processWindow->startTimer();
+            break;
         case Common::MsgTypeError:
             ui->emailOnlySubmitPushButton->setDisabled(false);
             processWindow->setProcessText(msg);
+            processWindow->setProcessPercent(this->incrAndCalcPercent(1));
             QMessageBox::critical(this, "Error", msg);
-            break;
-        case Common::MsgTypeWriteXlsxFinish:
-            processWindow->setProcessText(msg);
-            ui->emailOnlySubmitPushButton->setDisabled(false);
             break;
         case Common::MsgTypeEmailSendFinish:
             ui->emailOnlySubmitPushButton->setDisabled(false);
             processWindow->setProcessText(msg);
+            processWindow->setProcessPercent(100);
+            processWindow->stopTimer();
             mailSenderThread = nullptr;
             break;
         case Common::MsgTypeSucc:
+            processWindow->setProcessText(msg);
+            processWindow->setProcessPercent(this->incrAndCalcPercent(1));
+            break;
         case Common::MsgTypeInfo:
         case Common::MsgTypeWarn:
         default:

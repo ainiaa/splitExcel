@@ -115,6 +115,7 @@ void ExcelParser::doParse() {
             return;
         }
         if (this->sourceExcelData->getOpType() == SourceExcelData::OperateType::EmailOnlyType) {
+            emit requestMsg(Common::MsgTypeStart, QString::number(emailQhash.size()));
             emit requestMsg(Common::MsgTypeStartSendEmail, "开始发送email");
             return;
         }
@@ -126,6 +127,11 @@ void ExcelParser::doParse() {
         //读取excel数据
         emit requestMsg(Common::MsgTypeInfo, "开始读取excel文件信息");
         QHash<QString, QList<int>> dataQhash = readDataXls(groupByText, dataSheetName);
+        if (this->sourceExcelData->getOpType() == SourceExcelData::OperateType::SplitOnlyType) {
+            emit requestMsg(Common::MsgTypeStart, QString::number(dataQhash.size()));
+        } else {
+            emit requestMsg(Common::MsgTypeStart, QString::number(dataQhash.size() + emailQhash.size()));
+        }
         if (dataQhash.size() < 1) {
             emit requestMsg(Common::MsgTypeFail, "没有data数据！！");
             return;

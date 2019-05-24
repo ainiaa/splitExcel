@@ -65,6 +65,7 @@ void SplitOnlyWindow::on_splitOnlySubmitPushButton_clicked() {
     } else {
         processWindow->clearProcessText();
     }
+
     processWindow->setWindowModality(Qt::WindowModality::ApplicationModal);
     processWindow->show();
 
@@ -102,23 +103,33 @@ void SplitOnlyWindow::doSplitXls(QString dataSheetName, QString savePath) {
 
 //接受子线程的消息
 void SplitOnlyWindow::receiveMessage(const int msgType, const QString &msg) {
+
     qDebug() << "SplitOnlyWindow::receiveMessage msgType:" << QString::number(msgType).toUtf8() << " msg:" << msg;
+    int percent = 0;
     switch (msgType) {
+        case Common::MsgTypeStart:
+            qDebug() << "Common::MsgTypeStart total_cnt: " << msg;
+            this->setTotalCnt(msg.toInt());
+            processWindow->startTimer();
+            break;
         case Common::MsgTypeError:
             ui->splitOnlySubmitPushButton->setDisabled(false);
             processWindow->setProcessText(msg);
+            processWindow->setProcessPercent(this->incrAndCalcPercent(1));
             QMessageBox::critical(this, "Error", msg);
             break;
         case Common::MsgTypeWriteXlsxFinish:
-            processWindow->setProcessText(msg);
-            ui->splitOnlySubmitPushButton->setDisabled(false);
-            break;
-        case Common::MsgTypeEmailSendFinish:
             ui->splitOnlySubmitPushButton->setDisabled(false);
             processWindow->setProcessText(msg);
-            mailSenderThread = nullptr;
+            processWindow->setProcessPercent(100);
+            processWindow->stopTimer();
             break;
         case Common::MsgTypeSucc:
+            processWindow->setProcessText(msg);
+            percent = this->incrAndCalcPercent(1);
+            qDebug() << "Common::MsgTypeSucc percent: " << percent;
+            processWindow->setProcessPercent(percent);
+            break;
         case Common::MsgTypeInfo:
         case Common::MsgTypeWarn:
         default:

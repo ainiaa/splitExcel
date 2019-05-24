@@ -84,10 +84,16 @@ void SplitAndEmailWindow::changeGroupby(QString selectedSheetName) {
 void SplitAndEmailWindow::receiveMessage(const int msgType, const QString &msg) {
     qDebug() << "SplitAndEmailWindow::receiveMessage msgType:" << QString::number(msgType).toUtf8() << " msg:" << msg;
     switch (msgType) {
+        case Common::MsgTypeStart:
+            qDebug() << "Common::MsgTypeStart total_cnt: " << msg;
+            this->setTotalCnt(msg.toInt());
+            processWindow->startTimer();
+            break;
         case Common::MsgTypeError:
             ui->submit2PushButton->setDisabled(false);
 
             processWindow->setProcessText(msg);
+            processWindow->setProcessPercent(this->incrAndCalcPercent(1));
             ui->statusBar->showMessage(msg);
 
             QMessageBox::critical(this, "Error", msg);
@@ -95,6 +101,7 @@ void SplitAndEmailWindow::receiveMessage(const int msgType, const QString &msg) 
             break;
         case Common::MsgTypeWriteXlsxFinish:
             processWindow->setProcessText(msg);
+            processWindow->setProcessPercent(this->incrAndCalcPercent(1));
             ui->statusBar->showMessage(msg);
             break;
         case Common::MsgTypeStartSendEmail:
@@ -105,9 +112,15 @@ void SplitAndEmailWindow::receiveMessage(const int msgType, const QString &msg) 
             ui->submit2PushButton->setDisabled(false);
             ui->statusBar->showMessage(msg);
             processWindow->setProcessText(msg);
+            processWindow->setProcessPercent(100);
+            processWindow->stopTimer();
             mailSenderThread = nullptr;
             break;
         case Common::MsgTypeSucc:
+            ui->statusBar->showMessage(msg);
+            processWindow->setProcessText(msg);
+            processWindow->setProcessPercent(this->incrAndCalcPercent(1));
+            break;
         case Common::MsgTypeInfo:
         case Common::MsgTypeWarn:
         default:
