@@ -32,6 +32,7 @@ class EmailSender : public QObject {
     void doSend();
     void doSendWithoutQueue();
     void doSendWithQueue();
+    void doSendWithQueueByMultiple();
     void splitSendTask();
     void stop();
     void showIdleMsg();

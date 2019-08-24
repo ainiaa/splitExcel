@@ -24,8 +24,8 @@
 /* [1] Constructors and destructors */
 
 SmtpClient::SmtpClient(const QString &host, int port, ConnectionType connectionType)
-: socket(nullptr), name("localhost"), authMethod(AuthPlain), connectionTimeout(5000), responseTimeout(50000),
-  sendMessageTimeout(60000) {
+: socket(nullptr), name("localhost"), authMethod(AuthPlain), connectionTimeout(5000), responseTimeout(60000),
+  sendMessageTimeout(30000000) {
     setConnectionType(connectionType);
 
     this->host = host;
@@ -436,7 +436,7 @@ QString SmtpClient::getError() {
         errMap.insert(SmtpClient::SendDataTimeoutError, "SmtpClient::SendDataTimeoutError");
         errMap.insert(SmtpClient::AuthenticationFailedError, "SmtpClient::AuthenticationFailedError");
         errMap.insert(SmtpClient::ServerError, "SmtpClient::ServerError");
-        errMap.insert(SmtpClient::ConnectionTimeoutError, "SmtpClient::ClientError");
+        errMap.insert(SmtpClient::ClientError, "SmtpClient::ClientError");
     }
     return errMap.value(this->error, QString::number(this->error));
 }

@@ -33,8 +33,6 @@ void EmailSenderRunnable::run() {
     requestMsg(Common::MsgTypeInfo, "准备发送邮件（线程" + QString::number(runnableID) + ")");
     SmtpClient *smtpClient = new SmtpClient(server);
 
-    // connect(smtpClient, SIGNAL(smtpError()), this, SLOT(getSmtpError()));
-
     smtpClient->setUser(userName);
     smtpClient->setPassword(password);
 
@@ -94,7 +92,7 @@ void EmailSenderRunnable::run() {
         text.setText(emailContent);
         mineMsg.addPart(&text);
 
-        if (emailData.size() == 5) { //包含cc 添加抄送 多个抄送之间使用逗号分隔
+        if (emailData.size() > 4) { //包含cc 添加抄送 多个抄送之间使用逗号分隔
             QStringList ccList = emailData.at(4).split(",");
             for (QString cc : ccList) {
                 mineMsg.addCc(new EmailAddress(cc, cc));

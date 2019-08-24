@@ -94,10 +94,8 @@ void ExcelParserByOfficeRunnable::processByOffice(QString key, QList<int> conten
     }
     for (int i = deleteRange.size() - 1; i >= 0; i--) {
         QString deleteRangeContent = deleteRange.at(i);
-        // qDebug() << " deleteRangeContent["<< i <<"] = " << deleteRangeContent;
         QAxObject *range = worksheet->querySubObject("Range(QVariant)", deleteRangeContent); //获取单元格
         range->dynamicCall("Delete()");
-        // qDebug() << " deleteRangeContent:" << deleteRangeContent;
     }
     // end
 
@@ -257,7 +255,7 @@ void ExcelParserByOfficeRunnable::freeExcel(QAxObject *excel) {
     }
 }
 
-void ExcelParserByOfficeRunnable::generateTplXls(SourceExcelData *sourceExcelData, int selectedSheetIndex) {
+void ExcelParserByOfficeRunnable::generateTplXls(SourceExcelData *sourceExcelData, QString selectedSheetName) {
     QString xlsName;
     xlsName.append(sourceExcelData->getSavePath()).append(QDir::separator()).append("sourceTplXlsx.xlsx");
     copyFileToPath(sourceExcelData->getSourcePath(), xlsName, true);
@@ -274,12 +272,73 @@ void ExcelParserByOfficeRunnable::generateTplXls(SourceExcelData *sourceExcelDat
     QAxObject *workbook = workbooks->querySubObject("Open(const QString&, QVariant)", xlsName, 0);
     int sourceWorkSheetCnt = sourceExcelData->getSheetCnt();
     for (int i = 1; i <= sourceWorkSheetCnt; i++) {
-        if (i != selectedSheetIndex) {                                                    //删除sheet
-            QAxObject *currentWorkSheet = workbook->querySubObject("WorkSheets(int)", i); // Sheets(int)也可换用Worksheets(int)
+        QAxObject *currentWorkSheet = workbook->querySubObject("WorkSheets(int)", i);
+        QString currentWorkSheetName = currentWorkSheet->property("Name").toString(); //获取工作表名称
+        if (currentWorkSheetName != selectedSheetName) {                              //删除sheet
             currentWorkSheet->dynamicCall("Delete()");
         }
     }
 
+    workbook->dynamicCall("Save()");
+    workbook->dynamicCall("Close()");  //关闭工作簿
+    workbooks->dynamicCall("Close()"); //关闭工作簿
+    // CoUninitialize();
+    ExcelParserByOfficeRunnable::freeExcel(excel);
+    sourceExcelData->setTplXlsPath(xlsName);
+}
+
+void ExcelParserByOfficeRunnable::generateTplXls(SourceExcelData *sourceExcelData, int selectedSheetIndex) {
+    QString xlsName;
+    xlsName.append(sourceExcelData->getSavePath()).append(QDir::separator()).append("sourceTplXlsx.xlsx");
+    copyFileToPath(sourceExcelData->getSourcePath(), xlsName, true);
+
+    HRESULT hres = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+    QAxObject *excel = new QAxObject("Excel.Application");  //连接Excel控件
+    excel->dynamicCall("SetVisible (bool Visible)", false); //不显示窗体
+    excel->setProperty("DisplayAlerts", false); //不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
+    excel->setProperty("EnableEvents", false); //没有这个 很容易报错  QAxBase: Error calling IDispatch member Open: Unknown error
+
+    qDebug() << "ExcelParserByOfficeRunnable::generateTplXls:: with SourceExcelData: xlsName=" << xlsName;
+
+    QAxObject *workbooks = excel->querySubObject("WorkBooks"); //获取工作簿集合
+    QAxObject *workbook = workbooks->querySubObject("Open(const QString&, QVariant)", xlsName, 0);
+    int sourceWorkSheetCnt = sourceExcelData->getSheetCnt();
+    QFile file("D:/split.txt");
+    file.write("sourceWorkSheetCnt:" + QString(sourceWorkSheetCnt).toUtf8() + "\n");
+    file.write("selectedSheetIndex:" + QString(selectedSheetIndex).toUtf8() + "\n");
+    file.open(QIODevice::WriteOnly | QIODevice::Text);
+    for (int i = 1; i <= sourceWorkSheetCnt; i++) {
+        QAxObject *currentWorkSheet = workbook->querySubObject("WorkSheets(int)", i); // Sheets(int)也可换用Worksheets(int)
+        QString currentWorkSheetName = currentWorkSheet->property("Name").toString(); //获取工作表名称
+        if (i != selectedSheetIndex) {                                                //删除sheet
+            file.write("index:" + QString(i).toUtf8() + " sheetName:" + currentWorkSheetName.toUtf8() + " delete \n");
+            currentWorkSheet->dynamicCall("Delete()");
+        } else {
+            //删除空行
+            QAxObject *usedRange = currentWorkSheet->querySubObject("UsedRange");
+            QAxObject *rows = usedRange->querySubObject("Rows");
+            int rowStart = usedRange->property("Row").toInt(); //获取起始行
+            int rowCount = rows->property("Count").toInt();    //获取行数
+            for (int rowNum = rowStart; rowNum < rowCount; rowNum++) {
+                QAxObject *cell = currentWorkSheet->querySubObject("Cells(int,int)", rowNum, sourceExcelData->getGroupByIndex());
+                QVariant cellValue = cell->property("Value"); //获取单元格内容
+
+                if (cellValue.toString().trimmed().isEmpty()) {
+                    file.write("index:" + QString(i).toUtf8() + " sheetName:" + currentWorkSheetName.toUtf8() +
+                               "row:" + QString(rowNum).toUtf8() + " cell:" + cellValue.toString().toUtf8() + " deleted \n");
+                    QAxObject *rowObj = currentWorkSheet->querySubObject("Rows(int)", rowNum); //获取选定的行
+                    if (rowObj) {
+                        rowObj->dynamicCall("Delete()"); //修改所选行
+                    }
+                } else {
+                    file.write("index:" + QString(i).toUtf8() + " sheetName:" + currentWorkSheetName.toUtf8() +
+                               "row:" + QString(rowNum).toUtf8() + " cell:" + cellValue.toString().toUtf8() + " skipped \n");
+                }
+            }
+            file.write("index:" + QString(i).toUtf8() + " sheetName:" + currentWorkSheetName.toUtf8() + " skip \n");
+        }
+    }
+    file.close();
     workbook->dynamicCall("Save()");
     workbook->dynamicCall("Close()");  //关闭工作簿
     workbooks->dynamicCall("Close()"); //关闭工作簿

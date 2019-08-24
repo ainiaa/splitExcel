@@ -186,11 +186,68 @@ void EmailSender::doSendWithQueue() {
     emit requestMsg(Common::MsgTypeInfo, "准备发送邮件...");
 
     QThreadPool pool;
+    int maxThreadCnt = 1; //禁用多线程
+
+    pool.setMaxThreadCount(maxThreadCnt);
+
+    int emailQhashCnt = currentEmailQhash.size();
+    qDebug() << "currentEmailQhash.size():" << emailQhashCnt;
+    QHash<QString, QList<QStringList>> fragmentEmailQhash;
+    int runnableId = 1;
+    while (it.hasNext()) {
+        it.next();
+        ++m_process_cnt;
+        QString key = it.key();
+        QList<QStringList> content = it.value();
+        fragmentEmailQhash.insert(key, content);
+        int mod = m_process_cnt % emailQhashCnt;
+        if (mod == 0 || !it.hasNext()) {
+            EmailSenderRunnable *runnable = new EmailSenderRunnable(this);
+            runnable->setID(runnableId++);
+            runnable->setSendData(user, password, server, defaultSender, currentSavePath, fragmentEmailQhash);
+            runnable->setAutoDelete(true);
+            pool.start(runnable);
+            fragmentEmailQhash.clear();
+        }
+    }
+    pool.waitForDone();
+    qDebug() << emailTaskQueueData.getMsg() << "处理完毕！";
+}
+
+//发送email(待队列)
+void EmailSender::doSendWithQueueByMultiple() {
+    qDebug("doSendWithQueue");
+
+    if (emailTaskQueue.isEmpty()) {
+        emit requestMsg(Common::MsgTypeError, "没有邮件待发送...");
+        return;
+    }
+    this->use_queue = true;
+
+    EmailTaskQueueData emailTaskQueueData = emailTaskQueue.dequeue();
+    QHash<QString, QList<QStringList>> currentEmailQhash = emailTaskQueueData.getEmailQhash();
+    QHashIterator<QString, QList<QStringList>> it(currentEmailQhash);
+    QString currentSavePath = emailTaskQueueData.getSavePath();
+    this->m_current_queue_process_cnt = currentEmailQhash.size();
+    this->m_current_queue_receive_cnt = 0;
+
+    emit requestMsg(Common::MsgTypeInfo, emailTaskQueueData.getMsg());
+
+    QString user(cfg->get("email", "userName").toString());
+    QString password(cfg->get("email", "password").toString());
+    QString server(cfg->get("email", "server").toString());
+    QString defaultSender(cfg->get("email", "defaultSender").toString());
+    if (user.isEmpty() || password.isEmpty() || server.isEmpty() || defaultSender.isEmpty()) {
+        emit requestMsg(Common::MsgTypeError, "请先正确设置配置信息");
+        return;
+    }
+    emit requestMsg(Common::MsgTypeInfo, "准备发送邮件...");
+
+    QThreadPool pool;
     int maxThreadCnt = cfg->get("email", "maxThreadCnt").toInt();
     if (maxThreadCnt < 1) {
         maxThreadCnt = 2;
     }
-    maxThreadCnt = 5; //禁用多线程
 
     pool.setMaxThreadCount(maxThreadCnt);
 

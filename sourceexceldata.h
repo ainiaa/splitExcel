@@ -18,6 +18,8 @@ class SourceExcelData : public QObject {
     int getSheetCnt();
     void setGroupByText(QString groupByText);
     QString getGroupByText();
+    void setGroupByIndex(int groupByIndex);
+    int getGroupByIndex();
     void setDataSheetName(QString dataSheetName);
     QString getDataSheetName();
     void setEmailSheetName(QString emailSheetName);
@@ -49,6 +51,7 @@ class SourceExcelData : public QObject {
     int emailSheetIndex = 0;          // email sheet index
     int sheetCnt = 0;                 // sheet 总数
     QString groupByText = nullptr;    //分组名
+    int groupByIndex = 0;             //分组列
     QString dataSheetName = nullptr;  //数据sheet title
     QString emailSheetName = nullptr; //数据sheet title
     QString savePath = nullptr;       // excel文件保存路径

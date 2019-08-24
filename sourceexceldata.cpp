@@ -27,6 +27,15 @@ void SourceExcelData::setGroupByText(QString groupByText) {
 QString SourceExcelData::getGroupByText() {
     return this->groupByText;
 }
+
+void SourceExcelData::setGroupByIndex(int groupByIndex) {
+    this->groupByIndex = groupByIndex;
+}
+
+int SourceExcelData::getGroupByIndex() {
+    return this->groupByIndex;
+}
+
 void SourceExcelData::setDataSheetName(QString dataSheetName) {
     this->dataSheetName = dataSheetName;
 }

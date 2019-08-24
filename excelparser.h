@@ -1,5 +1,5 @@
-#ifndef XLSPARSER_H
-#define XLSPARSER_H
+#ifndef EXCELPARSER_H
+#define EXCELPARSER_H
 #include <QDateTime>
 #include <QDebug>
 #include <QFileDialog>
@@ -64,4 +64,4 @@ class ExcelParser : public QObject {
     bool isInstalledOffice;
     SourceExcelData *sourceExcelData = nullptr;
 };
-#endif // XLSPARSER_H
+#endif // EXCELPARSER_H
