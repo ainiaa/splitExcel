@@ -1,12 +1,5 @@
 #ifndef EXCELPARSER_H
 #define EXCELPARSER_H
-#include <QDateTime>
-#include <QDebug>
-#include <QFileDialog>
-#include <QObject>
-#include <QThreadPool>
-#include <QtCore/qmath.h>
-
 #include "common.h"
 #include "config.h"
 #include "excelparserbylibrunnable.h"
@@ -14,6 +7,12 @@
 #include "officehelper.h"
 #include "sourceexceldata.h"
 #include "xlsxdocument.h"
+#include <QDateTime>
+#include <QDebug>
+#include <QFileDialog>
+#include <QObject>
+#include <QThreadPool>
+#include <QtCore/qmath.h>
 
 class ExcelParser : public QObject {
     Q_OBJECT

@@ -339,6 +339,7 @@ void ExcelParserByOfficeRunnable::generateTplXls(SourceExcelData *sourceExcelDat
                 QString deleteRangeContent =
                 deleteRangeFormat.arg(emptyRowStart).arg(sourceExcelData->getSourceMaxAlphabetCol()).arg(sourceExcelData->getSourceRowCnt());
                 QAxObject *range = currentWorkSheet->querySubObject("Range(QVariant)", deleteRangeContent); //获取单元格
+                file.write(msgFormat2.arg(i).arg(currentWorkSheetName).toUtf8());
                 range->dynamicCall("Delete()");
             }
             file.write(msgFormat2.arg(i).arg(currentWorkSheetName).toUtf8());

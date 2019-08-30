@@ -9,7 +9,7 @@ OfficeHelper::OfficeHelper() {
  * @return
  */
 bool OfficeHelper::isInstalledExcelApp() {
-    HRESULT hres = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+    CoInitializeEx(nullptr, COINIT_MULTITHREADED);
     QAxObject *excel = new QAxObject("Excel.Application");
     if (excel->isNull()) {
         return false;

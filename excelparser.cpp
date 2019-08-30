@@ -184,6 +184,11 @@ QHash<QString, QList<int>> ExcelParser::readDataXls(QString groupByText, QString
             groupByValue = cell->value().toString();
         }
 
+        if (groupByValue.trimmed().isEmpty()) { //有空行
+            emit requestMsg(Common::MsgTypeError, "第" + QString::number(row, 10) + "” 为空，请删除所有空白行后再进行操作！");
+            return qHash;
+        }
+
         QList<int> qlist = qHash.take(groupByValue);
         qlist.append(row);
         qHash.insert(groupByValue, qlist);

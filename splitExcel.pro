@@ -37,7 +37,6 @@ SOURCES += \
         testtimeer.cpp \
         emailtaskqueuedata.cpp \
         officehelper.cpp \
-        qstringutil.cpp \
         excelbase.cpp \
         excelparser.cpp \
         excelparserbylib.cpp \
@@ -62,7 +61,6 @@ HEADERS += \
         testtimeer.h \
         emailtaskqueuedata.h \
         officehelper.h \
-        qstringutil.h \
         excelbase.h \
         excelparser.h \
         excelparserbylib.h \
