@@ -23,28 +23,29 @@ class ExcelParserByOfficeRunnable : public IExcelParserRunnable {
 
     void run() override;
     void setID(const int &id) override;
-    void setSplitData(SourceExcelData *sourceXmlData, QString selectedSheetName, QHash<QString, QList<int>> fragmentDataQhash, int m_total) override;
+    void setSplitData(SourceExcelData *sourceExcelData, QString selectedSheetName, QHash<QString, QList<int>> fragmentDataQhash, int m_total) override;
     void setSplitData(QString sourcePath, QString selectedSheetName, QHash<QString, QList<int>> fragmentDataQhash, QString savePath, int m_total) override;
     void requestMsg(const int msgType, const QString &result) override;
     void writeXls(QString selectedSheetName, QHash<QString, QList<int>> qHash, QString savePath);
-    void processByOffice(QString key, QList<int> contentList);
+    void doProcess(QString key, QList<int> contentList);
     void processSourceFile();
     bool static copyFileToPath(QString sourceDir, QString toDir, bool coverFileIfExist);
     void generateTplXls();
     void static processSourceFile(SourceExcelData *sourceExcelData, QString selectedSheetName);
+    void static sortXls();
     void static generateTplXls(SourceExcelData *sourceExcelData, int selectedSheetIndex);
     void static generateTplXls(SourceExcelData *sourceExcelData, QString selectedSheetName);
     void static freeExcel(QAxObject *excel);
 
     private:
     //父对象
-    QString sourcePath;
+    QString sourcePath; //源Excel文件路径
     QObject *mParent;
-    int runnableID;
-    int m_total;
+    int runnableID; //当前ID
+    int m_total;    //
     QString key;
-    QString savePath;
-    QString selectedSheetName;
+    QString savePath;          //拆分excel保存路径
+    QString selectedSheetName; // data sheet 名称
     QHash<QString, QList<int>> fragmentDataQhash;
     QXlsx::Document *xlsx;
     bool installedExcelApp;
@@ -57,10 +58,10 @@ class ExcelParserByOfficeRunnable : public IExcelParserRunnable {
     int sourceColCnt;             //最大列数
     int sourceWorkSheetCnt;       // sheets数量
     int selectedSheetIndex;       //选中索引
-    QString tplXlsPath;
+    QString tplXlsPath;           //模板路径
     QString deleteRangeFormat;
 
-    SourceExcelData *sourceXmlData;
+    SourceExcelData *sourceExcelData; //原文件数据
 };
 
 #endif // PARSERBYOFFICER_H

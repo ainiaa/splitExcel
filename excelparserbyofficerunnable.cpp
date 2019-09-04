@@ -13,6 +13,7 @@ void ExcelParserByOfficeRunnable::setID(const int &id) {
     runnableID = id;
 }
 
+//设置拆分相关数据
 void ExcelParserByOfficeRunnable::setSplitData(SourceExcelData *sourceExcelData,
                                                QString selectedSheetName,
                                                QHash<QString, QList<int>> fragmentDataQhash,
@@ -45,7 +46,7 @@ void ExcelParserByOfficeRunnable::run() {
         QList<int> contentList = it.value();
         contentList.insert(0, 1);
 
-        this->processByOffice(key, contentList);
+        this->doProcess(key, contentList);
         requestMsg(Common::MsgTypeSucc,
                    endMsg.arg(QString().sprintf("%04d", runnableID)).arg(QString().sprintf("%04d", m_total)).arg(key));
     }
@@ -54,7 +55,8 @@ void ExcelParserByOfficeRunnable::run() {
     qDebug("XlsxParserRunnable::run end");
 }
 
-void ExcelParserByOfficeRunnable::processByOffice(QString key, QList<int> contentList) {
+//拆分
+void ExcelParserByOfficeRunnable::doProcess(QString key, QList<int> contentList) {
     QString xlsName;
     xlsName.append(savePath).append(QDir::separator()).append(key).append(".xlsx");
     bool cpret = copyFileToPath(tplXlsPath, xlsName, true);
@@ -62,7 +64,6 @@ void ExcelParserByOfficeRunnable::processByOffice(QString key, QList<int> conten
         qDebug() << " copyFileToPath failure."
                  << "source:" << savePath << " dist:" << tplXlsPath;
     }
-    //    HRESULT hres = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
     QAxObject *excel = new QAxObject("Excel.Application");  //连接Excel控件
     excel->dynamicCall("SetVisible (bool Visible)", false); //不显示窗体
     excel->setProperty("DisplayAlerts", false); //不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
@@ -303,48 +304,13 @@ void ExcelParserByOfficeRunnable::generateTplXls(SourceExcelData *sourceExcelDat
     QAxObject *workbooks = excel->querySubObject("WorkBooks"); //获取工作簿集合
     QAxObject *workbook = workbooks->querySubObject("Open(const QString&, QVariant)", xlsName, 0);
     int sourceWorkSheetCnt = sourceExcelData->getSheetCnt();
-    QFile file("D:/split.txt");
-    file.write("sourceWorkSheetCnt:" + QString(sourceWorkSheetCnt).toUtf8() + "\n");
-    file.write("selectedSheetIndex:" + QString(selectedSheetIndex).toUtf8() + "\n");
-    file.open(QIODevice::WriteOnly | QIODevice::Text);
-    QString msgFormat1("index:%1  sheetName:%2 is deleted\n");
-    QString msgFormat2("index:%1  sheetName:%2 is skipped\n");
-    QString msgFormat3("index:%1  sheetName:%2  row:%3 cell(%4,%5):%6 is deleted\n");
-    QString msgFormat4("index:%1  sheetName:%2  row:%3 cell(%4,%5):%6 is skipped\n");
-    int groupByColumnNum = sourceExcelData->getGroupByIndex() + 1;
     for (int i = 1; i <= sourceWorkSheetCnt; i++) {
         QAxObject *currentWorkSheet = workbook->querySubObject("WorkSheets(int)", i); // Sheets(int)也可换用Worksheets(int)
         QString currentWorkSheetName = currentWorkSheet->property("Name").toString(); //获取工作表名称
         if (i != selectedSheetIndex) {                                                //删除sheet
-            file.write(msgFormat1.arg(i).arg(currentWorkSheetName).toUtf8());
             currentWorkSheet->dynamicCall("Delete()");
-        } else {
-            //删除空行
-            QAxObject *usedRange = currentWorkSheet->querySubObject("UsedRange");
-            QAxObject *rows = usedRange->querySubObject("Rows");
-            int rowStart = usedRange->property("Row").toInt(); //获取起始行
-            int rowCount = rows->property("Count").toInt();    //获取行数
-            int emptyRowStart = -1;
-            for (int rowNum = rowStart; rowNum < rowCount; rowNum++) {
-                QAxObject *cell = currentWorkSheet->querySubObject("Cells(int,int)", rowNum, groupByColumnNum);
-                QVariant cellValue = cell->dynamicCall("Value()"); //获取单元格内容
-
-                if (cellValue.toString().trimmed().isEmpty()) { //当前为空行
-                    emptyRowStart = rowNum;
-                    break;
-                }
-            }
-            if (emptyRowStart > 0) { //有空行，直接删除
-                QString deleteRangeFormat = "A%1:%2%3";
-                QString deleteRangeContent =
-                deleteRangeFormat.arg(emptyRowStart).arg(sourceExcelData->getSourceMaxAlphabetCol()).arg(sourceExcelData->getSourceRowCnt());
-                QAxObject *range = currentWorkSheet->querySubObject("Range(QVariant)", deleteRangeContent); //获取单元格
-                range->dynamicCall("Delete()");
-            }
-            file.write(msgFormat2.arg(i).arg(currentWorkSheetName).toUtf8());
         }
     }
-    file.close();
     workbook->dynamicCall("Save()");
     workbook->dynamicCall("Close()");  //关闭工作簿
     workbooks->dynamicCall("Close()"); //关闭工作簿

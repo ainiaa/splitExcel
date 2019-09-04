@@ -303,7 +303,7 @@ QHash<QString, QList<QStringList>> ExcelParser::readEmailXls(QString groupByText
     return qhash;
 }
 
-//写xls
+//写xls(基于 MS office)
 void ExcelParser::writeXlsByOffice(QString selectedSheetName, QHash<QString, QList<int>> qHash) {
     QHashIterator<QString, QList<int>> it(qHash);
     QThreadPool pool;
