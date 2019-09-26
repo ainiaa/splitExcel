@@ -140,7 +140,19 @@ void ExcelParser::doParse() {
         emit requestMsg(Common::MsgTypeInfo, "开始拆分excel并生成新的excel文件");
         m_total_cnt = dataQhash.size();
         qDebug() << "doSplit writeXls";
-        if (this->isInstalledOffice) {
+        int excelLibType = cfg->get("email", "excelLibType").toInt();
+        bool useMsOffice = false;
+        if (excelLibType == 0) { //自动识别
+            if (this->isInstalledOffice) {
+                useMsOffice = true;
+            }
+        } else if (excelLibType == 1) { //自带类库
+            useMsOffice = false;
+        } else if (excelLibType == 3) { //使用MS office
+            useMsOffice = true;
+        }
+
+        if (useMsOffice) {
             writeXlsByOffice(dataSheetName, dataQhash);
         } else {
             writeXlsByLib(dataSheetName, dataQhash);

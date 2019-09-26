@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>709</width>
-    <height>454</height>
+    <width>726</width>
+    <height>514</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,7 +18,7 @@
     <property name="geometry">
      <rect>
       <x>205</x>
-      <y>332</y>
+      <y>394</y>
       <width>75</width>
       <height>31</height>
      </rect>
@@ -107,7 +107,7 @@
      </rect>
     </property>
    </widget>
-   <widget class="QLabel" name="selectFileLabel_2">
+   <widget class="QLabel" name="smtpNameLabel">
     <property name="geometry">
      <rect>
       <x>69</x>
@@ -136,7 +136,7 @@
      <enum>QLineEdit::Password</enum>
     </property>
    </widget>
-   <widget class="QLabel" name="selectFileLabel_3">
+   <widget class="QLabel" name="smtpPasswdLabel">
     <property name="geometry">
      <rect>
       <x>69</x>
@@ -152,7 +152,7 @@
      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
     </property>
    </widget>
-   <widget class="QLabel" name="selectFileLabel_4">
+   <widget class="QLabel" name="maxProcessNumLabel">
     <property name="geometry">
      <rect>
       <x>69</x>
@@ -172,7 +172,7 @@
     <property name="geometry">
      <rect>
       <x>385</x>
-      <y>332</y>
+      <y>394</y>
       <width>75</width>
       <height>31</height>
      </rect>
@@ -185,7 +185,7 @@
     <property name="geometry">
      <rect>
       <x>294</x>
-      <y>332</y>
+      <y>394</y>
       <width>75</width>
       <height>31</height>
      </rect>
@@ -276,13 +276,84 @@
      <enum>QLineEdit::Normal</enum>
     </property>
    </widget>
+   <widget class="QLabel" name="excelLibLabel">
+    <property name="geometry">
+     <rect>
+      <x>67</x>
+      <y>344</y>
+      <width>91</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>excel类库</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+    </property>
+   </widget>
+   <widget class="QGroupBox" name="excelLibGroupBox">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>333</y>
+      <width>341</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string/>
+    </property>
+    <widget class="QRadioButton" name="embbedLibRadioButton">
+     <property name="geometry">
+      <rect>
+       <x>108</x>
+       <y>12</y>
+       <width>89</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>自带类库</string>
+     </property>
+    </widget>
+    <widget class="QRadioButton" name="autoCheckRadioButton">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>12</y>
+       <width>89</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>自动识别</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QRadioButton" name="msOfficeRadioButton">
+     <property name="geometry">
+      <rect>
+       <x>203</x>
+       <y>12</y>
+       <width>89</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>MS Office</string>
+     </property>
+    </widget>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>709</width>
+     <width>726</width>
      <height>23</height>
     </rect>
    </property>

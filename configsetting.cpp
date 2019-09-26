@@ -17,6 +17,14 @@ void ConfigSetting::loadConfig() {
     ui->passwordLineEdit->setText(cfg->get("email", "password").toString());
     ui->maxThreadCntComboBox->setCurrentText(cfg->get("email", "maxThreadCnt").toString());
     ui->maxProcessPerPeriodLineEdit->setText(cfg->get("email", "maxProcessPerPeriod").toString());
+    int excelLibType = cfg->get("email", "excelLibType").toInt();
+    if (excelLibType == 0) { //自动识别
+        ui->autoCheckRadioButton->setChecked(true);
+    } else if (excelLibType == 1) { //自带类库
+        ui->embbedLibRadioButton->setChecked(true);
+    } else if (excelLibType == 2) { // ms office
+        ui->msOfficeRadioButton->setChecked(true);
+    }
 }
 
 //写入配置项
@@ -27,11 +35,20 @@ void ConfigSetting::writeConfig() {
     QString defaultSender = userName;
     QString maxThreadCnt = ui->maxThreadCntComboBox->currentText();
     QString maxProcessPerPeriod = ui->maxProcessPerPeriodLineEdit->text();
+    int excelLibType = 0;
+    if (ui->autoCheckRadioButton->isChecked()) { //自动识别
+        excelLibType = 0;
+    } else if (ui->embbedLibRadioButton->isChecked()) { //自带类库
+        excelLibType = 1;
+    } else if (ui->msOfficeRadioButton->isChecked()) { // ms office
+        excelLibType = 2;
+    }
     cfg->set("email", "server", server);
     cfg->set("email", "userName", userName);
     cfg->set("email", "defaultSender", defaultSender);
     cfg->set("email", "maxThreadCnt", maxThreadCnt);
     cfg->set("email", "maxProcessPerPeriod", maxProcessPerPeriod);
+    cfg->set("email", "excelLibType", excelLibType);
     if (!password.isEmpty()) {
         cfg->set("email", "password", password);
     }
