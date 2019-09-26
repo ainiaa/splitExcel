@@ -155,81 +155,81 @@ void SplitOnlyWindow::showConfigSetting() {
     configSetting->show();
 }
 
-void SplitOnlyWindow::on_gobackPushButton_2_clicked() {
-    if (excelParserThread != nullptr) {
-        return;
-    }
-    QString groupByText = ui->groupByComboBox->currentText();    //分组列 内容
-    int groupByIndex = ui->groupByComboBox->currentIndex();      //分组列 索引（从 0 开始)
-    int dataSheetIndex = ui->dataComboBox->currentIndex();       //数据所在 sheet 索引 （从 0 开始)
-    QString selectedSheetName = ui->dataComboBox->currentText(); //数据所在 sheet名称
-    int sheetCnt = ui->dataComboBox->count();                    //总sheet个数
+// void SplitOnlyWindow::on_gobackPushButton_2_clicked() {
+//    if (excelParserThread != nullptr) {
+//        return;
+//    }
+//    QString groupByText = ui->groupByComboBox->currentText();    //分组列 内容
+//    int groupByIndex = ui->groupByComboBox->currentIndex();      //分组列 索引（从 0 开始)
+//    int dataSheetIndex = ui->dataComboBox->currentIndex();       //数据所在 sheet 索引 （从 0 开始)
+//    QString selectedSheetName = ui->dataComboBox->currentText(); //数据所在 sheet名称
+//    int sheetCnt = ui->dataComboBox->count();                    //总sheet个数
 
-    //设置excel相关数据
-    SourceExcelData *sourceExcelData = new SourceExcelData();
-    sourceExcelData->setSavePath(savePath);
-    sourceExcelData->setDataSheetName(selectedSheetName);
-    sourceExcelData->setDataSheetIndex(dataSheetIndex);
-    sourceExcelData->setSheetCnt(sheetCnt);
-    sourceExcelData->setOpType(SourceExcelData::OperateType::SplitOnlyType);
-    sourceExcelData->setGroupByText(groupByText);
-    sourceExcelData->setGroupByIndex(groupByIndex);
-    sourceExcelData->setSourcePath(this->sourcePath);
+//    //设置excel相关数据
+//    SourceExcelData *sourceExcelData = new SourceExcelData();
+//    sourceExcelData->setSavePath(savePath);
+//    sourceExcelData->setDataSheetName(selectedSheetName);
+//    sourceExcelData->setDataSheetIndex(dataSheetIndex);
+//    sourceExcelData->setSheetCnt(sheetCnt);
+//    sourceExcelData->setOpType(SourceExcelData::OperateType::SplitOnlyType);
+//    sourceExcelData->setGroupByText(groupByText);
+//    sourceExcelData->setGroupByIndex(groupByIndex);
+//    sourceExcelData->setSourcePath(this->sourcePath);
 
-    CoInitializeEx(nullptr, COINIT_MULTITHREADED);
-    QAxObject *excel = new QAxObject("Excel.Application");  //连接Excel控件
-    excel->dynamicCall("SetVisible (bool Visible)", false); //不显示窗体
-    excel->setProperty("DisplayAlerts", false); //不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
-    excel->setProperty("EnableEvents", false); //没有这个 很容易报错  QAxBase: Error calling IDispatch member Open: Unknown error
-    qDebug() << "ExcelParserByOfficeRunnable::processSourceFile:: with SourceExcelData: " << sourceExcelData->getSourcePath();
-    qDebug() << " new source path"
-             << "";
-    QAxObject *workbooks = excel->querySubObject("WorkBooks"); //获取工作簿集合
-    QAxObject *workbook = workbooks->querySubObject("Open(const QString&, QVariant)", sourceExcelData->getSourcePath(), 0);
-    QAxObject *worksheets = workbook->querySubObject("WorkSheets"); // 获取打开的excel文件中所有的工作sheet
-    sourceExcelData->setSheetCnt(worksheets->property("Count").toInt());
+//    CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+//    QAxObject *excel = new QAxObject("Excel.Application");  //连接Excel控件
+//    excel->dynamicCall("SetVisible (bool Visible)", false); //不显示窗体
+//    excel->setProperty("DisplayAlerts", false); //不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
+//    excel->setProperty("EnableEvents", false); //没有这个 很容易报错  QAxBase: Error calling IDispatch member Open: Unknown error
+//    qDebug() << "ExcelParserByOfficeRunnable::processSourceFile:: with SourceExcelData: " << sourceExcelData->getSourcePath();
+//    qDebug() << " new source path"
+//             << "";
+//    QAxObject *workbooks = excel->querySubObject("WorkBooks"); //获取工作簿集合
+//    QAxObject *workbook = workbooks->querySubObject("Open(const QString&, QVariant)", sourceExcelData->getSourcePath(), 0);
+//    QAxObject *worksheets = workbook->querySubObject("WorkSheets"); // 获取打开的excel文件中所有的工作sheet
+//    sourceExcelData->setSheetCnt(worksheets->property("Count").toInt());
 
-    qDebug() << QString("Excel文件中表的个数: %1").arg(QString::number(sourceExcelData->getSheetCnt()));
-    QAxObject *worksheet = nullptr;
-    int selectedSheetIndex = 0;
-    for (int i = 1; i <= sourceExcelData->getSheetCnt(); i++) {
-        QAxObject *currentWorkSheet = workbook->querySubObject("WorkSheets(int)", i); // Sheets(int)也可换用Worksheets(int)
-        QString currentWorkSheetName = currentWorkSheet->property("Name").toString(); //获取工作表名称
-        QString message = QString("sheet ") + QString::number(i, 10) + QString(" name");
-        qDebug() << message << currentWorkSheetName;
-        qDebug() << "this->selectedSheetName:" << selectedSheetName;
-        if (currentWorkSheetName == selectedSheetName) {
-            worksheet = currentWorkSheet;
-            selectedSheetIndex = i;
-            break;
-        }
-    }
+//    qDebug() << QString("Excel文件中表的个数: %1").arg(QString::number(sourceExcelData->getSheetCnt()));
+//    QAxObject *worksheet = nullptr;
+//    int selectedSheetIndex = 0;
+//    for (int i = 1; i <= sourceExcelData->getSheetCnt(); i++) {
+//        QAxObject *currentWorkSheet = workbook->querySubObject("WorkSheets(int)", i); // Sheets(int)也可换用Worksheets(int)
+//        QString currentWorkSheetName = currentWorkSheet->property("Name").toString(); //获取工作表名称
+//        QString message = QString("sheet ") + QString::number(i, 10) + QString(" name");
+//        qDebug() << message << currentWorkSheetName;
+//        qDebug() << "this->selectedSheetName:" << selectedSheetName;
+//        if (currentWorkSheetName == selectedSheetName) {
+//            worksheet = currentWorkSheet;
+//            selectedSheetIndex = i;
+//            break;
+//        }
+//    }
 
-    if (worksheet == nullptr) {
-        qDebug() << "worksheet is null";
-        return;
-    }
+//    if (worksheet == nullptr) {
+//        qDebug() << "worksheet is null";
+//        return;
+//    }
 
-    QAxObject *usedRange = worksheet->querySubObject("UsedRange");             // sheet范围
-    sourceExcelData->setSourceRowStart(usedRange->property("Row").toInt());    // 起始行数
-    sourceExcelData->setSourceColStart(usedRange->property("Column").toInt()); // 起始列数
-    QAxObject *rows, *columns;
-    rows = usedRange->querySubObject("Rows");       // 行
-    columns = usedRange->querySubObject("Columns"); // 列
+//    QAxObject *usedRange = worksheet->querySubObject("UsedRange");             // sheet范围
+//    sourceExcelData->setSourceRowStart(usedRange->property("Row").toInt());    // 起始行数
+//    sourceExcelData->setSourceColStart(usedRange->property("Column").toInt()); // 起始列数
+//    QAxObject *rows, *columns;
+//    rows = usedRange->querySubObject("Rows");       // 行
+//    columns = usedRange->querySubObject("Columns"); // 列
 
-    sourceExcelData->setSourceRowCnt(rows->property("Count").toInt());    // 行数
-    sourceExcelData->setSourceColCnt(columns->property("Count").toInt()); // 列数
-    QString sourceMinAlphabetCol;
-    QString sourceMaxAlphabetCol;
-    ExcelBase::convertToColName(sourceExcelData->getSourceRowStart(), sourceMinAlphabetCol);
-    ExcelBase::convertToColName(sourceExcelData->getSourceColCnt(), sourceMaxAlphabetCol);
-    sourceExcelData->setSourceMinAlphabetCol(sourceMinAlphabetCol);
-    sourceExcelData->setSourceMaxAlphabetCol(sourceMaxAlphabetCol);
+//    sourceExcelData->setSourceRowCnt(rows->property("Count").toInt());    // 行数
+//    sourceExcelData->setSourceColCnt(columns->property("Count").toInt()); // 列数
+//    QString sourceMinAlphabetCol;
+//    QString sourceMaxAlphabetCol;
+//    ExcelBase::convertToColName(sourceExcelData->getSourceRowStart(), sourceMinAlphabetCol);
+//    ExcelBase::convertToColName(sourceExcelData->getSourceColCnt(), sourceMaxAlphabetCol);
+//    sourceExcelData->setSourceMinAlphabetCol(sourceMinAlphabetCol);
+//    sourceExcelData->setSourceMaxAlphabetCol(sourceMaxAlphabetCol);
 
-    qDebug() << " sourceRowStart:" << sourceExcelData->getSourceRowStart() << " sourceColStart:" << sourceExcelData->getSourceColCnt()
-             << " sourceRowCnt:" << sourceExcelData->getSourceRowCnt() << " sourceColCnt:" << sourceExcelData->getSourceColCnt()
-             << " sourceMinAlphabetCol:" << sourceMinAlphabetCol << " sourceMaxAlphabetCol:" << sourceMaxAlphabetCol;
-    // CoUninitialize();
-    ExcelParserByOfficeRunnable::freeExcel(excel);
-    ExcelParserByOfficeRunnable::generateTplXls(sourceExcelData, selectedSheetIndex); //生成模板文件
-}
+//    qDebug() << " sourceRowStart:" << sourceExcelData->getSourceRowStart() << " sourceColStart:" << sourceExcelData->getSourceColCnt()
+//             << " sourceRowCnt:" << sourceExcelData->getSourceRowCnt() << " sourceColCnt:" << sourceExcelData->getSourceColCnt()
+//             << " sourceMinAlphabetCol:" << sourceMinAlphabetCol << " sourceMaxAlphabetCol:" << sourceMaxAlphabetCol;
+//    // CoUninitialize();
+//    ExcelParserByOfficeRunnable::freeExcel(excel);
+//    ExcelParserByOfficeRunnable::generateTplXls(sourceExcelData, selectedSheetIndex); //生成模板文件
+//}

@@ -29,6 +29,8 @@ void ExcelParserByOfficeRunnable::setSplitData(SourceExcelData *sourceExcelData,
     this->sourceRowStart = sourceExcelData->getSourceRowStart();
     this->sourceMaxAlphabetCol = sourceExcelData->getSourceMaxAlphabetCol();
     this->sourceRowCnt = sourceExcelData->getSourceRowCnt();
+    this->groupByText = sourceExcelData->getGroupByText();
+    this->groupByIndex = sourceExcelData->getGroupByIndex();
 }
 
 void ExcelParserByOfficeRunnable::run() {
@@ -105,6 +107,58 @@ void ExcelParserByOfficeRunnable::doProcess(QString key, QList<int> contentList)
     workbook->dynamicCall("Close()");  //关闭工作簿
     workbooks->dynamicCall("Close()"); //关闭工作簿
     //    CoUninitialize();
+    ExcelParserByOfficeRunnable::freeExcel(excel);
+
+    this->doFilter(key);
+}
+
+void ExcelParserByOfficeRunnable::doFilter(QString key) {
+    QString xlsName;
+    xlsName.append(savePath).append(QDir::separator()).append(key).append(".xlsx");
+    QAxObject *excel = new QAxObject("Excel.Application");  //连接Excel控件
+    excel->dynamicCall("SetVisible (bool Visible)", false); //不显示窗体
+    excel->setProperty("DisplayAlerts", false); //不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
+    excel->setProperty("EnableEvents", false); //没有这个 很容易报错  QAxBase: Error calling IDispatch member Open: Unknown error
+
+    qDebug() << "ExcelParserByOfficeRunnable::processByOffice xlsName=" << xlsName;
+    QAxObject *workbooks = excel->querySubObject("WorkBooks"); //获取工作簿集合
+    QAxObject *workbook = workbooks->querySubObject("Open(const QString&, QVariant)", xlsName, 0);
+    QAxObject *worksheet = workbook->querySubObject("WorkSheets(int)", 1);
+
+    workbooks = excel->querySubObject("WorkBooks"); //获取工作簿集合
+    workbook = workbooks->querySubObject("Open(const QString&, QVariant)", xlsName, 0);
+    worksheet = workbook->querySubObject("WorkSheets(int)", 1);
+    QAxObject *usedRange = worksheet->querySubObject("UsedRange"); // sheet范围
+    QAxObject *rows, *columns;
+    rows = usedRange->querySubObject("Rows");       // 行
+    columns = usedRange->querySubObject("Columns"); // 列
+    int leftRowCount = rows->property("Count").toInt();
+
+    qDebug() << key << "row:" << leftRowCount << "  col:" << columns << "\r\n";
+
+    QString deleteRangeFormat = "A%1:%2%3";
+    QString currentCellFormat = "%1,%2";
+    int groupByColNum = groupByIndex + 1;
+    for (int i = 2; i <= leftRowCount; i++) {
+        QAxObject *cell = worksheet->querySubObject("Cells(int, int)", i, groupByColNum);
+        QString cellValue = cell->dynamicCall("Value()").toString();
+        QString currentCell = currentCellFormat.arg(i).arg(groupByColNum);
+        qDebug() << key << " " << currentCell << " groupBy:" << key << "  current:" << cellValue;
+        if (cellValue.isEmpty()) { //已经到空行了 直接结束
+            qDebug() << key << i << " is empty\r\n";
+            break;
+        }
+        if (cellValue != key) { //当前列不是所需数据（漏网之鱼）删除
+            QString deleteRangeContent = deleteRangeFormat.arg(i).arg(sourceMaxAlphabetCol).arg(i);
+            QAxObject *range = worksheet->querySubObject("Range(QVariant)", deleteRangeContent); //获取单元格
+            range->dynamicCall("Delete()");
+            qDebug() << key << " (" << deleteRangeContent << " -- 【" << currentCell << ":" << cellValue << "】) is deleted";
+        }
+    }
+    qDebug() << "xlsName" << key << "rows:" << rows->property("Count").toInt() << "  columns:" << columns->property("Count").toInt();
+    workbook->dynamicCall("Save()");
+    workbook->dynamicCall("Close()");  //关闭工作簿
+    workbooks->dynamicCall("Close()"); //关闭工作簿
     ExcelParserByOfficeRunnable::freeExcel(excel);
 }
 
@@ -197,8 +251,8 @@ void ExcelParserByOfficeRunnable::processSourceFile(SourceExcelData *sourceExcel
     excel->setProperty("DisplayAlerts", false); //不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
     excel->setProperty("EnableEvents", false); //没有这个 很容易报错  QAxBase: Error calling IDispatch member Open: Unknown error
     qDebug() << "ExcelParserByOfficeRunnable::processSourceFile:: with SourceExcelData: " << sourceExcelData->getSourcePath();
-    qDebug() << " new source path"
-             << "";
+    qDebug() << " new source path";
+
     QAxObject *workbooks = excel->querySubObject("WorkBooks"); //获取工作簿集合
     QAxObject *workbook = workbooks->querySubObject("Open(const QString&, QVariant)", sourceExcelData->getSourcePath(), 0);
     QAxObject *worksheets = workbook->querySubObject("WorkSheets"); // 获取打开的excel文件中所有的工作sheet
@@ -311,6 +365,20 @@ void ExcelParserByOfficeRunnable::generateTplXls(SourceExcelData *sourceExcelDat
             currentWorkSheet->dynamicCall("Delete()");
         }
     }
+
+    //排序
+    //    QString groupByFieldNum;
+    //    ExcelBase::convertToColName(sourceExcelData->getGroupByIndex() + 1, groupByFieldNum);
+    //    QString rangFormat = "Range(A1:%1%2)";
+    //    QString rang = rangFormat.arg(sourceExcelData->getSourceMaxAlphabetCol()).arg(sourceExcelData->getSourceRowCnt());
+    //    QString sortFieldFormat = "Range(%1%2)";
+    //    QString sortField = sortFieldFormat.arg(groupByFieldNum).arg("1");
+    //    qDebug() << "rang:" << rang << "      sortField:" << sortField << " abcol:" << sourceExcelData->getSourceMaxAlphabetCol()
+    //             << " col:" << sourceExcelData->getSourceColCnt();
+    //    QAxObject *currentWorkSheet = workbook->querySubObject("WorkSheets(int)", selectedSheetIndex); // Sheets(int)也可换用Worksheets(int)
+    //    currentWorkSheet->querySubObject(rang.toUtf8())
+    //    ->dynamicCall("Sort(Key1:=QAxObject*,int)", currentWorkSheet->querySubObject(sortField.toUtf8())->asVariant(), 2);
+
     workbook->dynamicCall("Save()");
     workbook->dynamicCall("Close()");  //关闭工作簿
     workbooks->dynamicCall("Close()"); //关闭工作簿

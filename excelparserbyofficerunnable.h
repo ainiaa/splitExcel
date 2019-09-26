@@ -28,6 +28,7 @@ class ExcelParserByOfficeRunnable : public IExcelParserRunnable {
     void requestMsg(const int msgType, const QString &result) override;
     void writeXls(QString selectedSheetName, QHash<QString, QList<int>> qHash, QString savePath);
     void doProcess(QString key, QList<int> contentList);
+    void doFilter(QString key);
     void processSourceFile();
     bool static copyFileToPath(QString sourceDir, QString toDir, bool coverFileIfExist);
     void generateTplXls();
@@ -43,6 +44,7 @@ class ExcelParserByOfficeRunnable : public IExcelParserRunnable {
     QObject *mParent;
     int runnableID; //当前ID
     int m_total;    //
+    QString groupByText;
     QString key;
     QString savePath;          //拆分excel保存路径
     QString selectedSheetName; // data sheet 名称
@@ -50,6 +52,7 @@ class ExcelParserByOfficeRunnable : public IExcelParserRunnable {
     QXlsx::Document *xlsx;
     bool installedExcelApp;
 
+    int groupByIndex;             //排序列索引
     int sourceRowStart;           // 起始行数
     int sourceColStart;           // 起始列数
     QString sourceMinAlphabetCol; //最小列（字符）

@@ -436,7 +436,7 @@ bool ExcelBase::writeCurrentSheet(const QList<QList<QVariant>> &cells) {
     rangStr = "A1:" + rangStr;
     qDebug() << rangStr;
     QAxObject *range = d->sheet->querySubObject("Range(const QString&)", rangStr);
-    if (NULL == range || range->isNull()) {
+    if (nullptr == range || range->isNull()) {
         return false;
     }
     bool succ = false;
@@ -456,13 +456,17 @@ bool ExcelBase::writeCurrentSheet(const QList<QList<QVariant>> &cells) {
 ///
 void ExcelBase::convertToColName(int data, QString &res) {
     Q_ASSERT(data > 0 && data < 65535);
-    int tempData = data / 26;
-    if (tempData > 0) {
-        int mode = data % 26;
-        convertToColName(mode, res);
-        convertToColName(tempData, res);
-    } else {
-        res = (to26AlphabetString(data) + res);
+    int scale = 26;
+    while (true) {
+        int i = data % scale;
+        if (i == 0) {
+            i = scale;
+        }
+        res = (QString(64 + i) + res);
+        if (data <= scale) {
+            break;
+        }
+        data /= scale;
     }
 }
 ///
