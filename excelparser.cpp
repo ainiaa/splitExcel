@@ -193,65 +193,16 @@ QHash<QString, QList<int>> ExcelParser::readDataXls(QString groupByText, QString
         QString groupByValue;
         QXlsx::Cell *cell = xlsx->cellAt(row, groupBy);
         if (cell) {
-            groupByValue = cell->value().toString();
+            groupByValue = cell->value().toString().trimmed();
         }
 
-        if (groupByValue.trimmed().isEmpty()) { //有空行
+        if (groupByValue.isEmpty()) { //有空行
             emit requestMsg(Common::MsgTypeError, "第" + QString::number(row, 10) + "” 为空，请删除所有空白行后再进行操作！");
             return qHash;
         }
 
         QList<int> qlist = qHash.take(groupByValue);
         qlist.append(row);
-        qHash.insert(groupByValue, qlist);
-    }
-    return qHash;
-}
-
-QHash<QString, QList<QStringList>> ExcelParser::readXlsData(QString groupByText, QString selectedSheetName) {
-    QXlsx::CellRange range;
-    xlsx->selectSheet(selectedSheetName);
-    range = xlsx->dimension();
-    int rowCount = range.rowCount();
-    int colCount = range.columnCount();
-
-    QHash<QString, QList<QStringList>> qHash;
-    int groupBy = 0;
-    for (int colum = 1; colum <= colCount; ++colum) {
-        QXlsx::Cell *cell = xlsx->cellAt(1, colum);
-        QXlsx::Format format = cell->format();
-        if (cell) {
-            if (groupByText == cell->value().toString()) {
-                groupBy = colum;
-                break;
-            }
-        }
-    }
-    if (groupBy == 0) { //没有对应的分组
-        emit requestMsg(Common::MsgTypeError, "分组列“" + groupByText + "” 不存在");
-        return qHash;
-    }
-
-    for (int row = 2; row <= rowCount; ++row) {
-        QString groupByValue;
-        QXlsx::Cell *cell = xlsx->cellAt(row, groupBy);
-        if (cell) {
-            groupByValue = cell->value().toString();
-        }
-
-        QList<QStringList> qlist = qHash.take(groupByValue);
-        QStringList rowData;
-        for (int colum = 1; colum <= colCount; ++colum) {
-            QXlsx::Cell *cell = xlsx->cellAt(row, colum);
-            QXlsx::Format format = cell->format();
-            if (cell) {
-                if (groupByText == cell->value().toString()) {
-                    groupBy = colum;
-                    break;
-                }
-            }
-        }
-        qlist.append(rowData);
         qHash.insert(groupByValue, qlist);
     }
     return qHash;
@@ -271,7 +222,7 @@ QHash<QString, QList<QStringList>> ExcelParser::readEmailXls(QString groupByText
         QXlsx::Cell *cell = xlsx->cellAt(1, colum);
         QXlsx::Format format = cell->format();
         if (cell) {
-            if (groupByText == cell->value().toString()) {
+            if (groupByText == cell->value().toString().trimmed()) {
                 groupBy = colum;
                 break;
             }
@@ -287,7 +238,7 @@ QHash<QString, QList<QStringList>> ExcelParser::readEmailXls(QString groupByText
         QStringList items;
         QXlsx::Cell *cell = xlsx->cellAt(row, groupBy);
         if (cell) {
-            groupByValue = cell->value().toString();
+            groupByValue = cell->value().toString().trimmed();
         }
         if (groupByValue.isNull() || groupByValue.isEmpty()) {
             continue;
@@ -298,7 +249,7 @@ QHash<QString, QList<QStringList>> ExcelParser::readEmailXls(QString groupByText
                 if (cell->isDateTime()) {
                     items.append(cell->dateTime().toString("yyyy/MM/dd"));
                 } else {
-                    items.append(cell->value().toString());
+                    items.append(cell->value().toString().trimmed());
                 }
             }
         }

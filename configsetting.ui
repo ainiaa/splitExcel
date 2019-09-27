@@ -338,12 +338,12 @@
       <rect>
        <x>203</x>
        <y>12</y>
-       <width>89</width>
+       <width>131</width>
        <height>16</height>
       </rect>
      </property>
      <property name="text">
-      <string>MS Office</string>
+      <string>MS Office(无弹窗)</string>
      </property>
     </widget>
    </widget>

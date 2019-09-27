@@ -162,55 +162,6 @@ QHash<QString, QList<int>> ExcelParserByLib::readDataXls(QString groupByText, QS
     return qHash;
 }
 
-QHash<QString, QList<QStringList>> ExcelParserByLib::readXlsData(QString groupByText, QString selectedSheetName) {
-    QXlsx::CellRange range;
-    xlsx->selectSheet(selectedSheetName);
-    range = xlsx->dimension();
-    int rowCount = range.rowCount();
-    int colCount = range.columnCount();
-
-    QHash<QString, QList<QStringList>> qHash;
-    int groupBy = 0;
-    for (int colum = 1; colum <= colCount; ++colum) {
-        QXlsx::Cell *cell = xlsx->cellAt(1, colum);
-        QXlsx::Format format = cell->format();
-        if (cell) {
-            if (groupByText == cell->value().toString()) {
-                groupBy = colum;
-                break;
-            }
-        }
-    }
-    if (groupBy == 0) { //没有对应的分组
-        emit requestMsg(Common::MsgTypeError, "分组列“" + groupByText + "” 不存在");
-        return qHash;
-    }
-
-    for (int row = 2; row <= rowCount; ++row) {
-        QString groupByValue;
-        QXlsx::Cell *cell = xlsx->cellAt(row, groupBy);
-        if (cell) {
-            groupByValue = cell->value().toString();
-        }
-
-        QList<QStringList> qlist = qHash.take(groupByValue);
-        QStringList rowData;
-        for (int colum = 1; colum <= colCount; ++colum) {
-            QXlsx::Cell *cell = xlsx->cellAt(row, colum);
-            QXlsx::Format format = cell->format();
-            if (cell) {
-                if (groupByText == cell->value().toString()) {
-                    groupBy = colum;
-                    break;
-                }
-            }
-        }
-        qlist.append(rowData);
-        qHash.insert(groupByValue, qlist);
-    }
-    return qHash;
-}
-
 //读取xls
 QHash<QString, QList<QStringList>> ExcelParserByLib::readEmailXls(QString groupByText, QString selectedSheetName) {
     QXlsx::CellRange range;

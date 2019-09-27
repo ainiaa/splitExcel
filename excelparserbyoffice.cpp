@@ -161,60 +161,11 @@ QHash<QString, QList<int>> ExcelParserByOffice::readDataXls(QString groupByText,
         QString groupByValue;
         QXlsx::Cell *cell = xlsx->cellAt(row, groupBy);
         if (cell) {
-            groupByValue = cell->value().toString();
+            groupByValue = cell->value().toString().trimmed();
         }
 
         QList<int> qlist = qHash.take(groupByValue);
         qlist.append(row);
-        qHash.insert(groupByValue, qlist);
-    }
-    return qHash;
-}
-
-QHash<QString, QList<QStringList>> ExcelParserByOffice::readXlsData(QString groupByText, QString selectedSheetName) {
-    QXlsx::CellRange range;
-    xlsx->selectSheet(selectedSheetName);
-    range = xlsx->dimension();
-    int rowCount = range.rowCount();
-    int colCount = range.columnCount();
-
-    QHash<QString, QList<QStringList>> qHash;
-    int groupBy = 0;
-    for (int colum = 1; colum <= colCount; ++colum) {
-        QXlsx::Cell *cell = xlsx->cellAt(1, colum);
-        QXlsx::Format format = cell->format();
-        if (cell) {
-            if (groupByText == cell->value().toString()) {
-                groupBy = colum;
-                break;
-            }
-        }
-    }
-    if (groupBy == 0) { //没有对应的分组
-        emit requestMsg(Common::MsgTypeError, "分组列“" + groupByText + "” 不存在");
-        return qHash;
-    }
-
-    for (int row = 2; row <= rowCount; ++row) {
-        QString groupByValue;
-        QXlsx::Cell *cell = xlsx->cellAt(row, groupBy);
-        if (cell) {
-            groupByValue = cell->value().toString();
-        }
-
-        QList<QStringList> qlist = qHash.take(groupByValue);
-        QStringList rowData;
-        for (int colum = 1; colum <= colCount; ++colum) {
-            QXlsx::Cell *cell = xlsx->cellAt(row, colum);
-            QXlsx::Format format = cell->format();
-            if (cell) {
-                if (groupByText == cell->value().toString()) {
-                    groupBy = colum;
-                    break;
-                }
-            }
-        }
-        qlist.append(rowData);
         qHash.insert(groupByValue, qlist);
     }
     return qHash;
