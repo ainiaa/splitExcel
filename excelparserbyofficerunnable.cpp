@@ -148,6 +148,7 @@ void ExcelParserByOfficeRunnable::doFilter(QString key) {
             qDebug() << key << i << " is empty\r\n";
             break;
         }
+        cellValue = cellValue.trimmed();
         if (cellValue != key) { //当前列不是所需数据（漏网之鱼）删除
             QString deleteRangeContent = deleteRangeFormat.arg(i).arg(sourceMaxAlphabetCol).arg(i);
             QAxObject *range = worksheet->querySubObject("Range(QVariant)", deleteRangeContent); //获取单元格

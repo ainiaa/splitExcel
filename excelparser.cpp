@@ -195,8 +195,12 @@ QHash<QString, QList<int>> ExcelParser::readDataXls(QString groupByText, QString
         if (cell) {
             groupByValue = cell->value().toString();
         }
-
-        if (groupByValue.trimmed().isEmpty()) { //有空行
+        if (groupByValue.isNull()) {
+            emit requestMsg(Common::MsgTypeError, "第" + QString::number(row, 10) + "” 为空，请删除所有空白行后再进行操作！");
+            return qHash;
+        }
+        groupByValue = groupByValue.trimmed();
+        if (groupByValue.isEmpty()) { //有空行
             emit requestMsg(Common::MsgTypeError, "第" + QString::number(row, 10) + "” 为空，请删除所有空白行后再进行操作！");
             return qHash;
         }
@@ -289,7 +293,11 @@ QHash<QString, QList<QStringList>> ExcelParser::readEmailXls(QString groupByText
         if (cell) {
             groupByValue = cell->value().toString();
         }
-        if (groupByValue.isNull() || groupByValue.isEmpty()) {
+        if (groupByValue.isNull()) {
+            continue;
+        }
+        groupByValue = groupByValue.trimmed();
+        if (groupByValue.isEmpty()) {
             continue;
         }
         for (int colum = 1; colum <= colCount; ++colum) {
@@ -308,6 +316,7 @@ QHash<QString, QList<QStringList>> ExcelParser::readEmailXls(QString groupByText
             qhash.clear();
             return qhash;
         }
+
         QList<QStringList> qlist = qhash.take(groupByValue);
         qlist.append(items);
         qhash.insert(groupByValue, qlist);
