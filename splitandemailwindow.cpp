@@ -27,10 +27,10 @@ SplitAndEmailWindow::~SplitAndEmailWindow() {
     if (excelParser) {
         delete excelParser;
     }
-    if (xlsxParserThread) {
-        xlsxParserThread->quit();
-        xlsxParserThread->wait();
-        delete xlsxParserThread;
+    if (excelParserThread) {
+        excelParserThread->quit();
+        excelParserThread->wait();
+        delete excelParserThread;
     }
 
     if (processWindow) {
@@ -141,33 +141,41 @@ void SplitAndEmailWindow::on_savePathPushButton_clicked() {
 
 //拆分 && 后续操作(发送email)
 void SplitAndEmailWindow::doSplitXls(QString dataSheetName, QString emailSheetName, QString savePath) {
-    if (xlsxParserThread != nullptr) {
+    qDebug() << "SplitAndEmailWindow::doSplitXls";
+    if (excelParserThread != nullptr) {
+        qDebug() << "SplitAndEmailWindow::doSplitXls doing";
         return;
     }
     QString groupByText = ui->groupByComboBox->currentText();
-    xlsxParserThread = new QThread();
+    int groupByIndex = ui->groupByComboBox->currentIndex(); //分组列 索引（从 0 开始)
 
     int dataSheetIndex = ui->dataComboBox->currentIndex();
     int emailSheetIndex = ui->emailComboBox->currentIndex();
     int sheetCnt = ui->dataComboBox->count();
+
+    //设置excel相关数据
     SourceExcelData *sourceExcelData = new SourceExcelData();
     sourceExcelData->setSavePath(savePath);
     sourceExcelData->setDataSheetName(dataSheetName);
-    sourceExcelData->setSheetCnt(sheetCnt);
     sourceExcelData->setDataSheetIndex(dataSheetIndex);
+    sourceExcelData->setSheetCnt(sheetCnt);
     sourceExcelData->setEmailSheetName(emailSheetName);
     sourceExcelData->setEmailSheetIndex(emailSheetIndex);
     sourceExcelData->setOpType(SourceExcelData::OperateType::SplitAndEmailType);
     sourceExcelData->setGroupByText(groupByText);
+    sourceExcelData->setGroupByIndex(groupByIndex);
     sourceExcelData->setSourcePath(this->sourcePath);
-    excelParser->setSplitData(cfg, sourceExcelData);
 
-    excelParser->moveToThread(xlsxParserThread);
-    connect(xlsxParserThread, &QThread::finished, xlsxParserThread, &QObject::deleteLater);
-    connect(xlsxParserThread, &QThread::finished, excelParser, &QObject::deleteLater);
+    //设置excel 解析相关事件
+    excelParser->setSplitData(cfg, sourceExcelData);
+    excelParser->moveToThread(excelParserThread);
+
+    excelParserThread = new QThread();
+    connect(excelParserThread, &QThread::finished, excelParserThread, &QObject::deleteLater);
+    connect(excelParserThread, &QThread::finished, excelParser, &QObject::deleteLater);
     connect(this, &SplitAndEmailWindow::doProcess, excelParser, &ExcelParser::doParse);
     connect(excelParser, &ExcelParser::requestMsg, this, &SplitAndEmailWindow::receiveMessage);
-    xlsxParserThread->start();
+    excelParserThread->start();
 
     emit doProcess(); //主线程通过信号换起子线程的槽函数
 }

@@ -95,9 +95,10 @@ void SplitOnlyWindow::doSplitXls(QString dataSheetName, QString savePath) {
     sourceExcelData->setSourcePath(this->sourcePath);
 
     //设置excel 解析相关事件
-    excelParserThread = new QThread();
     excelParser->setSplitData(cfg, sourceExcelData);
     excelParser->moveToThread(excelParserThread);
+
+    excelParserThread = new QThread();
     connect(excelParserThread, &QThread::finished, excelParserThread, &QObject::deleteLater);
     connect(excelParserThread, &QThread::finished, excelParser, &QObject::deleteLater);
     connect(this, &SplitOnlyWindow::doProcess, excelParser, &ExcelParser::doParse);         //触发excel解析

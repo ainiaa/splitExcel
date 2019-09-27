@@ -61,7 +61,7 @@ class SplitAndEmailWindow : public SplitSubWindow {
     TestTimeer *testTimeer = new TestTimeer(nullptr, this);
 
     Config *cfg = new Config();
-    QThread *xlsxParserThread = nullptr;
+    QThread *excelParserThread = nullptr;
     ExcelParser *excelParser = nullptr;
     QThread *mailSenderThread = nullptr;
     EmailSender *mailSender = nullptr;

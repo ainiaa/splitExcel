@@ -104,7 +104,7 @@ void ExcelParser::receiveMessage(const int msgType, const QString &result) {
 
 //拆分excel文件
 void ExcelParser::doParse() {
-    qDebug() << "doSplit";
+    qDebug() << "doSplit start";
     if (this->sourceExcelData->getOpType() == SourceExcelData::OperateType::SplitAndEmailType ||
         this->sourceExcelData->getOpType() == SourceExcelData::OperateType::EmailOnlyType) {
         qDebug() << "doSplit readEmailXls";
