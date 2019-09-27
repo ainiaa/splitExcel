@@ -145,6 +145,7 @@ void SplitAndEmailWindow::doSplitXls(QString dataSheetName, QString emailSheetNa
         return;
     }
     QString groupByText = ui->groupByComboBox->currentText();
+    int groupByIndex = ui->groupByComboBox->currentIndex();
     xlsxParserThread = new QThread();
 
     int dataSheetIndex = ui->dataComboBox->currentIndex();
@@ -159,6 +160,7 @@ void SplitAndEmailWindow::doSplitXls(QString dataSheetName, QString emailSheetNa
     sourceExcelData->setEmailSheetIndex(emailSheetIndex);
     sourceExcelData->setOpType(SourceExcelData::OperateType::SplitAndEmailType);
     sourceExcelData->setGroupByText(groupByText);
+    sourceExcelData->setGroupByIndex(groupByIndex);
     sourceExcelData->setSourcePath(this->sourcePath);
     excelParser->setSplitData(cfg, sourceExcelData);
 
