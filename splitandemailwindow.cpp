@@ -168,9 +168,11 @@ void SplitAndEmailWindow::doSplitXls(QString dataSheetName, QString emailSheetNa
 
     //设置excel 解析相关事件
     excelParser->setSplitData(cfg, sourceExcelData);
+	
+	excelParserThread = new QThread();
     excelParser->moveToThread(excelParserThread);
 
-    excelParserThread = new QThread();
+    
     connect(excelParserThread, &QThread::finished, excelParserThread, &QObject::deleteLater);
     connect(excelParserThread, &QThread::finished, excelParser, &QObject::deleteLater);
     connect(this, &SplitAndEmailWindow::doProcess, excelParser, &ExcelParser::doParse);

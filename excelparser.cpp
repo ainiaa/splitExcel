@@ -195,8 +195,7 @@ QHash<QString, QList<int>> ExcelParser::readDataXls(QString groupByText, QString
         if (cell) {
             groupByValue = cell->value().toString().trimmed();
         }
-
-        if (groupByValue.isEmpty()) { //有空行
+        if (groupByValue.isNull() || groupByValue.isEmpty()) {
             emit requestMsg(Common::MsgTypeError, "第" + QString::number(row, 10) + "” 为空，请删除所有空白行后再进行操作！");
             return qHash;
         }
@@ -245,12 +244,17 @@ QHash<QString, QList<QStringList>> ExcelParser::readEmailXls(QString groupByText
         }
         for (int colum = 1; colum <= colCount; ++colum) {
             QXlsx::Cell *cell = xlsx->cellAt(row, colum);
+            QString currentCellValue;
             if (cell) {
                 if (cell->isDateTime()) {
-                    items.append(cell->dateTime().toString("yyyy/MM/dd"));
+                    currentCellValue = cell->dateTime().toString("yyyy/MM/dd");
                 } else {
-                    items.append(cell->value().toString().trimmed());
+                    currentCellValue = cell->value().toString().trimmed();
+                    if (currentCellValue.isNull() || currentCellValue.isEmpty()) {
+                        continue;
+                    }
                 }
+                items.append(currentCellValue);
             }
         }
         if (items.size() < Common::EmailColumnMinCnt) {

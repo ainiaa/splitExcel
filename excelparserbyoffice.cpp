@@ -164,6 +164,10 @@ QHash<QString, QList<int>> ExcelParserByOffice::readDataXls(QString groupByText,
             groupByValue = cell->value().toString().trimmed();
         }
 
+        if (groupByValue.isNull() || groupByValue.isEmpty()) {
+            continue;
+        }
+
         QList<int> qlist = qHash.take(groupByValue);
         qlist.append(row);
         qHash.insert(groupByValue, qlist);
