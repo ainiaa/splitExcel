@@ -22,9 +22,11 @@ class EmailOnlyWindow : public SplitSubWindow {
     ~EmailOnlyWindow();
 
     void doSendEmail(QString dataSheetName, QString savePath);
+    void sendemail();
 
     signals:
     void doProcess();
+    void doSend();
 
     private slots:
     void on_selectFilePushButton_clicked();

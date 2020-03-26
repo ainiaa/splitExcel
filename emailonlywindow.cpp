@@ -115,6 +115,10 @@ void EmailOnlyWindow::receiveMessage(const int msgType, const QString &msg) {
             processWindow->setProcessPercent(this->incrAndCalcPercent(1));
             QMessageBox::critical(this, "Error", msg);
             break;
+        case Common::MsgTypeStartSendEmail:
+            //发送email
+            sendemail();
+            break;
         case Common::MsgTypeEmailSendFinish:
             ui->emailOnlySubmitPushButton->setDisabled(false);
             processWindow->setProcessText(msg);
@@ -132,6 +136,27 @@ void EmailOnlyWindow::receiveMessage(const int msgType, const QString &msg) {
             processWindow->setProcessText(msg);
             break;
     }
+}
+
+//发送邮件
+//@see https://blog.csdn.net/czyt1988/article/details/71194457
+void EmailOnlyWindow::sendemail() {
+    QHash<QString, QList<QStringList>> emailQhash = excelParser->getEmailData();
+    int total = emailQhash.size();
+    if (mailSenderThread != nullptr) {
+        return;
+    }
+    mailSenderThread = new QThread();
+    mailSender = new EmailSender();
+    mailSender->setSendData(cfg, emailQhash, savePath, total);
+    mailSender->moveToThread(mailSenderThread);
+    connect(mailSenderThread, &QThread::finished, mailSenderThread, &QObject::deleteLater);
+    connect(mailSenderThread, &QThread::finished, mailSender, &QObject::deleteLater);
+    connect(this, &EmailOnlyWindow::doSend, mailSender, &EmailSender::doSend);
+    connect(mailSender, &EmailSender::requestMsg, this, &EmailOnlyWindow::receiveMessage);
+    mailSenderThread->start();
+
+    emit doSend(); //主线程通过信号换起子线程的槽函数
 }
 
 void EmailOnlyWindow::on_gobackPushButton_clicked() {
