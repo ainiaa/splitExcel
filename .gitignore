@@ -1,2 +1,10 @@
 bin/
 splitExcel.si4project/
+*.o
+debug/
+object_script.splitExcel.Debug
+Makefile.Debug
+.qmake.stash
+Makefile.Release
+object_script.splitExcel.Release
+Makefile
