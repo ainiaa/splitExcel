@@ -1,19 +1,19 @@
-#include "excelparserbylibrunnable.h"
+#include "parserbylibrunnable.h"
 #include "excelparser.h"
 
-ExcelParserByLibRunnable::ExcelParserByLibRunnable(QObject *parent) {
+ParserByLibRunnable::ParserByLibRunnable(QObject *parent) {
     this->mParent = parent;
 }
 
-ExcelParserByLibRunnable::~ExcelParserByLibRunnable() {
+ParserByLibRunnable::~ParserByLibRunnable() {
     runnableID = 0;
 }
 
-void ExcelParserByLibRunnable::setID(const int &id) {
+void ParserByLibRunnable::setID(const int &id) {
     runnableID = id;
 }
 
-void ExcelParserByLibRunnable::setSplitData(QString sourcePath,
+void ParserByLibRunnable::setSplitData(QString sourcePath,
                                             QString selectedSheetName,
                                             QHash<QString, QList<int>> fragmentDataQhash,
                                             QString savePath,
@@ -27,10 +27,7 @@ void ExcelParserByLibRunnable::setSplitData(QString sourcePath,
     this->m_total = total;
 }
 
-void ExcelParserByLibRunnable::setSplitData(SourceExcelData *sourceExcelData,
-                                            QString selectedSheetName,
-                                            QHash<QString, QList<int>> fragmentDataQhash,
-                                            int m_total) {
+void ParserByLibRunnable::setSplitData(SourceData *sourceExcelData, QString selectedSheetName, QHash<QString, QList<QList<QVariant>>> fragmentDataQhash, int m_total){
     qDebug("ExcelParserByLibRunnable::setSplitData with SourceExcelData");
 
     this->xlsx = new QXlsx::Document(sourcePath);
@@ -38,11 +35,25 @@ void ExcelParserByLibRunnable::setSplitData(SourceExcelData *sourceExcelData,
     this->savePath = sourceExcelData->getSavePath();
     this->m_total = m_total;
     this->selectedSheetName = selectedSheetName;
-    this->fragmentDataQhash = fragmentDataQhash;
+    this->fragmentDataQhash2 = fragmentDataQhash;
     this->sourceExcelData = sourceExcelData;
 }
+void ParserByLibRunnable::setSplitData(SourceData *sourceData,
+                                            QString selectedSheetName,
+                                            QHash<QString, QList<int>> fragmentDataQhash,
+                                            int m_total) {
+    qDebug("ExcelParserByLibRunnable::setSplitData with SourceExcelData");
 
-void ExcelParserByLibRunnable::run() {
+    this->xlsx = new QXlsx::Document(sourcePath);
+    this->sourcePath = sourceData->getSourcePath();
+    this->savePath = sourceData->getSavePath();
+    this->m_total = m_total;
+    this->selectedSheetName = selectedSheetName;
+    this->fragmentDataQhash = fragmentDataQhash;
+    this->sourceExcelData = sourceData;
+}
+
+void ParserByLibRunnable::run() {
     qDebug("XlsxParserRunnable::run start");
     QString startMsg("开始拆分excel并生成新的excel文件: %1/");
     QString endMsg("完成拆分excel并生成新的excel文件: %1/");
@@ -63,7 +74,7 @@ void ExcelParserByLibRunnable::run() {
     qDebug("XlsxParserRunnable::run end");
 }
 
-void ExcelParserByLibRunnable::processByQxls(QString key, QList<int> contentList) {
+void ParserByLibRunnable::processByQxls(QString key, QList<int> contentList) {
     QString xlsName;
     xlsName.append(savePath).append(QDir::separator()).append(key).append(".xlsx");
     copyFileToPath(sourcePath, xlsName, true);
@@ -98,12 +109,12 @@ void ExcelParserByLibRunnable::processByQxls(QString key, QList<int> contentList
 
 // old end
 
-void ExcelParserByLibRunnable::requestMsg(const int msgType, const QString &msg) {
+void ParserByLibRunnable::requestMsg(const int msgType, const QString &msg) {
     qobject_cast<ExcelParser *>(mParent)->receiveMessage(msgType, msg);
     // QMetaObject::invokeMethod(mParent, "receiveMessage", Qt::QueuedConnection, Q_ARG(int,msgType),Q_ARG(QString, msg));//不能及时返回信息
 }
 
-bool ExcelParserByLibRunnable::copyFileToPath(QString sourceDir, QString toDir, bool coverFileIfExist) {
+bool ParserByLibRunnable::copyFileToPath(QString sourceDir, QString toDir, bool coverFileIfExist) {
     sourceDir = QDir::toNativeSeparators(sourceDir);
     toDir = QDir::toNativeSeparators(toDir);
 
@@ -127,7 +138,7 @@ bool ExcelParserByLibRunnable::copyFileToPath(QString sourceDir, QString toDir, 
     return true;
 }
 
-void ExcelParserByLibRunnable::processSourceFile() {
+void ParserByLibRunnable::processSourceFile() {
 }
-void ExcelParserByLibRunnable::generateTplXls() {
+void ParserByLibRunnable::generateTplXls() {
 }

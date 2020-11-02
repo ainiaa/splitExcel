@@ -3,11 +3,11 @@
 
 #include <QObject>
 
-class SourceExcelData : public QObject {
+class SourceData : public QObject {
     Q_OBJECT
 
     public:
-    SourceExcelData(QObject *parent = nullptr);
+    SourceData(QObject *parent = nullptr);
     enum OperateType { SplitAndEmailType = 1, SplitOnlyType, EmailOnlyType };
 
     void setDataSheetIndex(int dataSheetIndex);

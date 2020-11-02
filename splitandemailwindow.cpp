@@ -154,14 +154,14 @@ void SplitAndEmailWindow::doSplitXls(QString dataSheetName, QString emailSheetNa
     int sheetCnt = ui->dataComboBox->count();
 
     //设置excel相关数据
-    SourceExcelData *sourceExcelData = new SourceExcelData();
+    SourceData *sourceExcelData = new SourceData();
     sourceExcelData->setSavePath(savePath);
     sourceExcelData->setDataSheetName(dataSheetName);
     sourceExcelData->setDataSheetIndex(dataSheetIndex);
     sourceExcelData->setSheetCnt(sheetCnt);
     sourceExcelData->setEmailSheetName(emailSheetName);
     sourceExcelData->setEmailSheetIndex(emailSheetIndex);
-    sourceExcelData->setOpType(SourceExcelData::OperateType::SplitAndEmailType);
+    sourceExcelData->setOpType(SourceData::OperateType::SplitAndEmailType);
     sourceExcelData->setGroupByText(groupByText);
     sourceExcelData->setGroupByIndex(groupByIndex);
     sourceExcelData->setSourcePath(this->sourcePath);

@@ -201,7 +201,7 @@
    <widget class="QPushButton" name="splitOnlySubmitPushButton">
     <property name="geometry">
      <rect>
-      <x>236</x>
+      <x>230</x>
       <y>278</y>
       <width>75</width>
       <height>31</height>

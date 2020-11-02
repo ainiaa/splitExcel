@@ -1,19 +1,19 @@
-#include "excelparserbyoffice.h"
+#include "excelparserbyms.h"
 
-ExcelParserByOffice::ExcelParserByOffice(QObject *parent) : QObject(parent) {
+ExcelParserByMS::ExcelParserByMS(QObject *parent) : QObject(parent) {
     m_success_cnt = 0;
     m_failure_cnt = 0;
     m_process_cnt = 0;
     m_receive_msg_cnt = 0;
 }
 
-ExcelParserByOffice ::~ExcelParserByOffice() {
+ExcelParserByMS ::~ExcelParserByMS() {
     qDebug() << "~XlsxParserByOffice start";
 
     qDebug() << "~XlsxParserByOffice end";
 }
 
-void ExcelParserByOffice::setSplitData(Config *cfg, QString groupByText, QString dataSheetName, QString emailSheetName, QString savePath) {
+void ExcelParserByMS::setSplitData(Config *cfg, QString groupByText, QString dataSheetName, QString emailSheetName, QString savePath) {
     this->cfg = cfg;
     this->groupByText = groupByText;
     this->dataSheetName = dataSheetName;
@@ -21,7 +21,7 @@ void ExcelParserByOffice::setSplitData(Config *cfg, QString groupByText, QString
     this->savePath = savePath;
 }
 
-void ExcelParserByOffice::setSplitData(Config *cfg, SourceExcelData *sourceXmlData) {
+void ExcelParserByMS::setSplitData(Config *cfg, SourceData *sourceXmlData) {
     this->cfg = cfg;
     this->sourceXmlData = sourceXmlData;
     this->groupByText = sourceXmlData->getGroupByText();
@@ -30,7 +30,7 @@ void ExcelParserByOffice::setSplitData(Config *cfg, SourceExcelData *sourceXmlDa
     this->savePath = sourceXmlData->getSavePath();
 }
 
-QStringList ExcelParserByOffice::getSheetNames() {
+QStringList ExcelParserByMS::getSheetNames() {
     QStringList sheetNames;
     if (nullptr != xlsx) {
         sheetNames = xlsx->sheetNames();
@@ -38,15 +38,15 @@ QStringList ExcelParserByOffice::getSheetNames() {
     return sheetNames;
 }
 
-bool ExcelParserByOffice::selectSheet(const QString &name) {
+bool ExcelParserByMS::selectSheet(const QString &name) {
     return xlsx->selectSheet(name);
 }
 
-QXlsx::CellRange ExcelParserByOffice::dimension() {
+QXlsx::CellRange ExcelParserByMS::dimension() {
     return xlsx->dimension();
 }
 
-QStringList *ExcelParserByOffice::getSheetHeader(QString selectedSheetName) {
+QStringList *ExcelParserByMS::getSheetHeader(QString selectedSheetName) {
     QStringList *currentHeader = new QStringList();
     QXlsx::CellRange range;
     xlsx->selectSheet(selectedSheetName);
@@ -63,7 +63,7 @@ QStringList *ExcelParserByOffice::getSheetHeader(QString selectedSheetName) {
 }
 
 //打开文件对话框
-QString ExcelParserByOffice::openFile(QWidget *dlgParent) {
+QString ExcelParserByMS::openFile(QWidget *dlgParent) {
     QString path = QFileDialog::getOpenFileName(dlgParent, tr("Open Excel"), ".", tr("excel(*.xlsx)"));
     if (path.length() == 0) {
         return "";
@@ -74,7 +74,7 @@ QString ExcelParserByOffice::openFile(QWidget *dlgParent) {
     }
 }
 
-void ExcelParserByOffice::receiveMessage(const int msgType, const QString &result) {
+void ExcelParserByMS::receiveMessage(const int msgType, const QString &result) {
     qDebug() << "XlsxParserByOffice::receiveMessage msgType:" << QString::number(msgType).toUtf8() << " msg:" << result;
     switch (msgType) {
         case Common::MsgTypeError:
@@ -100,7 +100,7 @@ void ExcelParserByOffice::receiveMessage(const int msgType, const QString &resul
 }
 
 //拆分excel文件
-void ExcelParserByOffice::doSplit() {
+void ExcelParserByMS::doSplit() {
     qDebug() << "doSplit";
     if (nullptr != emailSheetName) {
         qDebug() << "doSplit readEmailXls";
@@ -128,12 +128,12 @@ void ExcelParserByOffice::doSplit() {
     writeXls(dataSheetName, dataQhash, savePath);
 }
 
-QHash<QString, QList<QStringList>> ExcelParserByOffice::getEmailData() {
+QHash<QString, QList<QStringList>> ExcelParserByMS::getEmailData() {
     return emailQhash;
 }
 
 //读取xls
-QHash<QString, QList<int>> ExcelParserByOffice::readDataXls(QString groupByText, QString selectedSheetName) {
+QHash<QString, QList<int>> ExcelParserByMS::readDataXls(QString groupByText, QString selectedSheetName) {
     QXlsx::CellRange range;
     xlsx->selectSheet(selectedSheetName);
     range = xlsx->dimension();
@@ -176,7 +176,7 @@ QHash<QString, QList<int>> ExcelParserByOffice::readDataXls(QString groupByText,
 }
 
 //读取xls
-QHash<QString, QList<QStringList>> ExcelParserByOffice::readEmailXls(QString groupByText, QString selectedSheetName) {
+QHash<QString, QList<QStringList>> ExcelParserByMS::readEmailXls(QString groupByText, QString selectedSheetName) {
     QXlsx::CellRange range;
     xlsx->selectSheet(selectedSheetName);
     range = xlsx->dimension();
@@ -234,7 +234,7 @@ QHash<QString, QList<QStringList>> ExcelParserByOffice::readEmailXls(QString gro
 }
 
 //写xls
-void ExcelParserByOffice::writeXls(QString selectedSheetName, QHash<QString, QList<int>> qHash, QString savePath) {
+void ExcelParserByMS::writeXls(QString selectedSheetName, QHash<QString, QList<int>> qHash, QString savePath) {
     QHashIterator<QString, QList<int>> it(qHash);
     QThreadPool pool;
     int maxThreadCnt = cfg->get("email", "maxThreadCnt").toInt();
@@ -257,7 +257,7 @@ void ExcelParserByOffice::writeXls(QString selectedSheetName, QHash<QString, QLi
         fragmentDataQhash.insert(key, content);
         int mod = m_process_cnt % maxProcessCntPreThread;
         if (mod == 0 || !it.hasNext()) {
-            ExcelParserByOfficeRunnable *runnable = new ExcelParserByOfficeRunnable(this);
+            ParserByMSRunnable *runnable = new ParserByMSRunnable(this);
             runnable->setID(runnableId++);
             runnable->setSplitData(sourcePath, selectedSheetName, fragmentDataQhash, savePath, totalCnt);
             pool.start(runnable);

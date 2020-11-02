@@ -25,11 +25,15 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
+    excelparserbyms.cpp \
         main.cpp \
         mainwindow.cpp \
         configsetting.cpp \
         config.cpp \
         common.cpp \
+    parserbylib.cpp \
+    parserbylibrunnable.cpp \
+    parserbymsrunnable.cpp \
         processwindow.cpp \
         emailsender.cpp \
         emailsenderrunnable.cpp \
@@ -39,10 +43,6 @@ SOURCES += \
         officehelper.cpp \
         excelbase.cpp \
         excelparser.cpp \
-        excelparserbylib.cpp \
-        excelparserbyoffice.cpp \
-        excelparserbyofficerunnable.cpp \
-        excelparserbylibrunnable.cpp \
         sourceexceldata.cpp \
     splitandemailwindow.cpp \
     emailonlywindow.cpp \
@@ -50,10 +50,14 @@ SOURCES += \
 
 
 HEADERS += \
+    excelparserbyms.h \
         mainwindow.h \
         configsetting.h \
         config.h \
         common.h \
+    parserbylib.h \
+    parserbylibrunnable.h \
+    parserbymsrunnable.h \
         processwindow.h \
         emailsender.h \
         emailsenderrunnable.h \
@@ -63,10 +67,6 @@ HEADERS += \
         officehelper.h \
         excelbase.h \
         excelparser.h \
-        excelparserbylib.h \
-        excelparserbyoffice.h \
-        excelparserbyofficerunnable.h \
-        excelparserbylibrunnable.h \
         sourceexceldata.h \
         iexcelparserrunnable.h \
     splitandemailwindow.h \

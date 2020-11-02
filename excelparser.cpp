@@ -13,21 +13,16 @@ ExcelParser::~ExcelParser() {
 
     qDebug() << "~XlsxParser end";
 }
-void ExcelParser::setSplitData(Config *cfg, QString groupByText, QString dataSheetName, QString emailSheetName, QString savePath) {
-    this->cfg = cfg;
-    this->groupByText = groupByText;
-    this->dataSheetName = dataSheetName;
-    this->emailSheetName = emailSheetName;
-    this->savePath = savePath;
-}
 
-void ExcelParser::setSplitData(Config *cfg, SourceExcelData *sourceExcelData) {
+void ExcelParser::setSplitData(Config *cfg, SourceData *sourceData) {
     this->cfg = cfg;
-    this->groupByText = sourceExcelData->getGroupByText();
-    this->dataSheetName = sourceExcelData->getDataSheetName();
-    this->emailSheetName = sourceExcelData->getEmailSheetName();
-    this->savePath = sourceExcelData->getSavePath();
-    this->sourceExcelData = sourceExcelData;
+    this->groupByText = sourceData->getGroupByText();
+    this->dataSheetName = sourceData->getDataSheetName();
+    this->emailSheetName = sourceData->getEmailSheetName();
+    this->savePath = sourceData->getSavePath();
+    this->dataSheetIndex = sourceData->getDataSheetIndex();
+    this->groupByIndex = sourceData->getGroupByIndex();
+    this->sourceData = sourceData;
 }
 QStringList ExcelParser::getSheetNames() {
     QStringList sheetNames;
@@ -95,8 +90,8 @@ void ExcelParser::receiveMessage(const int msgType, const QString &result) {
     }
     if (m_total_cnt > 0 && m_receive_msg_cnt == m_total_cnt) { //全部处理完毕
         emit requestMsg(Common::MsgTypeWriteXlsxFinish, "excel文件拆分完毕！");
-        if (this->sourceExcelData->getOpType() == SourceExcelData::OperateType::EmailOnlyType ||
-            this->sourceExcelData->getOpType() == SourceExcelData::OperateType::SplitAndEmailType) {
+        if (this->sourceData->getOpType() == SourceData::OperateType::EmailOnlyType ||
+            this->sourceData->getOpType() == SourceData::OperateType::SplitAndEmailType) {
             emit requestMsg(Common::MsgTypeStartSendEmail, "开始发送email");
         }
     }
@@ -105,8 +100,8 @@ void ExcelParser::receiveMessage(const int msgType, const QString &result) {
 //拆分excel文件
 void ExcelParser::doParse() {
     qDebug() << "doSplit start";
-    if (this->sourceExcelData->getOpType() == SourceExcelData::OperateType::SplitAndEmailType ||
-        this->sourceExcelData->getOpType() == SourceExcelData::OperateType::EmailOnlyType) {
+    if (this->sourceData->getOpType() == SourceData::OperateType::SplitAndEmailType ||
+        this->sourceData->getOpType() == SourceData::OperateType::EmailOnlyType) {
         qDebug() << "doSplit readEmailXls";
         //读取email
         emailQhash = readEmailXls(groupByText, emailSheetName);
@@ -114,20 +109,21 @@ void ExcelParser::doParse() {
             emit requestMsg(Common::MsgTypeFail, "没有email数据");
             return;
         }
-        if (this->sourceExcelData->getOpType() == SourceExcelData::OperateType::EmailOnlyType) {
+        if (this->sourceData->getOpType() == SourceData::OperateType::EmailOnlyType) {
             emit requestMsg(Common::MsgTypeStart, QString::number(emailQhash.size()));
             emit requestMsg(Common::MsgTypeStartSendEmail, "开始发送email");
             return;
         }
     }
 
-    if (this->sourceExcelData->getOpType() == SourceExcelData::OperateType::SplitAndEmailType ||
-        this->sourceExcelData->getOpType() == SourceExcelData::OperateType::SplitOnlyType) {
+    if (this->sourceData->getOpType() == SourceData::OperateType::SplitAndEmailType ||
+        this->sourceData->getOpType() == SourceData::OperateType::SplitOnlyType) {
         qDebug() << "doSplit readDataXls";
         //读取excel数据
         emit requestMsg(Common::MsgTypeInfo, "开始读取excel文件信息");
         QHash<QString, QList<int>> dataQhash = readDataXls(groupByText, dataSheetName);
-        if (this->sourceExcelData->getOpType() == SourceExcelData::OperateType::SplitOnlyType) {
+        QHash<QString, QList<QList<QVariant>>> dataQhash2 = readDataXls(groupByIndex,dataSheetIndex);
+        if (this->sourceData->getOpType() == SourceData::OperateType::SplitOnlyType) {
             emit requestMsg(Common::MsgTypeStart, QString::number(dataQhash.size()));
         } else {
             emit requestMsg(Common::MsgTypeStart, QString::number(dataQhash.size() + emailQhash.size()));
@@ -141,19 +137,19 @@ void ExcelParser::doParse() {
         m_total_cnt = dataQhash.size();
         qDebug() << "doSplit writeXls";
         int excelLibType = cfg->get("email", "excelLibType").toInt();
-        bool useMsOffice = false;
+        bool useMs = false;
         if (excelLibType == 0) { //自动识别
             if (this->isInstalledOffice) {
-                useMsOffice = true;
+                useMs = true;
             }
         } else if (excelLibType == 1) { //自带类库
-            useMsOffice = false;
-        } else if (excelLibType == 3) { //使用MS office
-            useMsOffice = true;
+            useMs = false;
+        } else if (excelLibType == 3) { //使用MS
+            useMs = true;
         }
 
-        if (useMsOffice) {
-            writeXlsByOffice(dataSheetName, dataQhash);
+        if (useMs) {
+            writeXlsByMS(dataSheetName, dataQhash2);
         } else {
             writeXlsByLib(dataSheetName, dataQhash);
         }
@@ -206,7 +202,25 @@ QHash<QString, QList<int>> ExcelParser::readDataXls(QString groupByText, QString
     }
     return qHash;
 }
+QHash<QString, QList<QList<QVariant>>> ExcelParser::readDataXls(int groupByIndex, int selectedSheetIndex) {
+    QVariant all = readAll();
 
+    QList<QList<QVariant>> allData;
+    castVariant2ListListVariant(all, allData);
+    QHash<QString, QList<QList<QVariant>>> qHash;
+    QString groupByValue;
+    for (int row = 1;row <allData.size();row++) {
+        groupByValue = allData[row][groupByIndex].toString();
+        if (groupByValue.isNull() || groupByValue.isEmpty()) {
+            emit requestMsg(Common::MsgTypeError, "第" + QString::number(row, 10) + "” 为空，请删除所有空白行后再进行操作！");
+            return qHash;
+        }
+        QList<QList<QVariant>> qlist = qHash.take(groupByValue);
+        qlist.append(allData[row]);
+        qHash.insert(groupByValue, qlist);
+    }
+    return qHash;
+}
 //读取xls
 QHash<QString, QList<QStringList>> ExcelParser::readEmailXls(QString groupByText, QString selectedSheetName) {
     QXlsx::CellRange range;
@@ -271,7 +285,7 @@ QHash<QString, QList<QStringList>> ExcelParser::readEmailXls(QString groupByText
 }
 
 //写xls(基于 MS office)
-void ExcelParser::writeXlsByOffice(QString selectedSheetName, QHash<QString, QList<int>> qHash) {
+void ExcelParser::writeXlsByMS(QString selectedSheetName, QHash<QString, QList<int>> qHash) {
     QHashIterator<QString, QList<int>> it(qHash);
     QThreadPool pool;
     int maxThreadCnt = cfg->get("email", "maxThreadCnt").toInt();
@@ -286,7 +300,7 @@ void ExcelParser::writeXlsByOffice(QString selectedSheetName, QHash<QString, QLi
     pool.setMaxThreadCount(maxThreadCnt);
     int totalCnt = qHash.size();
     int runnableId = 1;
-    ExcelParserByOfficeRunnable::processSourceFile(this->sourceExcelData, selectedSheetName);
+    ParserByMSRunnable::processSourceFile(this->sourceData, selectedSheetName);
     while (it.hasNext()) {
         it.next();
         QString key = it.key();
@@ -294,15 +308,138 @@ void ExcelParser::writeXlsByOffice(QString selectedSheetName, QHash<QString, QLi
         fragmentDataQhash.insert(key, content);
         int mod = m_process_cnt % maxProcessCntPreThread;
         if (mod == 0 || !it.hasNext()) {
-            IExcelParserRunnable *runnable = new ExcelParserByOfficeRunnable(this);
+            IExcelParserRunnable *runnable = new ParserByMSRunnable(this);
             runnable->setID(runnableId++);
-            runnable->setSplitData(this->sourceExcelData, selectedSheetName, fragmentDataQhash, totalCnt);
+            runnable->setSplitData(this->sourceData, selectedSheetName, fragmentDataQhash, totalCnt);
             pool.start(runnable);
             fragmentDataQhash.clear();
         }
     }
     pool.waitForDone();
 }
+
+//写xls(基于 MS office)
+void ExcelParser::writeXlsByMS(QString selectedSheetName, QHash<QString, QList<QList<QVariant>>> qHash) {
+    QHashIterator<QString, QList<QList<QVariant>>> it(qHash);
+    QThreadPool pool;
+    int maxThreadCnt = cfg->get("email", "maxThreadCnt").toInt();
+    if (maxThreadCnt < 1) {
+        maxThreadCnt = 4;
+    }
+
+    int maxProcessCntPreThread = qCeil(qHash.size() * 1.0 / maxThreadCnt);
+    qDebug() << "qHash.size() :" << qHash.size() << " maxThreadCnt:" << maxThreadCnt << " maxProcessCntPreThread:" << maxProcessCntPreThread;
+    QHash<QString, QList<QList<QVariant>>> fragmentQhash;
+
+    pool.setMaxThreadCount(maxThreadCnt);
+    int totalCnt = qHash.size();
+    int runnableId = 1;
+    //生成模板文件 方便多线程填写数据
+//    ParserByMSRunnable::processSourceFile(this->sourceData, selectedSheetName);
+    ParserByMSRunnable::generateTplXls(this->sourceData, this->sourceData->getDataSheetIndex() + 1); //生成模板文件
+    while (it.hasNext()) {
+        it.next();
+        QString key = it.key();
+        QList<QList<QVariant>> content = it.value();
+        fragmentQhash.insert(key, content);
+        int mod = m_process_cnt % maxProcessCntPreThread;
+        if (mod == 0 || !it.hasNext()) {
+            IExcelParserRunnable *runnable = new ParserByMSRunnable(this);
+            runnable->setID(runnableId++);
+            runnable->setSplitData(this->sourceData, selectedSheetName, fragmentQhash, totalCnt);
+            pool.start(runnable);
+            fragmentQhash.clear();
+        }
+    }
+    pool.waitForDone();
+}
+
+void ExcelParser::freeExcel(QAxObject *excel) {
+    if (!excel->isNull()) {
+        excel->dynamicCall("Quit()");
+        delete excel;
+        excel = nullptr;
+    }
+}
+
+///
+/// \brief 读取整个sheet
+/// \return
+///
+QVariant ExcelParser::readAll() {
+    QVariant var;
+    QString xlsName = this->sourceData->getSourcePath();
+#if defined(Q_OS_WIN)
+    QAxObject *excel = new QAxObject("Excel.Application");  //连接Excel控件
+    excel->dynamicCall("SetVisible (bool Visible)", false); //不显示窗体
+    excel->setProperty("DisplayAlerts", false); //不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
+    excel->setProperty("EnableEvents", false); //没有这个 很容易报错  QAxBase: Error calling IDispatch member Open: Unknown error
+
+    qDebug() << "ExcelParserByOfficeRunnable::processByOffice xlsName=" << xlsName;
+    QAxObject *workbooks = excel->querySubObject("WorkBooks"); //获取工作簿集合
+    QAxObject *workbook = workbooks->querySubObject("Open(const QString&, QVariant)", xlsName, 0);
+    QAxObject *worksheet = workbook->querySubObject("WorkSheets(int)", 1);
+    if (worksheet != NULL && ! worksheet->isNull()){
+        QAxObject *usedRange = worksheet->querySubObject("UsedRange");
+        if(NULL == usedRange || usedRange->isNull()) {
+            return var;
+        }
+        var = usedRange->dynamicCall("Value()");
+        delete usedRange;
+    }
+    freeExcel(excel);
+#endif
+    return var;
+}
+
+///
+/// \brief 读取整个sheet的数据，并放置到cells中
+/// \param cells
+///
+void ExcelParser::readAll(QList<QList<QVariant> > &cells)
+{
+#if defined(Q_OS_WIN)
+    castVariant2ListListVariant(readAll(),cells);
+#else
+    Q_UNUSED(cells);
+#endif
+
+}
+
+///
+/// \brief QList<QList<QVariant> >转换为QVariant
+/// \param cells
+/// \return
+///
+void ExcelParser::castListListVariant2Variant(const QList<QList<QVariant> > &cells, QVariant &res)
+{
+    QVariantList vars;
+    const int rows = cells.size();
+    for(int i=0;i<rows;++i) {
+        vars.append(QVariant(cells[i]));
+    }
+    res = QVariant(vars);
+}
+///
+/// \brief 把QVariant转为QList<QList<QVariant> >
+/// \param var
+/// \param res
+///
+void ExcelParser::castVariant2ListListVariant(const QVariant &var, QList<QList<QVariant> > &res)
+{
+    QVariantList varRows = var.toList();
+    if(varRows.isEmpty())
+    {
+        return;
+    }
+    const int rowCount = varRows.size();
+    QVariantList rowData;
+    for(int i=0;i<rowCount;++i) {
+        rowData = varRows[i].toList();
+        res.push_back(rowData);
+    }
+}
+
 
 void ExcelParser::writeXlsByLib(QString selectedSheetName, QHash<QString, QList<int>> qHash) {
     QHashIterator<QString, QList<int>> it(qHash);
@@ -327,9 +464,9 @@ void ExcelParser::writeXlsByLib(QString selectedSheetName, QHash<QString, QList<
         fragmentDataQhash.insert(key, content);
         int mod = m_process_cnt % maxProcessCntPreThread;
         if (mod == 0 || !it.hasNext()) {
-            IExcelParserRunnable *runnable = new ExcelParserByLibRunnable(this);
+            IExcelParserRunnable *runnable = new ParserByLibRunnable(this);
             runnable->setID(runnableId++);
-            runnable->setSplitData(this->sourceExcelData, selectedSheetName, fragmentDataQhash, totalCnt);
+            runnable->setSplitData(this->sourceData, selectedSheetName, fragmentDataQhash, totalCnt);
             pool.start(runnable);
             fragmentDataQhash.clear();
             pool.waitForDone();

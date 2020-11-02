@@ -2,8 +2,8 @@
 #define EXCELPARSER_H
 #include "common.h"
 #include "config.h"
-#include "excelparserbylibrunnable.h"
-#include "excelparserbyofficerunnable.h"
+#include "parserbylibrunnable.h"
+#include "parserbymsrunnable.h"
 #include "officehelper.h"
 #include "sourceexceldata.h"
 #include "xlsxdocument.h"
@@ -20,13 +20,13 @@ class ExcelParser : public QObject {
     ExcelParser(QObject *parent = nullptr);
     ~ExcelParser();
     QString openFile(QWidget *dlgParent);
-    void setSplitData(Config *cfg, QString groupByText, QString dataSheetName, QString emailSheetName, QString savePath);
-    void setSplitData(Config *cfg, SourceExcelData *sourceExcelData);
+    void setSplitData(Config *cfg, SourceData *sourceData);
 
     QHash<QString, QList<QStringList>> readEmailXls(QString groupByText, QString selectedSheetName);
     QHash<QString, QList<int>> readDataXls(QString groupByText, QString selectedSheetName);
     QHash<QString, QList<QStringList>> getEmailData();
-    void writeXlsByOffice(QString selectedSheetName, QHash<QString, QList<int>> qHash);
+    void writeXlsByMS(QString selectedSheetName, QHash<QString, QList<int>> qHash);
+    void writeXlsByMS(QString selectedSheetName, QHash<QString, QList<QList<QVariant>>> qHash);
     void writeXlsByLib(QString selectedSheetName, QHash<QString, QList<int>> qHash);
 
     QStringList *getSheetHeader(QString selectedSheetName);
@@ -34,6 +34,14 @@ class ExcelParser : public QObject {
     bool selectSheet(const QString &name);
     QXlsx::CellRange dimension();
     QStringList getSheetNames();
+
+    QHash<QString, QList<QList<QVariant>>> readDataXls(int groupByIndex, int selectedSheetIndex);
+
+    void freeExcel(QAxObject *excel);
+    QVariant readAll();
+    void readAll(QList<QList<QVariant> > &cells);
+    void castListListVariant2Variant(const QList<QList<QVariant> > &cells, QVariant &res);
+    void castVariant2ListListVariant(const QVariant &var, QList<QList<QVariant> > &res);
 
     public slots:
     void receiveMessage(const int msgType, const QString &result);
@@ -48,6 +56,8 @@ class ExcelParser : public QObject {
     QStringList *header = new QStringList();
     QString groupByText = nullptr;
     QString dataSheetName = nullptr;
+    int dataSheetIndex = 0;
+    int groupByIndex = 0;
     QString emailSheetName = nullptr;
     QString savePath = nullptr;
     QHash<QString, QList<QStringList>> emailQhash;
@@ -60,6 +70,6 @@ class ExcelParser : public QObject {
     int m_receive_msg_cnt;
 
     bool isInstalledOffice;
-    SourceExcelData *sourceExcelData = nullptr;
+    SourceData *sourceData = nullptr;
 };
 #endif // EXCELPARSER_H

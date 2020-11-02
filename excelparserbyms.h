@@ -1,5 +1,5 @@
-#ifndef XLSXPARSERBYLIB_H
-#define XLSXPARSERBYLIB_H
+#ifndef XLSXPARSERBYOFFICE_H
+#define XLSXPARSERBYOFFICE_H
 
 #include <QDateTime>
 #include <QDebug>
@@ -10,18 +10,17 @@
 
 #include "common.h"
 #include "config.h"
-#include "excelparserbylibrunnable.h"
-#include "officehelper.h"
+#include "parserbymsrunnable.h"
+#include "sourceexceldata.h"
 #include "xlsxdocument.h"
-
-class ExcelParserByLib : public QObject {
+class ExcelParserByMS : public QObject {
     Q_OBJECT
     public:
-    ExcelParserByLib(QObject *parent = nullptr);
-    ~ExcelParserByLib();
-
+    ExcelParserByMS(QObject *parent = nullptr);
+    ~ExcelParserByMS();
     QString openFile(QWidget *dlgParent);
     void setSplitData(Config *cfg, QString groupByText, QString dataSheetName, QString emailSheetName, QString savePath);
+    void setSplitData(Config *cfg, SourceData *sourceXmlData);
 
     QHash<QString, QList<QStringList>> readEmailXls(QString groupByText, QString selectedSheetName);
     QHash<QString, QList<int>> readDataXls(QString groupByText, QString selectedSheetName);
@@ -51,14 +50,13 @@ class ExcelParserByLib : public QObject {
     QString savePath;
     QHash<QString, QList<QStringList>> emailQhash;
 
+    const SourceData *sourceXmlData;
     QString msg;
     int m_total_cnt;
     int m_process_cnt;
     int m_success_cnt;
     int m_failure_cnt;
     int m_receive_msg_cnt;
-
-    bool isInstalledOffice;
 };
 
-#endif // XLSXPARSERBYLIB_H
+#endif // XLSXPARSERBYOFFICE_H

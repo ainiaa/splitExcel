@@ -1,116 +1,116 @@
 #include "sourceexceldata.h"
 
-SourceExcelData::SourceExcelData(QObject *parent) : QObject(parent) {
+SourceData::SourceData(QObject *parent) : QObject(parent) {
 }
 
-void SourceExcelData::setDataSheetIndex(int dataSheetIndex) {
+void SourceData::setDataSheetIndex(int dataSheetIndex) {
     this->dataSheetIndex = dataSheetIndex;
 }
-int SourceExcelData::getDataSheetIndex() {
+int SourceData::getDataSheetIndex() {
     return this->dataSheetIndex;
 }
-void SourceExcelData::setEmailSheetIndex(int emailSheetIndex) {
+void SourceData::setEmailSheetIndex(int emailSheetIndex) {
     this->emailSheetIndex = emailSheetIndex;
 }
-int SourceExcelData::getEmailSheetIndex() {
+int SourceData::getEmailSheetIndex() {
     return this->emailSheetIndex;
 }
-void SourceExcelData::setSheetCnt(int sheetCnt) {
+void SourceData::setSheetCnt(int sheetCnt) {
     this->sheetCnt = sheetCnt;
 }
-int SourceExcelData::getSheetCnt() {
+int SourceData::getSheetCnt() {
     return this->sheetCnt;
 }
-void SourceExcelData::setGroupByText(QString groupByText) {
+void SourceData::setGroupByText(QString groupByText) {
     this->groupByText = groupByText;
 }
-QString SourceExcelData::getGroupByText() {
+QString SourceData::getGroupByText() {
     return this->groupByText;
 }
 
-void SourceExcelData::setGroupByIndex(int groupByIndex) {
+void SourceData::setGroupByIndex(int groupByIndex) {
     this->groupByIndex = groupByIndex;
 }
 
-int SourceExcelData::getGroupByIndex() {
+int SourceData::getGroupByIndex() {
     return this->groupByIndex;
 }
 
-void SourceExcelData::setDataSheetName(QString dataSheetName) {
+void SourceData::setDataSheetName(QString dataSheetName) {
     this->dataSheetName = dataSheetName;
 }
-QString SourceExcelData::getDataSheetName() {
+QString SourceData::getDataSheetName() {
     return this->dataSheetName;
 }
-void SourceExcelData::setEmailSheetName(QString emailSheetName) {
+void SourceData::setEmailSheetName(QString emailSheetName) {
     this->emailSheetName = emailSheetName;
 }
-QString SourceExcelData::getEmailSheetName() {
+QString SourceData::getEmailSheetName() {
     return this->emailSheetName;
 }
-void SourceExcelData::setSavePath(QString savePath) {
+void SourceData::setSavePath(QString savePath) {
     this->savePath = savePath;
 }
-QString SourceExcelData::getSavePath() {
+QString SourceData::getSavePath() {
     return this->savePath;
 }
 
-void SourceExcelData::setSourcePath(QString sourcePath) {
+void SourceData::setSourcePath(QString sourcePath) {
     this->sourcePath = sourcePath;
 }
-QString SourceExcelData::getSourcePath() {
+QString SourceData::getSourcePath() {
     return this->sourcePath;
 }
 
-void SourceExcelData::setOpType(int opType) {
+void SourceData::setOpType(int opType) {
     this->opType = opType;
 }
-int SourceExcelData::getOpType() {
+int SourceData::getOpType() {
     return this->opType;
 }
 
-void SourceExcelData::setSourceRowStart(int sourceRowStart) {
+void SourceData::setSourceRowStart(int sourceRowStart) {
     this->sourceRowStart = sourceRowStart;
 }
 
-int SourceExcelData::getSourceRowStart() {
+int SourceData::getSourceRowStart() {
     return this->sourceRowStart;
 }
-void SourceExcelData::setSourceColStart(int sourceColStart) {
+void SourceData::setSourceColStart(int sourceColStart) {
     this->sourceColStart = sourceColStart;
 }
-int SourceExcelData::setSourceColStart() {
+int SourceData::setSourceColStart() {
     return this->sourceColStart;
 }
-void SourceExcelData::setSourceRowCnt(int sourceRowCnt) {
+void SourceData::setSourceRowCnt(int sourceRowCnt) {
     this->sourceRowCnt = sourceRowCnt;
 }
-int SourceExcelData::getSourceRowCnt() {
+int SourceData::getSourceRowCnt() {
     return this->sourceRowCnt;
 }
-void SourceExcelData::setSourceColCnt(int sourceColCnt) {
+void SourceData::setSourceColCnt(int sourceColCnt) {
     this->sourceColCnt = sourceColCnt;
 }
-int SourceExcelData::getSourceColCnt() {
+int SourceData::getSourceColCnt() {
     return this->sourceColCnt;
 }
-void SourceExcelData::setSourceMinAlphabetCol(QString sourceMinAlphabetCol) {
+void SourceData::setSourceMinAlphabetCol(QString sourceMinAlphabetCol) {
     this->sourceMinAlphabetCol = sourceMinAlphabetCol;
 }
-QString SourceExcelData::getSourceMinAlphabetCol() {
+QString SourceData::getSourceMinAlphabetCol() {
     return this->sourceMinAlphabetCol;
 }
-void SourceExcelData::setSourceMaxAlphabetCol(QString sourceMaxAlphabetCol) {
+void SourceData::setSourceMaxAlphabetCol(QString sourceMaxAlphabetCol) {
     this->sourceMaxAlphabetCol = sourceMaxAlphabetCol;
 }
 
-QString SourceExcelData::getSourceMaxAlphabetCol() {
+QString SourceData::getSourceMaxAlphabetCol() {
     return this->sourceMaxAlphabetCol;
 }
-void SourceExcelData::setTplXlsPath(QString tplXlsPath) {
+void SourceData::setTplXlsPath(QString tplXlsPath) {
     this->tplXlsPath = tplXlsPath;
 }
 
-QString SourceExcelData::getTplXlsPath() {
+QString SourceData::getTplXlsPath() {
     return this->tplXlsPath;
 }

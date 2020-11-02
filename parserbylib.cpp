@@ -1,6 +1,6 @@
-#include "excelparserbylib.h"
+#include "parserbylib.h"
 
-ExcelParserByLib::ExcelParserByLib(QObject *parent) : QObject(parent) {
+ParserByLib::ParserByLib(QObject *parent) : QObject(parent) {
     m_success_cnt = 0;
     m_failure_cnt = 0;
     m_process_cnt = 0;
@@ -8,12 +8,12 @@ ExcelParserByLib::ExcelParserByLib(QObject *parent) : QObject(parent) {
     isInstalledOffice = OfficeHelper::isInstalledExcelApp();
 }
 
-ExcelParserByLib::~ExcelParserByLib() {
+ParserByLib::~ParserByLib() {
     qDebug() << "~XlsxParser start";
 
     qDebug() << "~XlsxParser end";
 }
-void ExcelParserByLib::setSplitData(Config *cfg, QString groupByText, QString dataSheetName, QString emailSheetName, QString savePath) {
+void ParserByLib::setSplitData(Config *cfg, QString groupByText, QString dataSheetName, QString emailSheetName, QString savePath) {
     this->cfg = cfg;
     this->groupByText = groupByText;
     this->dataSheetName = dataSheetName;
@@ -21,7 +21,7 @@ void ExcelParserByLib::setSplitData(Config *cfg, QString groupByText, QString da
     this->savePath = savePath;
 }
 
-QStringList ExcelParserByLib::getSheetNames() {
+QStringList ParserByLib::getSheetNames() {
     QStringList sheetNames;
     if (nullptr != xlsx) {
         sheetNames = xlsx->sheetNames();
@@ -29,15 +29,15 @@ QStringList ExcelParserByLib::getSheetNames() {
     return sheetNames;
 }
 
-bool ExcelParserByLib::selectSheet(const QString &name) {
+bool ParserByLib::selectSheet(const QString &name) {
     return xlsx->selectSheet(name);
 }
 
-QXlsx::CellRange ExcelParserByLib::dimension() {
+QXlsx::CellRange ParserByLib::dimension() {
     return xlsx->dimension();
 }
 
-QStringList *ExcelParserByLib::getSheetHeader(QString selectedSheetName) {
+QStringList *ParserByLib::getSheetHeader(QString selectedSheetName) {
     QStringList *currentHeader = new QStringList();
     QXlsx::CellRange range;
     xlsx->selectSheet(selectedSheetName);
@@ -54,7 +54,7 @@ QStringList *ExcelParserByLib::getSheetHeader(QString selectedSheetName) {
 }
 
 //打开文件对话框
-QString ExcelParserByLib::openFile(QWidget *dlgParent) {
+QString ParserByLib::openFile(QWidget *dlgParent) {
     QString path = QFileDialog::getOpenFileName(dlgParent, tr("Open Excel"), ".", tr("excel(*.xlsx)"));
     if (path.length() == 0) {
         return "";
@@ -65,7 +65,7 @@ QString ExcelParserByLib::openFile(QWidget *dlgParent) {
     }
 }
 
-void ExcelParserByLib::receiveMessage(const int msgType, const QString &result) {
+void ParserByLib::receiveMessage(const int msgType, const QString &result) {
     qDebug() << "XlsxParser::receiveMessage msgType:" << QString::number(msgType).toUtf8() << " msg:" << result;
     switch (msgType) {
         case Common::MsgTypeError:
@@ -91,7 +91,7 @@ void ExcelParserByLib::receiveMessage(const int msgType, const QString &result) 
 }
 
 //拆分excel文件
-void ExcelParserByLib::doSplit() {
+void ParserByLib::doSplit() {
     qDebug() << "doSplit";
     if (nullptr != emailSheetName) {
         qDebug() << "doSplit readEmailXls";
@@ -119,12 +119,12 @@ void ExcelParserByLib::doSplit() {
     writeXls(dataSheetName, dataQhash, savePath);
 }
 
-QHash<QString, QList<QStringList>> ExcelParserByLib::getEmailData() {
+QHash<QString, QList<QStringList>> ParserByLib::getEmailData() {
     return emailQhash;
 }
 
 //读取xls
-QHash<QString, QList<int>> ExcelParserByLib::readDataXls(QString groupByText, QString selectedSheetName) {
+QHash<QString, QList<int>> ParserByLib::readDataXls(QString groupByText, QString selectedSheetName) {
     QXlsx::CellRange range;
     xlsx->selectSheet(selectedSheetName);
     range = xlsx->dimension();
@@ -163,7 +163,7 @@ QHash<QString, QList<int>> ExcelParserByLib::readDataXls(QString groupByText, QS
 }
 
 //读取xls
-QHash<QString, QList<QStringList>> ExcelParserByLib::readEmailXls(QString groupByText, QString selectedSheetName) {
+QHash<QString, QList<QStringList>> ParserByLib::readEmailXls(QString groupByText, QString selectedSheetName) {
     QXlsx::CellRange range;
     xlsx->selectSheet(selectedSheetName);
     range = xlsx->dimension();
@@ -221,7 +221,7 @@ QHash<QString, QList<QStringList>> ExcelParserByLib::readEmailXls(QString groupB
 }
 
 //写xls
-void ExcelParserByLib::writeXls(QString selectedSheetName, QHash<QString, QList<int>> qHash, QString savePath) {
+void ParserByLib::writeXls(QString selectedSheetName, QHash<QString, QList<int>> qHash, QString savePath) {
     QHashIterator<QString, QList<int>> it(qHash);
     QThreadPool pool;
     int maxThreadCnt = cfg->get("email", "maxThreadCnt").toInt();
@@ -244,7 +244,7 @@ void ExcelParserByLib::writeXls(QString selectedSheetName, QHash<QString, QList<
         fragmentDataQhash.insert(key, content);
         int mod = m_process_cnt % maxProcessCntPreThread;
         if (mod == 0 || !it.hasNext()) {
-            ExcelParserByLibRunnable *runnable = new ExcelParserByLibRunnable(this);
+            ParserByLibRunnable *runnable = new ParserByLibRunnable(this);
             runnable->setID(runnableId++);
             runnable->setSplitData(sourcePath, selectedSheetName, fragmentDataQhash, savePath, totalCnt);
             pool.start(runnable);

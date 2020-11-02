@@ -23,15 +23,16 @@
 #include "xlsxformat_p.h"
 #include "xlsxworkbook.h"
 
-class ExcelParserByLibRunnable : public IExcelParserRunnable {
+class ParserByLibRunnable : public IExcelParserRunnable {
     public:
-    ExcelParserByLibRunnable(QObject *mParent);
-    ~ExcelParserByLibRunnable() override;
+    ParserByLibRunnable(QObject *mParent);
+    ~ParserByLibRunnable() override;
 
     void run() override;
     void setID(const int &id) override;
     void setSplitData(QString sourcePath, QString selectedSheetName, QHash<QString, QList<int>> fragmentDataQhash, QString savePath, int m_total) override;
-    void setSplitData(SourceExcelData *sourceExcelData, QString selectedSheetName, QHash<QString, QList<int>> fragmentDataQhash, int m_total) override;
+    void setSplitData(SourceData *sourceExcelData, QString selectedSheetName, QHash<QString, QList<int>> fragmentDataQhash, int m_total) override;
+    void setSplitData(SourceData *sourceXmlData, QString selectedSheetName, QHash<QString, QList<QList<QVariant>>> fragmentDataQhash, int m_total) override;
     void requestMsg(const int msgType, const QString &result) override;
     void writeXls(QString selectedSheetName, QHash<QString, QList<int>> qHash, QString savePath);
     void processByQxls(QString key, QList<int> contentList);
@@ -49,6 +50,7 @@ class ExcelParserByLibRunnable : public IExcelParserRunnable {
     QString savePath;
     QString selectedSheetName;
     QHash<QString, QList<int>> fragmentDataQhash;
+    QHash<QString, QList<QList<QVariant>>> fragmentDataQhash2;
     QXlsx::Document *xlsx;
 
     int sourceRowStart;           // 起始行数
@@ -61,7 +63,7 @@ class ExcelParserByLibRunnable : public IExcelParserRunnable {
     int selectedSheetIndex;       //选中索引
     QString tplXlsPath;
     QString deleteRangeFormat;
-    SourceExcelData *sourceExcelData;
+    SourceData *sourceExcelData;
 };
 
 #endif // EXCELPARSERRUNNABLE_H

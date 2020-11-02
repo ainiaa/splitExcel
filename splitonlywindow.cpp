@@ -84,18 +84,18 @@ void SplitOnlyWindow::doSplitXls(QString dataSheetName, QString savePath) {
     int sheetCnt = ui->dataComboBox->count();                 //总sheet个数
 
     //设置excel相关数据
-    SourceExcelData *sourceExcelData = new SourceExcelData();
-    sourceExcelData->setSavePath(savePath);
-    sourceExcelData->setDataSheetName(dataSheetName);
-    sourceExcelData->setDataSheetIndex(dataSheetIndex);
-    sourceExcelData->setSheetCnt(sheetCnt);
-    sourceExcelData->setOpType(SourceExcelData::OperateType::SplitOnlyType);
-    sourceExcelData->setGroupByText(groupByText);
-    sourceExcelData->setGroupByIndex(groupByIndex);
-    sourceExcelData->setSourcePath(this->sourcePath);
+    SourceData *sourceData = new SourceData();
+    sourceData->setSavePath(savePath);
+    sourceData->setDataSheetName(dataSheetName);
+    sourceData->setDataSheetIndex(dataSheetIndex);
+    sourceData->setSheetCnt(sheetCnt);
+    sourceData->setOpType(SourceData::OperateType::SplitOnlyType);
+    sourceData->setGroupByText(groupByText);
+    sourceData->setGroupByIndex(groupByIndex);
+    sourceData->setSourcePath(this->sourcePath);
 
     //设置excel 解析相关事件
-    excelParser->setSplitData(cfg, sourceExcelData);
+    excelParser->setSplitData(cfg, sourceData);
 	
 	excelParserThread = new QThread();
     excelParser->moveToThread(excelParserThread);

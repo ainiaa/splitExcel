@@ -16,26 +16,28 @@
 #include "officehelper.h"
 #include "sourceexceldata.h"
 
-class ExcelParserByOfficeRunnable : public IExcelParserRunnable {
+class ParserByMSRunnable : public IExcelParserRunnable {
     public:
-    ExcelParserByOfficeRunnable(QObject *mParent);
-    ~ExcelParserByOfficeRunnable() override;
+    ParserByMSRunnable(QObject *mParent);
+    ~ParserByMSRunnable() override;
 
     void run() override;
     void setID(const int &id) override;
-    void setSplitData(SourceExcelData *sourceExcelData, QString selectedSheetName, QHash<QString, QList<int>> fragmentDataQhash, int m_total) override;
+    void setSplitData(SourceData *sourceExcelData, QString selectedSheetName, QHash<QString, QList<int>> fragmentDataQhash, int m_total) override;
     void setSplitData(QString sourcePath, QString selectedSheetName, QHash<QString, QList<int>> fragmentDataQhash, QString savePath, int m_total) override;
+    void setSplitData(SourceData *sourceXmlData, QString selectedSheetName, QHash<QString, QList<QList<QVariant>>> fragmentDataQhash, int m_total) override;
     void requestMsg(const int msgType, const QString &result) override;
     void writeXls(QString selectedSheetName, QHash<QString, QList<int>> qHash, QString savePath);
     void doProcess(QString key, QList<int> contentList);
+    void doProcess(QString key, QList<QList<QVariant>> contentList);
     void doFilter(QString key);
     void processSourceFile();
     bool static copyFileToPath(QString sourceDir, QString toDir, bool coverFileIfExist);
     void generateTplXls();
-    void static processSourceFile(SourceExcelData *sourceExcelData, QString selectedSheetName);
+    void static processSourceFile(SourceData *sourceExcelData, QString selectedSheetName);
     void static sortXls();
-    void static generateTplXls(SourceExcelData *sourceExcelData, int selectedSheetIndex);
-    void static generateTplXls(SourceExcelData *sourceExcelData, QString selectedSheetName);
+    void static generateTplXls(SourceData *sourceExcelData, int selectedSheetIndex);
+    void static generateTplXls(SourceData *sourceExcelData, QString selectedSheetName);
     void static freeExcel(QAxObject *excel);
 
     private:
@@ -49,6 +51,8 @@ class ExcelParserByOfficeRunnable : public IExcelParserRunnable {
     QString savePath;          //拆分excel保存路径
     QString selectedSheetName; // data sheet 名称
     QHash<QString, QList<int>> fragmentDataQhash;
+    QHash<QString, QList<QList<QVariant>>> fragmentDataQhash2;
+    int dataType =0;
     QXlsx::Document *xlsx;
     bool installedExcelApp;
 
@@ -64,7 +68,10 @@ class ExcelParserByOfficeRunnable : public IExcelParserRunnable {
     QString tplXlsPath;           //模板路径
     QString deleteRangeFormat;
 
-    SourceExcelData *sourceExcelData; //原文件数据
+    SourceData *sourceExcelData; //原文件数据
+
+    void run0();
+    void run1();
 };
 
 #endif // PARSERBYOFFICER_H
