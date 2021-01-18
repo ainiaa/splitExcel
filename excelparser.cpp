@@ -1,5 +1,5 @@
 #include "excelparser.h"
-
+#include <ActiveQt>
 ExcelParser::ExcelParser(QObject *parent) : QObject(parent) {
     m_success_cnt = 0;
     m_failure_cnt = 0;
@@ -24,6 +24,7 @@ void ExcelParser::setSplitData(Config *cfg, SourceData *sourceData) {
     this->groupByIndex = sourceData->getGroupByIndex();
     this->sourceData = sourceData;
 }
+
 QStringList ExcelParser::getSheetNames() {
     QStringList sheetNames;
     if (nullptr != xlsx) {
@@ -56,7 +57,11 @@ QStringList *ExcelParser::getSheetHeader(QString selectedSheetName) {
     return currentHeader;
 }
 
-//打开文件对话框
+/**
+ * @brief ExcelParser::openFile 打开文件对话框
+ * @param dlgParent
+ * @return
+ */
 QString ExcelParser::openFile(QWidget *dlgParent) {
     QString path = QFileDialog::getOpenFileName(dlgParent, tr("Open Excel"), ".", tr("excel(*.xlsx)"));
     if (path.length() == 0) {
@@ -134,23 +139,35 @@ void ExcelParser::doParse() {
         } else if (excelLibType == 3) { //使用MS
             useMs = true;
         }
+        // 使用vbs进行拆分 start
+        if (true) {
+            QAxScriptManager *scrpt_mgr = new QAxScriptManager(this);
+            QAxScript *main_scrpt = scrpt_mgr->load(":/VBScript.vbs", "MyScript");
+           // main_scrpt->call("DoSplitByColumn(QString, QString)", QString::number(this->sourceData->getGroupByIndex()+1), this->sourceData->getSavePath());
+            main_scrpt->call("fun()");
+            return;
+        }
+
+
+        // 使用vbs进行拆分 end
+
         if (useMs) { // 使用MS
-            QHash<QString, QList<QList<QVariant>>> dataQhash2 = readDataXls(groupByIndex,dataSheetIndex);
+            QHash<QString, QList<QList<QVariant>>> dataQhash = readDataXls(groupByIndex,dataSheetIndex);
             if (this->sourceData->getOpType() == SourceData::OperateType::SplitOnlyType) {
-                emit requestMsg(Common::MsgTypeStart, QString::number(dataQhash2.size()));
+                emit requestMsg(Common::MsgTypeStart, QString::number(dataQhash.size()));
             } else {
-                emit requestMsg(Common::MsgTypeStart, QString::number(dataQhash2.size() + emailQhash.size()));
+                emit requestMsg(Common::MsgTypeStart, QString::number(dataQhash.size() + emailQhash.size()));
             }
-            if (dataQhash2.size() < 1) {
+            if (dataQhash.size() < 1) {
                 emit requestMsg(Common::MsgTypeFail, "没有data数据！！");
                 return;
             }
             //写excel
             emit requestMsg(Common::MsgTypeInfo, "开始拆分excel并生成新的excel文件");
-            m_total_cnt = dataQhash2.size();
+            m_total_cnt = dataQhash.size();
             qDebug() << "doSplit writeXls";
 
-            writeXlsByMS(dataSheetName, dataQhash2);
+            writeXlsByMS(dataSheetName, dataQhash);
         } else { // 自带类库
             QHash<QString, QList<int>> dataQhash = readDataXls(groupByText, dataSheetName);
             if (this->sourceData->getOpType() == SourceData::OperateType::SplitOnlyType) {
@@ -343,8 +360,8 @@ void ExcelParser::writeXlsByMS(QString selectedSheetName, QHash<QString, QList<Q
     QHashIterator<QString, QList<QList<QVariant>>> it(qHash);
     QThreadPool pool;
     int maxThreadCnt = cfg->get("email", "maxThreadCnt").toInt();
-    if (maxThreadCnt < 1) { // 默认开10个线程
-        maxThreadCnt = 10;
+    if (maxThreadCnt < 10) { // 默认开10个线程
+        maxThreadCnt = 50;
     }
 
     int maxProcessCntPreThread = qCeil(qHash.size() * 1.0 / maxThreadCnt);
@@ -356,10 +373,17 @@ void ExcelParser::writeXlsByMS(QString selectedSheetName, QHash<QString, QList<Q
     int runnableId = 1;
     //生成模板文件 方便多线程填写数据
     ParserByMSRunnable::generateTplXls(this->sourceData, this->sourceData->getDataSheetIndex() + 1); //生成模板文件（只有表头数据）
+    bool setMaxCol = true;
     while (it.hasNext()) {
         it.next();
         QString key = it.key(); // 当前分组
         QList<QList<QVariant>> content = it.value(); // 当前分组所包含数据（可能是多条数据）
+        if (setMaxCol) {
+            setMaxCol = false;
+            QString s;
+            ExcelBase::convertToColName(content.at(0).size(), s); // 设置最大列
+            this->sourceData->setSourceMaxAlphabetCol(s);
+        }
         fragmentQhash.insert(key, content);
         int mod = m_process_cnt % maxProcessCntPreThread;
         if (mod == 0 || !it.hasNext()) {

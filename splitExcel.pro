@@ -100,5 +100,7 @@ include(smtpclient/smtpclient.pri)
 
 RC_FILE = splitExcel.rc
 
+UI_DIR=./UI
+
 RESOURCES += \
     images.qrc

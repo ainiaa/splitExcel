@@ -3,5 +3,7 @@
     <qresource prefix="/">
         <file>images/DDMC.PNG</file>
         <file>images/DDMC_2.png</file>
+        <file>vbs.vbs</file>
+        <file>VBScript.vbs</file>
     </qresource>
 </RCC>

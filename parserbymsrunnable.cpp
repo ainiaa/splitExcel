@@ -1,5 +1,6 @@
 #include "parserbymsrunnable.h"
 #include "excelparserbyms.h"
+#include<QElapsedTimer>
 
 ParserByMSRunnable::ParserByMSRunnable(QObject *parent) {
     this->mParent = parent;
@@ -15,9 +16,9 @@ void ParserByMSRunnable::setID(const int &id) {
 
 //设置拆分相关数据
 void ParserByMSRunnable::setSplitData(SourceData *sourceExcelData,
-                                               QString selectedSheetName,
-                                               QHash<QString, QList<int>> fragmentDataQhash,
-                                               int m_total) {
+                                      QString selectedSheetName,
+                                      QHash<QString, QList<int>> fragmentDataQhash,
+                                      int m_total) {
     qDebug("XlsxParserByOfficeRunnable::setSplitData with SourceExcelData");
 
     this->sourcePath = sourceExcelData->getSourcePath();
@@ -53,7 +54,7 @@ void ParserByMSRunnable::setSplitData(SourceData *sourceExcelData, QString selec
 
 
 void ParserByMSRunnable::run() {
-    if(this->dataType ==0) {
+    if(this->dataType == 0) {
         this->run0();
     } else {
         this->run1();
@@ -85,25 +86,29 @@ void ParserByMSRunnable::run0() {
 }
 
 void ParserByMSRunnable::run1() {
-    qDebug("XlsxParserByOfficeRunnable::run start");
+    qDebug() << "XlsxParserByOfficeRunnable::run start";
     QString startMsg("【*__* 开始 ===】拆分excel : %1/%2  分组项 【%3】");
     QString endMsg("【=== 完成  ^_^】拆分excel : %1/%2  分组项 【%3】");
 
     QHashIterator<QString, QList<QList<QVariant>>> it(fragmentDataQhash2);
-    CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+    HRESULT res = CoInitializeEx(nullptr, COINIT_MULTITHREADED); // 开启多线程
+    if (res == S_OK) { // 初始化成功
+        qDebug() << "ParserByMSRunnable::run1 CoInitializeEx success";
+    } else {
+        qDebug() << "ParserByMSRunnable::run1 CoInitializeEx failure";
+    }
     while (it.hasNext()) {
         it.next();
         QString key = it.key();
         requestMsg(Common::MsgTypeInfo,
                    startMsg.arg(QString::asprintf("%04d", runnableID)).arg(QString::asprintf("%04d", m_total)).arg(key));
         QList<QList<QVariant>> contentList = it.value();
-        //contentList.insert(0, 1);
 
         this->doProcess(key, contentList);
         requestMsg(Common::MsgTypeSucc,
                    endMsg.arg(QString::asprintf("%04d", runnableID)).arg(QString::asprintf("%04d", m_total)).arg(key));
     }
-    CoUninitialize();
+    CoUninitialize(); // 关闭多线程
 
     qDebug("XlsxParserRunnable::run end");
 }
@@ -163,15 +168,24 @@ void ParserByMSRunnable::doProcess(QString key, QList<int> contentList) {
     this->doFilter(key);
 }
 
-//拆分
+/**
+ * @brief ParserByMSRunnable::doProcess 拆分
+ * @param key
+ * @param contentList
+ */
 void ParserByMSRunnable::doProcess(QString key, QList<QList<QVariant>> contentList) {
+    QElapsedTimer t;
+    QElapsedTimer t2;
+    t2.start();
+    t.start();
     QString xlsName;
     xlsName.append(savePath).append(QDir::separator()).append(key).append(".xlsx");
-    bool cpret = copyFileToPath(tplXlsPath, xlsName, true);
-    if (!cpret) {
-        qDebug() << " copyFileToPath failure."
-                 << "source:" << savePath << " dist:" << tplXlsPath;
+    if (!copyFileToPath(tplXlsPath, xlsName, true)) {
+        qDebug() << runnableID << " copyFileToPath failure." << "source:" << savePath << " dist:" << tplXlsPath << QString("use ").append(QString::number(t.elapsed()));
+    } else {
+        qDebug() << runnableID <<" copyFileToPath success." << "source:" << savePath << " dist:" << tplXlsPath << QString("use ").append(QString::number(t.elapsed()));
     }
+    t.restart();
     QAxObject *excel = new QAxObject("Excel.Application");  //连接Excel控件
     excel->dynamicCall("SetVisible (bool Visible)", false); //不显示窗体
     excel->setProperty("DisplayAlerts", false); //不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
@@ -182,10 +196,17 @@ void ParserByMSRunnable::doProcess(QString key, QList<QList<QVariant>> contentLi
     QAxObject *workbook = workbooks->querySubObject("Open(const QString&)", xlsName);
     QAxObject *worksheet = workbook->querySubObject("WorkSheets(int)", 1);
 
+    qDebug()<< runnableID << QString("open excel use ") .append(QString::number(t.elapsed()));
+    t.restart();
+
     // start
 
     QString rangeFormat = "A2:%2%3";
-    ExcelBase::convertToColName(contentList.at(0).size(), sourceMaxAlphabetCol);
+    if (sourceMaxAlphabetCol.isEmpty()) {
+        qDebug() << "convertToColName ";
+        ExcelBase::convertToColName(contentList.at(0).size(), sourceMaxAlphabetCol);
+    }
+
     QString rangeStr = rangeFormat.arg(sourceMaxAlphabetCol).arg(QString::asprintf("%d",contentList.size()+1));
     QAxObject *range = worksheet->querySubObject("Range(QVariant)", rangeStr); //获取单元格
     qDebug() << "rangeStr:" << rangeStr;
@@ -195,23 +216,23 @@ void ParserByMSRunnable::doProcess(QString key, QList<QList<QVariant>> contentLi
     bool succ = false;
     QVariant var;
     ExcelBase::castListListVariant2Variant(contentList,var);
-    succ = range->setProperty("Value", var);
+    //succ = range->setProperty("Value", var);
     if (!succ) { //设置失败，尝试调用SetValue
+        qDebug() << "range->setProperty(\"Value\", var) falure";
         range->dynamicCall("SetValue(const QVariant& value)", var);
-        qDebug() << "range->setProperty(\"Value\", var) success";
     } else {
         qDebug() << "range->setProperty(\"Value\", var) falure";
     }
     // end
-
-    // workbook->dynamicCall("SaveAs(const QString&)", xlsName);//保存至filepath，注意一定要用QDir::toNativeSeparators将路径中的"/"转换为"\"，不然一定保存不了。
+    qDebug() << runnableID << QString("SetValue use ") .append(QString::number(t.elapsed()));
+    t.restart();
     workbook->dynamicCall("Save()");
     workbook->dynamicCall("Close()");  //关闭工作簿
     workbooks->dynamicCall("Close()"); //关闭工作簿
-    //    CoUninitialize();
     delete range;
     ParserByMSRunnable::freeExcel(excel);
-
+    qDebug() << runnableID << QString("close use ") .append(QString::number(t.elapsed()));
+    qDebug() << runnableID << QString("total use ") << t2.elapsed();
 }
 
 
@@ -407,7 +428,7 @@ void ParserByMSRunnable::processSourceFile(SourceData *sourceData, QString selec
     ParserByMSRunnable::generateTplXls(sourceData, selectedSheetIndex); //生成模板文件
 }
 void ParserByMSRunnable::freeExcel(QAxObject *excel) {
-    if (!excel->isNull()) {
+    if (nullptr != excel && !excel->isNull()) {
         excel->dynamicCall("Quit()");
         delete excel;
         excel = nullptr;
@@ -447,12 +468,16 @@ void ParserByMSRunnable::generateTplXls(SourceData *sourceExcelData, QString sel
     sourceExcelData->setTplXlsPath(xlsName);
 }
 
+/**
+ * @brief ParserByMSRunnable::generateTplXls 生成模板文件
+ * @param sourceData
+ * @param selectedSheetIndex
+ */
 void ParserByMSRunnable::generateTplXls(SourceData *sourceData, int selectedSheetIndex) {
     QString xlsName;
     xlsName.append(sourceData->getSavePath()).append(QDir::separator()).append("sourceTplXlsx.xlsx");
     copyFileToPath(sourceData->getSourcePath(), xlsName, true);
 
-    CoInitializeEx(nullptr, COINIT_MULTITHREADED);
     QAxObject *excel = new QAxObject("Excel.Application");  //连接Excel控件
     excel->dynamicCall("SetVisible (bool Visible)", false); //不显示窗体
     excel->setProperty("DisplayAlerts", false); //不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
@@ -480,7 +505,7 @@ void ParserByMSRunnable::generateTplXls(SourceData *sourceData, int selectedShee
             colCnt = columns->property("Count").toInt();// 列数
             QString sourceMaxAlphabetCol;
 
-            ExcelBase::convertToColName(colCnt, sourceMaxAlphabetCol);
+            ExcelBase::convertToColName(colCnt, sourceMaxAlphabetCol); // 最大列
 
             // 需要删除的 range 为 A2:$sourceMaxAlphabetCol$rowCnt
             QString rangef("A2:%1%2");
@@ -492,24 +517,10 @@ void ParserByMSRunnable::generateTplXls(SourceData *sourceData, int selectedShee
         }
     }
 
-
-    //排序
-    //    QString groupByFieldNum;
-    //    ExcelBase::convertToColName(sourceExcelData->getGroupByIndex() + 1, groupByFieldNum);
-    //    QString rangFormat = "Range(A1:%1%2)";
-    //    QString rang = rangFormat.arg(sourceExcelData->getSourceMaxAlphabetCol()).arg(sourceExcelData->getSourceRowCnt());
-    //    QString sortFieldFormat = "Range(%1%2)";
-    //    QString sortField = sortFieldFormat.arg(groupByFieldNum).arg("1");
-    //    qDebug() << "rang:" << rang << "      sortField:" << sortField << " abcol:" << sourceExcelData->getSourceMaxAlphabetCol()
-    //             << " col:" << sourceExcelData->getSourceColCnt();
-    //    QAxObject *currentWorkSheet = workbook->querySubObject("WorkSheets(int)", selectedSheetIndex); // Sheets(int)也可换用Worksheets(int)
-    //    currentWorkSheet->querySubObject(rang.toUtf8())
-    //    ->dynamicCall("Sort(Key1:=QAxObject*,int)", currentWorkSheet->querySubObject(sortField.toUtf8())->asVariant(), 2);
-
     workbook->dynamicCall("Save()");
-    workbook->dynamicCall("Close()");  //关闭工作簿
-    workbooks->dynamicCall("Close()"); //关闭工作簿
-    // CoUninitialize();
+    workbook->dynamicCall("Close()");  // 关闭工作簿
+    workbooks->dynamicCall("Close()"); // 关闭工作簿
+
     ParserByMSRunnable::freeExcel(excel);
     sourceData->setTplXlsPath(xlsName);
 }
@@ -543,10 +554,10 @@ void ParserByMSRunnable::generateTplXls() {
 }
 
 void ParserByMSRunnable::setSplitData(QString sourcePath,
-                                               QString selectedSheetName,
-                                               QHash<QString, QList<int>> fragmentDataQhash,
-                                               QString savePath,
-                                               int m_total) {
+                                      QString selectedSheetName,
+                                      QHash<QString, QList<int>> fragmentDataQhash,
+                                      QString savePath,
+                                      int m_total) {
     this->sourcePath = sourcePath;
     this->selectedSheetName = selectedSheetName;
     this->fragmentDataQhash = fragmentDataQhash;
