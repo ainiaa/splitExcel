@@ -8,3 +8,11 @@ Makefile.Debug
 Makefile.Release
 object_script.splitExcel.Release
 Makefile
+splitExcel.pro.user.a2ebd75.4.9-pre1
+UI/ui_configsetting.h
+UI/ui_emailonlywindow.h
+UI/ui_mainwindow.h
+UI/ui_processwindow.h
+UI/ui_splitandemailwindow.h
+UI/ui_splitonlywindow.h
+UI/ui_testtimeer.h
