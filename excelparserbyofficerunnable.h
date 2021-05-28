@@ -34,8 +34,8 @@ class ExcelParserByOfficeRunnable : public IExcelParserRunnable {
     void generateTplXls();
     void static processSourceFile(SourceExcelData *sourceExcelData, QString selectedSheetName);
     void static sortXls();
-    void static generateTplXls(SourceExcelData *sourceExcelData, int selectedSheetIndex);
     void static generateTplXls(SourceExcelData *sourceExcelData, QString selectedSheetName);
+    void static deleteSheet(QAxObject *workbook, QString selectedSheetName, int sourceWorkSheetCnt);
     void static freeExcel(QAxObject *excel);
 
     private:

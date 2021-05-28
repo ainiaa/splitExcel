@@ -78,10 +78,10 @@ void EmailSenderRunnable::run() {
 
         if (emailData.size() < 4) {
             requestMsg(Common::MsgTypeError,
-                       "Email sheet 数据错误。数据列不能小于4行 分别为 分组列，email地址，email标题，email内容");
+                       "Email sheet 数据错误。数据列不能小于4行 分别为 分组列，email地址，email标题，email内容，cc");
             return;
         }
-        // email的数据顺序为  （站，email,title,content）
+        // email的数据顺序为  （分组列，email,title,content）
         QString emailAddr = emailData.at(1);
         QString emailTitle = emailData.at(2);
         QString emailContent = emailData.at(3);

@@ -13,11 +13,12 @@ ExcelParser::~ExcelParser() {
 
     qDebug() << "~XlsxParser end";
 }
-void ExcelParser::setSplitData(Config *cfg, QString groupByText, QString dataSheetName, QString emailSheetName, QString savePath) {
+void ExcelParser::setSplitData(Config *cfg, QString groupByText, QString dataSheetName, QString emailSheetName, QString passwordDataSheetName, QString savePath) {
     this->cfg = cfg;
     this->groupByText = groupByText;
     this->dataSheetName = dataSheetName;
     this->emailSheetName = emailSheetName;
+    this->passwordDataSheetName = passwordDataSheetName;
     this->savePath = savePath;
 }
 
@@ -26,6 +27,7 @@ void ExcelParser::setSplitData(Config *cfg, SourceExcelData *sourceExcelData) {
     this->groupByText = sourceExcelData->getGroupByText();
     this->dataSheetName = sourceExcelData->getDataSheetName();
     this->emailSheetName = sourceExcelData->getEmailSheetName();
+    this->passwordDataSheetName = sourceExcelData->getPasswordDataSheetName();
     this->savePath = sourceExcelData->getSavePath();
     this->sourceExcelData = sourceExcelData;
 }
@@ -105,6 +107,10 @@ void ExcelParser::receiveMessage(const int msgType, const QString &result) {
 //拆分excel文件
 void ExcelParser::doParse() {
     qDebug() << "doSplit start";
+    if (this->sourceExcelData->getNeedPassword()) {
+        QHash<QString, QString> passwordData = readPasswordDataXls(passwordDataSheetName);
+        this->sourceExcelData->setPasswordData(passwordData);
+    }
     if (this->sourceExcelData->getOpType() == SourceExcelData::OperateType::SplitAndEmailType ||
         this->sourceExcelData->getOpType() == SourceExcelData::OperateType::EmailOnlyType) {
         qDebug() << "doSplit readEmailXls";
@@ -269,6 +275,35 @@ QHash<QString, QList<QStringList>> ExcelParser::readEmailXls(QString groupByText
     }
     return qhash;
 }
+
+
+QHash<QString, QString> ExcelParser::readPasswordDataXls(QString selectedSheetName) {
+    QXlsx::CellRange range;
+    xlsx->selectSheet(selectedSheetName);
+    range = xlsx->dimension();
+    int rowCount = range.rowCount();
+
+    QHash<QString, QString> qhash;
+
+    for (int row = 2; row <= rowCount; ++row) {
+        QString groupByValue;
+        QString password;
+        QXlsx::Cell *groupBycell = xlsx->cellAt(row, 1);
+        if (groupBycell) {
+            groupByValue = groupBycell->value().toString().trimmed();
+        }
+        if (groupByValue.isNull() || groupByValue.isEmpty()) {
+            continue;
+        }
+        QXlsx::Cell *passwordCell = xlsx->cellAt(row, 2);
+        if (passwordCell) {
+            password = passwordCell->value().toString().trimmed();
+        }
+        qhash.insert(groupByValue, password);
+    }
+    return qhash;
+}
+
 
 //写xls(基于 MS office)
 void ExcelParser::writeXlsByOffice(QString selectedSheetName, QHash<QString, QList<int>> qHash) {

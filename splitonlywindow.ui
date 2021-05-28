@@ -28,7 +28,7 @@
     <property name="geometry">
      <rect>
       <x>490</x>
-      <y>227</y>
+      <y>290</y>
       <width>91</width>
       <height>31</height>
      </rect>
@@ -57,7 +57,7 @@
     <property name="geometry">
      <rect>
       <x>69</x>
-      <y>227</y>
+      <y>290</y>
       <width>91</width>
       <height>31</height>
      </rect>
@@ -124,7 +124,7 @@
     <property name="geometry">
      <rect>
       <x>170</x>
-      <y>227</y>
+      <y>290</y>
       <width>311</width>
       <height>31</height>
      </rect>
@@ -189,7 +189,7 @@
     <property name="geometry">
      <rect>
       <x>330</x>
-      <y>277</y>
+      <y>340</y>
       <width>75</width>
       <height>31</height>
      </rect>
@@ -202,13 +202,39 @@
     <property name="geometry">
      <rect>
       <x>236</x>
-      <y>278</y>
+      <y>341</y>
       <width>75</width>
       <height>31</height>
      </rect>
     </property>
     <property name="text">
      <string>确定</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="passwordLabel">
+    <property name="geometry">
+     <rect>
+      <x>70</x>
+      <y>230</y>
+      <width>91</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>密码 Sheet</string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="passwordComboBox">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>230</y>
+      <width>311</width>
+      <height>31</height>
+     </rect>
     </property>
    </widget>
   </widget>

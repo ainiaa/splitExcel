@@ -53,7 +53,7 @@ class SplitAndEmailWindow : public SplitSubWindow {
     void on_gobackPushButton_clicked();
     void on_submit2PushButton_clicked();
 
-    private:
+private:
     Ui::SplitAndEmailWindow *ui;
     QXlsx::Document *xlsx = nullptr;
     QStringList *header = new QStringList();
