@@ -34,8 +34,8 @@ class SplitOnlyWindow : public SplitSubWindow {
     void receiveMessage(const int msgType, const QString &result);
     void on_gobackPushButton_clicked();
     void showConfigSetting();
-
-    private:
+    
+private:
     Ui::SplitOnlyWindow *ui;
     QXlsx::Document *xlsx = nullptr;
     QStringList *header = new QStringList();

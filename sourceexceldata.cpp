@@ -62,6 +62,7 @@ QString SourceExcelData::getSourcePath() {
     return this->sourcePath;
 }
 
+
 void SourceExcelData::setOpType(int opType) {
     this->opType = opType;
 }
@@ -113,4 +114,25 @@ void SourceExcelData::setTplXlsPath(QString tplXlsPath) {
 
 QString SourceExcelData::getTplXlsPath() {
     return this->tplXlsPath;
+}
+
+QHash<QString, QString> SourceExcelData::getPasswordData() {
+    return this->passwordData;
+}
+void SourceExcelData::setPasswordData(QHash<QString, QString> passwordData) {
+    this->passwordData = passwordData;
+}
+
+void SourceExcelData::setNeedPassword(bool needPassword){
+    this->needPassword = needPassword;
+}
+bool SourceExcelData::getNeedPassword() {
+    return this->needPassword;
+}
+
+void SourceExcelData::setPasswordDataSheetName(QString passwordDataSheetName) {
+    this->passwordDataSheetName = passwordDataSheetName;
+}
+QString SourceExcelData::getPasswordDataSheetName(){
+    return this->passwordDataSheetName;
 }

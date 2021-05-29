@@ -67,6 +67,11 @@ void SplitAndEmailWindow::on_selectFilePushButton_clicked() {
         ui->emailComboBox->addItems(sheetNames);
         ui->emailComboBox->setCurrentIndex(1);
 
+        QStringList passwordDatas;
+        passwordDatas.insert(0,"--请选择--");
+        passwordDatas.append(sheetNames);
+        ui->passwordComboBox->addItems(passwordDatas);
+
         //获得表头数据
         changeGroupby(sheetNames.at(0));
     }
@@ -151,8 +156,9 @@ void SplitAndEmailWindow::doSplitXls(QString dataSheetName, QString emailSheetNa
 
     int dataSheetIndex = ui->dataComboBox->currentIndex();
     int emailSheetIndex = ui->emailComboBox->currentIndex();
-    int sheetCnt = ui->dataComboBox->count();
+    int passwordSheetIndex = ui->passwordComboBox->currentIndex();
 
+    int sheetCnt = ui->dataComboBox->count();
     //设置excel相关数据
     SourceExcelData *sourceExcelData = new SourceExcelData();
     sourceExcelData->setSavePath(savePath);
@@ -165,6 +171,8 @@ void SplitAndEmailWindow::doSplitXls(QString dataSheetName, QString emailSheetNa
     sourceExcelData->setGroupByText(groupByText);
     sourceExcelData->setGroupByIndex(groupByIndex);
     sourceExcelData->setSourcePath(this->sourcePath);
+    sourceExcelData->setNeedPassword(passwordSheetIndex > 0);
+    sourceExcelData->setPasswordDataSheetName(ui->passwordComboBox->currentText());
 
     //设置excel 解析相关事件
     excelParser->setSplitData(cfg, sourceExcelData);

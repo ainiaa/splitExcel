@@ -20,11 +20,12 @@ class ExcelParser : public QObject {
     ExcelParser(QObject *parent = nullptr);
     ~ExcelParser();
     QString openFile(QWidget *dlgParent);
-    void setSplitData(Config *cfg, QString groupByText, QString dataSheetName, QString emailSheetName, QString savePath);
+    void setSplitData(Config *cfg, QString groupByText, QString dataSheetName, QString emailSheetName, QString passwordDataSheetName, QString savePath);
     void setSplitData(Config *cfg, SourceExcelData *sourceExcelData);
 
     QHash<QString, QList<QStringList>> readEmailXls(QString groupByText, QString selectedSheetName);
     QHash<QString, QList<int>> readDataXls(QString groupByText, QString selectedSheetName);
+    QHash<QString, QString> readPasswordDataXls(QString selectedSheetName);
     QHash<QString, QList<QStringList>> getEmailData();
     void writeXlsByOffice(QString selectedSheetName, QHash<QString, QList<int>> qHash);
     void writeXlsByLib(QString selectedSheetName, QHash<QString, QList<int>> qHash);
@@ -49,6 +50,7 @@ class ExcelParser : public QObject {
     QString groupByText = nullptr;
     QString dataSheetName = nullptr;
     QString emailSheetName = nullptr;
+    QString passwordDataSheetName = nullptr;
     QString savePath = nullptr;
     QHash<QString, QList<QStringList>> emailQhash;
 

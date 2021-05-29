@@ -31,6 +31,7 @@ void ExcelParserByOfficeRunnable::setSplitData(SourceExcelData *sourceExcelData,
     this->sourceRowCnt = sourceExcelData->getSourceRowCnt();
     this->groupByText = sourceExcelData->getGroupByText();
     this->groupByIndex = sourceExcelData->getGroupByIndex();
+    this->sourceExcelData = sourceExcelData;
 }
 
 void ExcelParserByOfficeRunnable::run() {
@@ -61,6 +62,8 @@ void ExcelParserByOfficeRunnable::run() {
 void ExcelParserByOfficeRunnable::doProcess(QString key, QList<int> contentList) {
     QString xlsName;
     xlsName.append(savePath).append(QDir::separator()).append(key).append(".xlsx");
+    QString xlsName2;
+    xlsName2.append(savePath).append(QDir::separator()).append(key).append("_cp.xlsx");
     bool cpret = copyFileToPath(tplXlsPath, xlsName, true);
     if (!cpret) {
         qDebug() << " copyFileToPath failure."
@@ -103,7 +106,11 @@ void ExcelParserByOfficeRunnable::doProcess(QString key, QList<int> contentList)
     // end
 
     // workbook->dynamicCall("SaveAs(const QString&)", xlsName);//保存至filepath，注意一定要用QDir::toNativeSeparators将路径中的"/"转换为"\"，不然一定保存不了。
+
     workbook->dynamicCall("Save()");
+
+    //workbook->dynamicCall("SaveAs(const QString& Filename, const QVariant& FileFormat, const QVariant& Password)", xlsName2,"xlsx","123456");
+
     workbook->dynamicCall("Close()");  //关闭工作簿
     workbooks->dynamicCall("Close()"); //关闭工作簿
     //    CoUninitialize();
@@ -157,6 +164,10 @@ void ExcelParserByOfficeRunnable::doFilter(QString key) {
         }
     }
     qDebug() << "xlsName" << key << "rows:" << rows->property("Count").toInt() << "  columns:" << columns->property("Count").toInt();
+    QString password = this->sourceExcelData->getPasswordData().value(key);
+    if (!password.isNull() && !password.isEmpty()) { //设置有密码。
+        workbook->dynamicCall("SetPassword(const QString& value)", password);
+    }
     workbook->dynamicCall("Save()");
     workbook->dynamicCall("Close()");  //关闭工作簿
     workbooks->dynamicCall("Close()"); //关闭工作簿
@@ -261,7 +272,6 @@ void ExcelParserByOfficeRunnable::processSourceFile(SourceExcelData *sourceExcel
 
     qDebug() << QString("Excel文件中表的个数: %1").arg(QString::number(sourceExcelData->getSheetCnt()));
     QAxObject *worksheet = nullptr;
-    int selectedSheetIndex = 0;
     for (int i = 1; i <= sourceExcelData->getSheetCnt(); i++) {
         QAxObject *currentWorkSheet = workbook->querySubObject("WorkSheets(int)", i); // Sheets(int)也可换用Worksheets(int)
         QString currentWorkSheetName = currentWorkSheet->property("Name").toString(); //获取工作表名称
@@ -270,7 +280,6 @@ void ExcelParserByOfficeRunnable::processSourceFile(SourceExcelData *sourceExcel
         qDebug() << "this->selectedSheetName:" << selectedSheetName;
         if (currentWorkSheetName == selectedSheetName) {
             worksheet = currentWorkSheet;
-            selectedSheetIndex = i;
             break;
         }
     }
@@ -301,7 +310,7 @@ void ExcelParserByOfficeRunnable::processSourceFile(SourceExcelData *sourceExcel
              << " sourceMinAlphabetCol:" << sourceMinAlphabetCol << " sourceMaxAlphabetCol:" << sourceMaxAlphabetCol;
     // CoUninitialize();
     ExcelParserByOfficeRunnable::freeExcel(excel);
-    ExcelParserByOfficeRunnable::generateTplXls(sourceExcelData, selectedSheetIndex); //生成模板文件
+    ExcelParserByOfficeRunnable::generateTplXls(sourceExcelData, selectedSheetName); //生成模板文件
 }
 void ExcelParserByOfficeRunnable::freeExcel(QAxObject *excel) {
     if (!excel->isNull()) {
@@ -326,12 +335,18 @@ void ExcelParserByOfficeRunnable::generateTplXls(SourceExcelData *sourceExcelDat
 
     QAxObject *workbooks = excel->querySubObject("WorkBooks"); //获取工作簿集合
     QAxObject *workbook = workbooks->querySubObject("Open(const QString&, QVariant)", xlsName, 0);
+    QList<QAxObject> workSheets;
     int sourceWorkSheetCnt = sourceExcelData->getSheetCnt();
-    for (int i = 1; i <= sourceWorkSheetCnt; i++) {
-        QAxObject *currentWorkSheet = workbook->querySubObject("WorkSheets(int)", i);
-        QString currentWorkSheetName = currentWorkSheet->property("Name").toString(); //获取工作表名称
-        if (currentWorkSheetName != selectedSheetName) {                              //删除sheet
-            currentWorkSheet->dynamicCall("Delete()");
+    while(sourceWorkSheetCnt> 1) {
+        for (int i = 1; i <= sourceWorkSheetCnt; i++) {
+            QAxObject *currentWorkSheet = workbook->querySubObject("WorkSheets(int)", i);
+            QString currentWorkSheetName = currentWorkSheet->property("Name").toString(); //获取工作表名称
+            if (currentWorkSheetName != selectedSheetName) {                              //删除sheet
+                qDebug() << "ExcelParserByOfficeRunnable::deleteSheet sheetName=" << currentWorkSheetName;
+                sourceWorkSheetCnt--;
+                currentWorkSheet->dynamicCall("Delete()");
+                break;
+            }
         }
     }
 
@@ -343,49 +358,20 @@ void ExcelParserByOfficeRunnable::generateTplXls(SourceExcelData *sourceExcelDat
     sourceExcelData->setTplXlsPath(xlsName);
 }
 
-void ExcelParserByOfficeRunnable::generateTplXls(SourceExcelData *sourceExcelData, int selectedSheetIndex) {
-    QString xlsName;
-    xlsName.append(sourceExcelData->getSavePath()).append(QDir::separator()).append("sourceTplXlsx.xlsx");
-    copyFileToPath(sourceExcelData->getSourcePath(), xlsName, true);
-
-    CoInitializeEx(nullptr, COINIT_MULTITHREADED);
-    QAxObject *excel = new QAxObject("Excel.Application");  //连接Excel控件
-    excel->dynamicCall("SetVisible (bool Visible)", false); //不显示窗体
-    excel->setProperty("DisplayAlerts", false); //不显示任何警告信息。如果为true那么在关闭是会出现类似“文件已修改，是否保存”的提示
-    excel->setProperty("EnableEvents", false); //没有这个 很容易报错  QAxBase: Error calling IDispatch member Open: Unknown error
-
-    qDebug() << "ExcelParserByOfficeRunnable::generateTplXls:: with SourceExcelData: xlsName=" << xlsName;
-
-    QAxObject *workbooks = excel->querySubObject("WorkBooks"); //获取工作簿集合
-    QAxObject *workbook = workbooks->querySubObject("Open(const QString&, QVariant)", xlsName, 0);
-    int sourceWorkSheetCnt = sourceExcelData->getSheetCnt();
-    for (int i = 1; i <= sourceWorkSheetCnt; i++) {
-        QAxObject *currentWorkSheet = workbook->querySubObject("WorkSheets(int)", i); // Sheets(int)也可换用Worksheets(int)
-        QString currentWorkSheetName = currentWorkSheet->property("Name").toString(); //获取工作表名称
-        if (i != selectedSheetIndex) {                                                //删除sheet
-            currentWorkSheet->dynamicCall("Delete()");
+void ExcelParserByOfficeRunnable::deleteSheet(QAxObject *workbook, QString selectedSheetName, int sourceWorkSheetCnt){
+    if (sourceWorkSheetCnt> 1) {
+        for (int i = 1; i <= sourceWorkSheetCnt; i++) {
+            QAxObject *currentWorkSheet = workbook->querySubObject("WorkSheets(int)", i);
+            QString currentWorkSheetName = currentWorkSheet->property("Name").toString(); //获取工作表名称
+            if (currentWorkSheetName != selectedSheetName) {                              //删除sheet
+                qDebug() << "ExcelParserByOfficeRunnable::deleteSheet sheetName=" << currentWorkSheetName << "\r\n";
+                sourceWorkSheetCnt--;
+                currentWorkSheet->dynamicCall("Delete()");
+                break;
+            }
         }
+        ExcelParserByOfficeRunnable::deleteSheet(workbook,selectedSheetName,sourceWorkSheetCnt);
     }
-
-    //排序
-    //    QString groupByFieldNum;
-    //    ExcelBase::convertToColName(sourceExcelData->getGroupByIndex() + 1, groupByFieldNum);
-    //    QString rangFormat = "Range(A1:%1%2)";
-    //    QString rang = rangFormat.arg(sourceExcelData->getSourceMaxAlphabetCol()).arg(sourceExcelData->getSourceRowCnt());
-    //    QString sortFieldFormat = "Range(%1%2)";
-    //    QString sortField = sortFieldFormat.arg(groupByFieldNum).arg("1");
-    //    qDebug() << "rang:" << rang << "      sortField:" << sortField << " abcol:" << sourceExcelData->getSourceMaxAlphabetCol()
-    //             << " col:" << sourceExcelData->getSourceColCnt();
-    //    QAxObject *currentWorkSheet = workbook->querySubObject("WorkSheets(int)", selectedSheetIndex); // Sheets(int)也可换用Worksheets(int)
-    //    currentWorkSheet->querySubObject(rang.toUtf8())
-    //    ->dynamicCall("Sort(Key1:=QAxObject*,int)", currentWorkSheet->querySubObject(sortField.toUtf8())->asVariant(), 2);
-
-    workbook->dynamicCall("Save()");
-    workbook->dynamicCall("Close()");  //关闭工作簿
-    workbooks->dynamicCall("Close()"); //关闭工作簿
-    // CoUninitialize();
-    ExcelParserByOfficeRunnable::freeExcel(excel);
-    sourceExcelData->setTplXlsPath(xlsName);
 }
 
 void ExcelParserByOfficeRunnable::generateTplXls() {
